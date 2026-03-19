@@ -75,6 +75,17 @@ export function startBot(): void {
   process.once('SIGTERM', () => bot?.stop('SIGTERM'));
 }
 
+export async function sendAlert(message: string): Promise<void> {
+  if (!token || !chatId) {
+    console.warn(`[ALERT] ${message}`);
+    return;
+  }
+  const sender = new Telegraf(token);
+  await sender.telegram.sendMessage(chatId, `⚠️ *Atomic Authority Alert*\n\n${message}`, {
+    parse_mode: 'Markdown',
+  });
+}
+
 export async function notifyTelegram(post: PendingPost): Promise<void> {
   if (!token || !chatId) {
     console.log('\n--- TELEGRAM NOTIFICATION (not configured) ---');

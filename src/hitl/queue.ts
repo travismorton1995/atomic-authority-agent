@@ -111,7 +111,9 @@ export function markPublished(id: string): PendingPost | null {
 
   post.status = 'published';
   post.publishedAt = publishedAt;
-  writeFile(PENDING_FILE, posts);
+
+  // Remove from pending — it's fully archived in history
+  writeFile(PENDING_FILE, posts.filter(p => p.id !== id));
 
   // Sync updated status back into history
   const history = readFile<PendingPost[]>(HISTORY_FILE, []);

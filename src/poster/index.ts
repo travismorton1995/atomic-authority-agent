@@ -19,6 +19,32 @@ export interface PostOptions {
   forceHeaded?: boolean; // override LINKEDIN_HEADLESS — always show browser
 }
 
+// Silently checks whether the saved LinkedIn session is still valid.
+// Returns true if the session is active, false if login is required.
+export async function pingSession(): Promise<boolean> {
+  const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    headless: true,
+    locale: 'en-US',
+  });
+
+  const page = context.pages()[0] ?? await context.newPage();
+
+  try {
+    await page.goto(LINKEDIN_FEED, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const url = page.url();
+    const expired =
+      url.includes('/login') ||
+      url.includes('/authwall') ||
+      url.includes('/checkpoint') ||
+      await page.locator('input[name="session_key"]').isVisible({ timeout: 2000 }).catch(() => false);
+    return !expired;
+  } catch {
+    return false;
+  } finally {
+    await context.close();
+  }
+}
+
 export async function postToLinkedIn(content: string, options: PostOptions = {}): Promise<void> {
   const headless = options.forceHeaded ? false : process.env.LINKEDIN_HEADLESS === 'true';
 
