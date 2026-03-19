@@ -23,6 +23,12 @@ CRINGE TRIGGERS (flag any of these):
 - Tone: Breathless enthusiasm with no substance, vague optimism without a specific claim
 - Missing: No industry-specific terminology (ALARA, SMR, CANDU, etc.), or the nuclear angle feels bolted on
 
+HOOK QUALITY (evaluate the opening line specifically):
+- A strong hook makes a specific, surprising, or tension-creating claim in the first sentence. It earns the scroll.
+- A weak hook: starts with "I" followed by a generic statement, opens with "In [year]...", opens with a definition, or restates the article headline without adding a perspective.
+- If the hook is weak, the cringe score should reflect it (bump by at least 2 points) and the revised version must open with a stronger line.
+- Strong hook patterns: a counterintuitive fact, a specific number or date that signals something changed, a short declarative that creates tension, or dropping the reader directly into the implication of the news.
+
 Also review the FIRST COMMENT separately. Apply the same cringe standards — it should sound like a natural follow-up thought from a real person, not a polished add-on. Always preserve the URL at the end unchanged.
 
 FORMATTING RULE (applies to both post and comment): Never use em dashes (—). Replace with a comma, period, or rewrite the sentence.
@@ -30,7 +36,7 @@ FORMATTING RULE (applies to both post and comment): Never use em dashes (—). R
 Respond ONLY in this exact JSON format:
 {
   "cringeScore": <number 1-10>,
-  "reasoning": "<one or two sentences explaining the score>",
+  "reasoning": "<one or two sentences explaining the score, calling out hook quality specifically if it is weak>",
   "revisedContent": <null if score <= 3, otherwise a rewritten version of the post as a string>,
   "revisedFirstComment": <null if the comment is clean, otherwise a revised version preserving the URL at the end>
 }`;
