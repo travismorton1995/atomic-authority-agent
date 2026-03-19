@@ -64,26 +64,32 @@ set LINKEDIN_HEADLESS=false && npm run scheduler
 
 Once authenticated, set `LINKEDIN_HEADLESS=true` in your `.env` for background operation.
 
-#### 5. Run persistently
+#### 5. Run persistently (hidden background process)
 
-Use [pm2](https://pm2.keymetrics.io/) to keep the scheduler running in the background:
+Use the included VBScript to run the scheduler silently with no visible terminal window:
 
 ```bash
-npm install -g pm2
-pm2 start ecosystem.config.cjs
-pm2 save
+wscript run-hidden.vbs
 ```
 
-To auto-start on login, pm2 startup doesn't support Windows natively. Instead, create a file at:
-`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\pm2-atomic-authority.bat`
+To auto-start on every login, create a file at:
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\atomic-authority.bat`
 
 With the contents:
 ```bat
 @echo off
-pm2 resurrect
+wscript "C:\dev\atomic-authority-agent\run-hidden.vbs"
 ```
 
-This runs on every login and restores the scheduler automatically. Locking the PC does not stop pm2 — only sleep/hibernate does, and pm2 will resurrect on the next login.
+To check if the scheduler is running:
+```bash
+tasklist | findstr node
+```
+
+To stop it, find the node PID from tasklist and run:
+```bash
+taskkill /PID <pid> /F
+```
 
 ---
 

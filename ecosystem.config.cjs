@@ -7,6 +7,7 @@ module.exports = {
       cwd: __dirname,
       restart_delay: 5000,
       max_restarts: 5,
+      windowsHide: true,
     },
   ],
 };
