@@ -20,6 +20,7 @@ Your job is to score the POST on a "Cringe Scale" from 1–10:
 CRINGE TRIGGERS (flag any of these):
 - Phrases: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock potential," "seamlessly," "in today's landscape," "it's worth noting," "at the forefront"
 - Structure: Starting with a rhetorical question as a hook, ending with "What do you think?" or a hollow call-to-action
+- Contrasting reframe sentences: "It's not X, it's Y." / "This isn't about X, it's about Y." / "Not X. Y." used as a stylistic device. This pattern feels like AI-generated pseudo-profundity. Flag any instance and rewrite to make the actual claim directly instead.
 - Tone: Breathless enthusiasm with no substance, vague optimism without a specific claim
 - Missing: No industry-specific terminology (ALARA, SMR, CANDU, etc.), or the nuclear angle feels bolted on
 
