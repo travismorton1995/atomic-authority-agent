@@ -15,6 +15,7 @@ export interface PendingPost {
   actedAt?: string;
   scheduledFor?: string;  // ISO timestamp — when the scheduler will post this
   publishedAt?: string;   // ISO timestamp — set after successful LinkedIn post
+  publishFailures?: number; // consecutive publish attempt failures
 }
 
 function readFile<T>(path: string, fallback: T): T {
@@ -146,6 +147,15 @@ export function markPublished(id: string): PendingPost | null {
   }
 
   return post;
+}
+
+export function incrementPublishFailures(id: string): number {
+  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const post = posts.find(p => p.id === id);
+  if (!post) return 0;
+  post.publishFailures = (post.publishFailures ?? 0) + 1;
+  writeFile(PENDING_FILE, posts);
+  return post.publishFailures;
 }
 
 export function rejectPost(id: string): PendingPost | null {

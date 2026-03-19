@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import cron from 'node-cron';
-import { getPostsDueForPublishing, markPublished } from '../hitl/queue.js';
+import { getPostsDueForPublishing, markPublished, incrementPublishFailures } from '../hitl/queue.js';
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
 import { startBot, sendAlert, setOnRejectHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
@@ -48,6 +48,14 @@ async function publishDuePosts() {
         break;
       }
       console.error(`Failed to publish post ${post.id}:`, err);
+      const failures = incrementPublishFailures(post.id);
+      if (failures >= 3) {
+        await sendAlert(
+          `Post "${post.draft.sourceTitle}" has failed to publish ${failures} times in a row.\n\n` +
+          `Error: ${(err as any)?.message ?? String(err)}\n\n` +
+          `Run \`npm run post-now\` to retry manually.`
+        );
+      }
     }
   }
 }

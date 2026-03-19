@@ -26,12 +26,15 @@ SCORE HIGH (7–10) if the article:
 - Has a Canadian or North American angle (CNSC, NRC, Ontario, Bruce Power, CNL, SMRs in Canada)
 - Involves regulation, safety culture, or major industry decisions with AI implications
 - Has a clear contrarian or surprising angle
-- Is recent and timely
+- Is 0–3 days old (breaking or very fresh news)
 
 SCORE LOW (1–4) if the article:
 - Is purely operational with no AI angle and no broader insight potential
 - Is too generic or international with no relevance to the persona's niche
 - Covers a topic already recently posted about (check the recent history provided)
+- Is 14+ days old unless the topic is evergreen or uniquely relevant
+
+FRESHNESS GUIDANCE: Each article includes its age in days. Prefer articles under 7 days old. An article 0–1 days old that is moderately relevant should outscore a 10-day-old article that is highly relevant. Timeliness matters for LinkedIn engagement.
 
 Respond ONLY in this exact JSON format — an array, one entry per article, in the same order as input:
 [
@@ -62,9 +65,14 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
     return [];
   }
 
-  const articleList = eligible.map((item, i) =>
-    `${i + 1}. [${item.source}] ${item.title}\n   ${item.summary?.slice(0, 200) ?? ''}`.trim()
-  ).join('\n\n');
+  const now = Date.now();
+  const articleList = eligible.map((item, i) => {
+    const ageDays = item.pubDate
+      ? Math.floor((now - new Date(item.pubDate).getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    const ageLabel = ageDays === null ? 'age unknown' : ageDays === 0 ? 'today' : `${ageDays}d old`;
+    return `${i + 1}. [${item.source}] [${ageLabel}] ${item.title}\n   ${item.summary?.slice(0, 200) ?? ''}`.trim();
+  }).join('\n\n');
 
   const historyNote = context.recentTitles.length > 0
     ? `\nRECENTLY POSTED (avoid repeating these topics):\n${context.recentTitles.map(t => `- ${t}`).join('\n')}`
