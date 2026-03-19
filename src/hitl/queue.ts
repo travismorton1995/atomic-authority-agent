@@ -158,6 +158,18 @@ export function incrementPublishFailures(id: string): number {
   return post.publishFailures;
 }
 
+export function cleanupRejectedPosts(olderThanDays = 90): number {
+  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000).toISOString();
+  const trimmed = posts.filter(p => !(p.status === 'rejected' && p.actedAt != null && p.actedAt < cutoff));
+  const removed = posts.length - trimmed.length;
+  if (removed > 0) {
+    writeFile(PENDING_FILE, trimmed);
+    console.log(`Cleaned up ${removed} rejected post(s) older than ${olderThanDays} days.`);
+  }
+  return removed;
+}
+
 export function rejectPost(id: string): PendingPost | null {
   const posts = readFile<PendingPost[]>(PENDING_FILE, []);
   const post = posts.find(p => p.id === id);

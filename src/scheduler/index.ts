@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import cron from 'node-cron';
-import { getPostsDueForPublishing, markPublished, incrementPublishFailures } from '../hitl/queue.js';
+import { getPostsDueForPublishing, markPublished, incrementPublishFailures, cleanupRejectedPosts } from '../hitl/queue.js';
 import { readFileSync, existsSync } from 'fs';
 
 function alreadyPostedToday(): boolean {
@@ -93,6 +93,7 @@ cron.schedule('* * * * *', async () => {
 // Daily session ping at 8am ET — alerts via Telegram if login is required
 cron.schedule('0 8 * * *', async () => {
   console.log('Running daily LinkedIn session check...');
+  cleanupRejectedPosts(90);
   const valid = await pingSession();
   if (!valid) {
     console.warn('LinkedIn session expired — sending Telegram alert.');
