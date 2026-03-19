@@ -1,57 +1,63 @@
-type Window = { hour: number; minuteMin: number; minuteMax: number };
+// Day-specific posting windows (Eastern time)
+// Generation runs Mon/Tue/Wed evenings → posts go out Tue/Wed/Thu mornings
+// 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
 
-export const WINDOWS: Window[] = [
-  { hour: 7, minuteMin: 30, minuteMax: 59 },
-  { hour: 12, minuteMin: 0, minuteMax: 59 },
-  { hour: 17, minuteMin: 0, minuteMax: 89 },
-];
-
-export function pickPostTime(): { hour: number; minute: number } {
-  const window = WINDOWS[Math.floor(Math.random() * WINDOWS.length)];
-  const minuteOffset = Math.floor(Math.random() * (window.minuteMax - window.minuteMin + 1)) + window.minuteMin;
-  const totalMinutes = window.hour * 60 + minuteOffset;
-  return { hour: Math.floor(totalMinutes / 60), minute: totalMinutes % 60 };
+interface DayWindow {
+  startHour: number;
+  startMinute: number;
+  endHour: number;
+  endMinute: number;
 }
 
-const MIN_BUFFER_MINUTES = 60; // must be at least this far in the future
+// Primary morning windows per posting day
+const DAY_WINDOWS: Record<number, DayWindow> = {
+  2: { startHour: 8,  startMinute: 30, endHour: 10, endMinute: 45 }, // Tuesday
+  3: { startHour: 9,  startMinute: 15, endHour: 11, endMinute: 30 }, // Wednesday
+  4: { startHour: 10, startMinute: 0,  endHour: 13, endMinute: 0  }, // Thursday
+};
 
-function nextWeekday(date: Date): Date {
-  const d = new Date(date);
+// Secondary afternoon window — good for contrarian/discussion posts
+const AFTERNOON_WINDOW: DayWindow = { startHour: 14, startMinute: 0, endHour: 15, endMinute: 30 };
+
+// Days we post on (Tue/Wed/Thu)
+const POSTING_DAYS = [2, 3, 4];
+
+function pickTimeInWindow(w: DayWindow): { hour: number; minute: number } {
+  const startTotal = w.startHour * 60 + w.startMinute;
+  const endTotal = w.endHour * 60 + w.endMinute;
+  const picked = startTotal + Math.floor(Math.random() * (endTotal - startTotal));
+  return { hour: Math.floor(picked / 60), minute: picked % 60 };
+}
+
+// Legacy export — used by scheduler for generation time reference
+export function pickPostTime(): { hour: number; minute: number } {
+  const windows = Object.values(DAY_WINDOWS);
+  const w = windows[Math.floor(Math.random() * windows.length)];
+  return pickTimeInWindow(w);
+}
+
+function nextPostingDay(fromDate: Date): Date {
+  const d = new Date(fromDate);
   d.setDate(d.getDate() + 1);
-  const day = d.getDay();
-  if (day === 0) d.setDate(d.getDate() + 1); // Sun → Mon
-  if (day === 6) d.setDate(d.getDate() + 2); // Sat → Mon
+  // Advance until we land on a posting day (Tue/Wed/Thu)
+  while (!POSTING_DAYS.includes(d.getDay())) {
+    d.setDate(d.getDate() + 1);
+  }
   return d;
 }
 
-// Returns the next available posting slot as an ISO timestamp (Eastern time).
-// Only picks from windows that are at least MIN_BUFFER_MINUTES in the future.
-// If no windows remain today, picks from tomorrow (or Monday if weekend).
+// Returns the next posting slot as an ISO timestamp (Eastern time).
+// Always targets the NEXT posting day (Tue/Wed/Thu) — approval happens the evening before.
+// Picks from that day's specific window. Falls back to the afternoon window ~20% of the time.
 export function pickScheduledTime(): string {
   const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
-  const bufferMs = MIN_BUFFER_MINUTES * 60 * 1000;
+  const target = nextPostingDay(nowET);
+  const dayOfWeek = target.getDay();
 
-  // Build candidate times for today from eligible windows
-  const todayCandidates: Date[] = [];
-  for (const w of WINDOWS) {
-    const minuteOffset = Math.floor(Math.random() * (w.minuteMax - w.minuteMin + 1)) + w.minuteMin;
-    const totalMinutes = w.hour * 60 + minuteOffset;
-    const candidate = new Date(nowET);
-    candidate.setHours(Math.floor(totalMinutes / 60), totalMinutes % 60, 0, 0);
-    if (candidate.getTime() - nowET.getTime() >= bufferMs) {
-      todayCandidates.push(candidate);
-    }
-  }
+  const useAfternoon = Math.random() < 0.2;
+  const window = useAfternoon ? AFTERNOON_WINDOW : (DAY_WINDOWS[dayOfWeek] ?? DAY_WINDOWS[2]);
+  const { hour, minute } = pickTimeInWindow(window);
 
-  if (todayCandidates.length > 0) {
-    // Pick randomly from eligible windows today
-    const picked = todayCandidates[Math.floor(Math.random() * todayCandidates.length)];
-    return picked.toISOString();
-  }
-
-  // No windows left today — pick any window on the next weekday
-  const tomorrow = nextWeekday(nowET);
-  const { hour, minute } = pickPostTime();
-  tomorrow.setHours(hour, minute, 0, 0);
-  return tomorrow.toISOString();
+  target.setHours(hour, minute, 0, 0);
+  return target.toISOString();
 }

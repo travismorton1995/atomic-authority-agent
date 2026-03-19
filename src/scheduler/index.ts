@@ -37,8 +37,8 @@ async function publishDuePosts() {
 console.log('Atomic Authority scheduler starting...');
 startBot();
 
-// Generate a draft every weekday at 8:30am ET
-cron.schedule('30 8 * * 1-5', async () => {
+// Generate a draft at 7pm Mon/Tue/Wed ET — approve that evening, posts next morning (Tue/Wed/Thu)
+cron.schedule('0 19 * * 1,2,3', async () => {
   await runGenerate();
 }, { timezone: 'America/Toronto' });
 
