@@ -147,7 +147,7 @@ Follow the printed command from `pm2 startup` to enable auto-start on reboot.
 npm run scheduler
 ```
 
-Runs continuously. Generates a draft at a randomised time each weekday and publishes approved posts automatically.
+Runs continuously. Generates a draft at 7:00pm ET on Monday, Tuesday, and Wednesday. Publishes approved posts automatically at a randomised time within the next optimal LinkedIn window.
 
 ### Generate a draft manually
 
