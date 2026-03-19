@@ -9,7 +9,8 @@
     "generate": "tsx src/cli/generate.ts",
     "approve": "tsx src/cli/approve.ts",
     "reject": "tsx src/cli/reject.ts",
-    "scheduler": "tsx src/scheduler/index.ts"
+    "scheduler": "tsx src/scheduler/index.ts",
+    "post-now": "tsx src/cli/post-now.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

@@ -15,8 +15,12 @@ export class LinkedInSessionExpiredError extends Error {
   }
 }
 
-export async function postToLinkedIn(content: string): Promise<void> {
-  const headless = process.env.LINKEDIN_HEADLESS === 'true';
+export interface PostOptions {
+  forceHeaded?: boolean; // override LINKEDIN_HEADLESS — always show browser
+}
+
+export async function postToLinkedIn(content: string, options: PostOptions = {}): Promise<void> {
+  const headless = options.forceHeaded ? false : process.env.LINKEDIN_HEADLESS === 'true';
 
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     headless,
@@ -29,7 +33,7 @@ export async function postToLinkedIn(content: string): Promise<void> {
 
   try {
     // Navigate to LinkedIn feed
-    await page.goto(LINKEDIN_FEED, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(LINKEDIN_FEED, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
     // Detect session expiry — login wall or authwall
     const currentUrl = page.url();
@@ -39,21 +43,31 @@ export async function postToLinkedIn(content: string): Promise<void> {
       currentUrl.includes('/checkpoint') ||
       await page.locator('input[name="session_key"]').isVisible({ timeout: 3000 }).catch(() => false)
     ) {
-      throw new LinkedInSessionExpiredError();
+      if (!headless) {
+        console.log('LinkedIn login required. Please log in in the browser window.');
+        console.log('Waiting up to 3 minutes for you to complete login...');
+        await page.waitForURL('**/feed/**', { timeout: 180000 });
+      } else {
+        throw new LinkedInSessionExpiredError();
+      }
     }
+
+    // Wait for feed to fully settle before interacting
+    await page.waitForTimeout(2000);
 
     // Click "Start a post"
     const startPostBtn = page.locator('[aria-label="Start a post"]').first();
-    await startPostBtn.waitFor({ state: 'visible', timeout: 15000 });
+    await startPostBtn.waitFor({ state: 'visible', timeout: 20000 });
     await startPostBtn.click();
 
     // Wait for the composer modal
-    const modal = page.locator('[role="dialog"]');
-    await modal.waitFor({ state: 'visible', timeout: 10000 });
+    const modal = page.locator('[role="dialog"]').first();
+    await modal.waitFor({ state: 'visible', timeout: 15000 });
+    await page.waitForTimeout(1000);
 
-    // Click into the contenteditable text area and type content
-    const textArea = modal.locator('div[role="textbox"]').first();
-    await textArea.waitFor({ state: 'visible', timeout: 10000 });
+    // Click into the contenteditable text area
+    const textArea = page.locator('div[contenteditable="true"], div[role="textbox"], .ql-editor').first();
+    await textArea.waitFor({ state: 'visible', timeout: 15000 });
     await textArea.click();
 
     // Type content — use keyboard to handle newlines correctly
@@ -62,14 +76,13 @@ export async function postToLinkedIn(content: string): Promise<void> {
       await page.keyboard.press('Enter');
     }
 
-    // Brief pause to let LinkedIn process the input
-    await page.waitForTimeout(1000);
+    // Pause to let LinkedIn process the input and enable the Post button
+    await page.waitForTimeout(1500);
 
-    // Click the Post button inside the modal
-    const postBtn = modal.locator('button[aria-label="Post"]');
-    await postBtn.waitFor({ state: 'visible', timeout: 10000 });
+    // Click the Post button — try aria-label first, fall back to text content
+    const postBtn = page.locator('button[aria-label="Post"], button:has-text("Post")').last();
+    await postBtn.waitFor({ state: 'visible', timeout: 15000 });
 
-    // Confirm it's enabled (LinkedIn disables it for empty posts)
     const isDisabled = await postBtn.isDisabled();
     if (isDisabled) {
       throw new Error('Post button is disabled — content may not have been entered correctly.');
@@ -78,7 +91,7 @@ export async function postToLinkedIn(content: string): Promise<void> {
     await postBtn.click();
 
     // Wait for the modal to close — confirmation of successful post
-    await modal.waitFor({ state: 'hidden', timeout: 15000 });
+    await modal.waitFor({ state: 'hidden', timeout: 20000 });
 
     console.log('Successfully posted to LinkedIn.');
   } finally {
