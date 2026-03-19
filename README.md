@@ -66,14 +66,24 @@ Once authenticated, set `LINKEDIN_HEADLESS=true` in your `.env` for background o
 
 #### 5. Run persistently
 
-Use [pm2](https://pm2.keymetrics.io/) to keep the scheduler running in the background and restart it on reboot:
+Use [pm2](https://pm2.keymetrics.io/) to keep the scheduler running in the background:
 
 ```bash
 npm install -g pm2
-pm2 start npm --name "atomic-authority" -- run scheduler
+pm2 start ecosystem.config.cjs
 pm2 save
-pm2 startup
 ```
+
+To auto-start on login, pm2 startup doesn't support Windows natively. Instead, create a file at:
+`%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\pm2-atomic-authority.bat`
+
+With the contents:
+```bat
+@echo off
+pm2 resurrect
+```
+
+This runs on every login and restores the scheduler automatically. Locking the PC does not stop pm2 — only sleep/hibernate does, and pm2 will resurrect on the next login.
 
 ---
 
