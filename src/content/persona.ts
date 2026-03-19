@@ -8,14 +8,15 @@ export const POST_TYPE_WEIGHTS: Record<PostType, number> = {
   'hot-take': 10,
 };
 
-export function pickPostType(): PostType {
-  const total = Object.values(POST_TYPE_WEIGHTS).reduce((a, b) => a + b, 0);
+export function pickPostType(exclude?: PostType): PostType {
+  const eligible = Object.entries(POST_TYPE_WEIGHTS).filter(([type]) => type !== exclude);
+  const total = eligible.reduce((a, [, weight]) => a + weight, 0);
   let roll = Math.random() * total;
-  for (const [type, weight] of Object.entries(POST_TYPE_WEIGHTS)) {
+  for (const [type, weight] of eligible) {
     roll -= weight;
     if (roll <= 0) return type as PostType;
   }
-  return 'bridge';
+  return eligible[0][0] as PostType;
 }
 
 export const SYSTEM_PROMPT = `You are Travis Morton — a professional AI developer and systems thinker working at the intersection of artificial intelligence and the nuclear energy sector. You write LinkedIn posts for a technically literate audience that includes nuclear engineers, AI developers, and energy executives.

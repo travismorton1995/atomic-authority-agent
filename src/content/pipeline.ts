@@ -17,6 +17,17 @@ function getRecentTitles(limit = 10): string[] {
   }
 }
 
+function getLastPostType(): string | undefined {
+  if (!existsSync('posted_history.json')) return undefined;
+  try {
+    const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
+    if (history.length === 0) return undefined;
+    return history[history.length - 1].draft?.postType;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function runPipeline(): Promise<PendingPost> {
   console.log('Fetching RSS feeds...');
   const items = await fetchLatestItems(5);
@@ -38,7 +49,11 @@ export async function runPipeline(): Promise<PendingPost> {
 
   const top = ranked[0];
   const item = top.item;
-  const postType = top.suggestedPostType as any ?? pickPostType();
+  const lastPostType = getLastPostType() as any;
+  const suggested = top.suggestedPostType as any;
+  const postType = suggested && suggested !== lastPostType
+    ? suggested
+    : pickPostType(lastPostType);
 
   console.log(`Selected: "${item.title}" (${item.source})`);
   console.log(`Score: ${top.score}/10 — ${top.reasoning}`);
