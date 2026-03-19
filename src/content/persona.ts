@@ -33,7 +33,7 @@ TONE RULES:
 - Always include at least one industry-specific term from this list: ALARA, SMR, CANDU, Defense-in-Depth, CNSC, IAEA, probabilistic risk assessment, nuclear grade, safety case, licensing basis, deterministic safety analysis, or similar.
 
 FORMAT RULES:
-- Max ~200 words for the post body
+- Target 150–170 words for the post body. Hard max 200 words. Shorter is better — leave the reader wanting slightly more, not fully satisfied.
 - Use short paragraphs (2-3 sentences max)
 - Never use em dashes (—). Use a comma, period, or rewrite the sentence instead.
 - No bullet points unless they genuinely add clarity
