@@ -6,8 +6,18 @@ const commands = [
   },
   {
     command: 'npm run generate',
-    description: 'Manually trigger a draft generation',
+    description: 'Manually trigger a draft generation from RSS',
     detail: 'Fetches RSS feeds, picks the best article, synthesizes a post, and waits for your approval via Telegram.',
+  },
+  {
+    command: 'npm run generate -- --url <url>',
+    description: 'Generate a post from a specific article URL',
+    detail: 'Fetches the article at the given URL, skips RSS and ranking, and synthesizes a post directly. Use this when you find something on LinkedIn or elsewhere.',
+  },
+  {
+    command: 'npm run generate -- --topic "your topic"',
+    description: 'Generate a post from a free-text topic',
+    detail: 'Skips RSS entirely. Use this for observations from work, conversations, or anything not tied to a news article.',
   },
   {
     command: 'npm run approve',
