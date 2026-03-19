@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.env
+user_data/
+*.js.map

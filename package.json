@@ -1,0 +1,27 @@
+{
+  "name": "atomic-authority-agent",
+  "version": "0.1.0",
+  "description": "HITL LinkedIn content engine for the Nuclear/AI niche",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "generate": "tsx src/cli/generate.ts",
+    "approve": "tsx src/cli/approve.ts",
+    "reject": "tsx src/cli/reject.ts",
+    "scheduler": "tsx src/scheduler/index.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.0",
+    "node-cron": "^3.0.3",
+    "playwright": "^1.58.2",
+    "rss-parser": "^3.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
