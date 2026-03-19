@@ -45,6 +45,11 @@ const commands = [
     detail: 'Runs tsc. Use this to check for type errors.',
   },
   {
+    command: 'npm run status',
+    description: 'Check if the scheduler is currently running',
+    detail: '',
+  },
+  {
     command: 'npm run help',
     description: 'Show this help message',
     detail: '',
