@@ -4,10 +4,16 @@ import { startBot, waitForAction } from '../hitl/telegram.js';
 
 async function main() {
   startBot();
-  const post = await runPipeline();
-  console.log('Waiting for your approval in Telegram...');
-  await waitForAction(post.id);
-  console.log('Post actioned. Exiting.');
+  let action: 'approved' | 'rejected';
+  do {
+    const post = await runPipeline();
+    console.log('Waiting for your approval in Telegram...');
+    action = await waitForAction(post.id);
+    if (action === 'rejected') {
+      console.log('Post rejected — generating a replacement...');
+    }
+  } while (action === 'rejected');
+  console.log('Post approved. Exiting.');
   process.exit(0);
 }
 

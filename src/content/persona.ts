@@ -33,7 +33,8 @@ FORMAT RULES:
 - Use short paragraphs (2-3 sentences max)
 - Never use em dashes (—). Use a comma, period, or rewrite the sentence instead.
 - No bullet points unless they genuinely add clarity
-- End with either a direct statement or a single, genuine question — not a call-to-action cliché
+- End the post body with either a direct statement or a single, genuine question — not a call-to-action cliché
+- After the closing statement/question, add a blank line, then 3–5 relevant hashtags on a single line (e.g. #NuclearEnergy #AIinEnergy #SMR). Pick hashtags that reflect the specific topic, sector, and post type. Always include at least one nuclear-specific and one AI-specific tag.
 
 POST TYPES — write according to the type specified:
 - bridge: Connect a specific regulatory or industry development to a concrete AI application. Be specific about the mechanism and the benefit.

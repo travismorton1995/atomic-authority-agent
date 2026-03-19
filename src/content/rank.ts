@@ -45,14 +45,17 @@ Respond ONLY in this exact JSON format — an array, one entry per article, in t
 export interface RankContext {
   recentTitles: string[];
   excludedTitles: string[];
+  excludedUrls: string[];
   rejectedSources: Array<{ title: string; usedPostType: string }>;
 }
 
 export async function rankItems(items: FeedItem[], context: RankContext): Promise<RankedItem[]> {
-  // Hard-filter items that are pending or approved — don't even send to ranker
-  const eligible = items.filter(item =>
-    !context.excludedTitles.some(t => t.toLowerCase() === item.title.toLowerCase())
-  );
+  // Hard-filter items already pending, approved, or previously posted — by URL first, then title
+  const eligible = items.filter(item => {
+    if (item.link && context.excludedUrls.includes(item.link)) return false;
+    if (context.excludedTitles.some(t => t.toLowerCase() === item.title.toLowerCase())) return false;
+    return true;
+  });
 
   if (eligible.length === 0) {
     console.log('All fetched articles are already pending or approved. Nothing to rank.');

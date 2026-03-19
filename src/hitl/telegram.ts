@@ -9,12 +9,19 @@ const chatId = process.env.TELEGRAM_CHAT_ID;
 let bot: Telegraf | null = null;
 
 // Resolvers registered by waitForAction — called when a post is approved or rejected
-const pendingResolutions = new Map<string, () => void>();
+const pendingResolutions = new Map<string, (action: 'approved' | 'rejected') => void>();
 
-export function waitForAction(postId: string): Promise<void> {
+export function waitForAction(postId: string): Promise<'approved' | 'rejected'> {
   return new Promise((resolve) => {
     pendingResolutions.set(postId, resolve);
   });
+}
+
+// Optional handler called after a rejection — used by scheduler to auto-regenerate
+let onRejectHandler: (() => Promise<void>) | null = null;
+
+export function setOnRejectHandler(handler: () => Promise<void>): void {
+  onRejectHandler = handler;
 }
 
 export function startBot(): void {
@@ -50,7 +57,7 @@ export function startBot(): void {
       await ctx.answerCbQuery('Approved!');
       await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
       await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
-      pendingResolutions.get(id)?.();
+      pendingResolutions.get(id)?.('approved');
       pendingResolutions.delete(id);
     }
 
@@ -62,9 +69,18 @@ export function startBot(): void {
       }
       await ctx.answerCbQuery('Rejected.');
       await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-      await ctx.reply(`Post rejected.`);
-      pendingResolutions.get(id)?.();
+      pendingResolutions.get(id)?.('rejected');
       pendingResolutions.delete(id);
+
+      if (onRejectHandler) {
+        await ctx.reply('Post rejected. Generating a replacement...');
+        onRejectHandler().catch(err => {
+          console.error('Failed to generate replacement after rejection:', err);
+          ctx.reply('Failed to generate a replacement. Check the logs.').catch(() => {});
+        });
+      } else {
+        await ctx.reply('Post rejected.');
+      }
     }
   });
 
@@ -112,9 +128,13 @@ function formatMessage(post: PendingPost): string {
     ? `Cringe: ${post.screening.cringeScore}/10 — auto-revised`
     : `Cringe: ${post.screening.cringeScore}/10 — clean`;
 
+  const commentSection = post.draft.firstComment
+    ? `\n\n*First comment:*\n${post.draft.firstComment}`
+    : '';
+
   return `*New draft ready* | ${post.draft.postType} | ${cringeNote}
 
 *Source:* ${post.draft.sourceTitle}
 
-${post.finalContent}`;
+${post.finalContent}${commentSection}`;
 }

@@ -2,15 +2,33 @@ import 'dotenv/config';
 import cron from 'node-cron';
 import { getPostsDueForPublishing, markPublished } from '../hitl/queue.js';
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
-import { startBot, sendAlert } from '../hitl/telegram.js';
+import { startBot, sendAlert, setOnRejectHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
+
+const GENERATE_RETRY_DELAY_MS = 10 * 60 * 1000; // 10 minutes
+const GENERATE_MAX_RETRIES = 3;
 
 async function runGenerate() {
   console.log('Scheduler triggered — running pipeline...');
-  try {
-    await runPipeline();
-  } catch (err) {
-    console.error('Generate failed:', err);
+  for (let attempt = 1; attempt <= GENERATE_MAX_RETRIES; attempt++) {
+    try {
+      await runPipeline();
+      return;
+    } catch (err: any) {
+      const isOverloaded = err?.status === 529 || err?.error?.error?.type === 'overloaded_error';
+      if (isOverloaded && attempt < GENERATE_MAX_RETRIES) {
+        console.warn(`Anthropic API overloaded (attempt ${attempt}/${GENERATE_MAX_RETRIES}) — retrying in 10 minutes...`);
+        await new Promise(resolve => setTimeout(resolve, GENERATE_RETRY_DELAY_MS));
+      } else {
+        console.error(`Generate failed (attempt ${attempt}/${GENERATE_MAX_RETRIES}):`, err);
+        await sendAlert(
+          `Pipeline failed after ${GENERATE_MAX_RETRIES} attempts.\n\n` +
+          `Error: ${err?.message ?? String(err)}\n\n` +
+          `Run \`npm run generate\` manually to retry.`
+        );
+        return;
+      }
+    }
   }
 }
 
@@ -21,7 +39,7 @@ async function publishDuePosts() {
   for (const post of due) {
     console.log(`Publishing post ${post.id} — "${post.draft.sourceTitle}"`);
     try {
-      await postToLinkedIn(post.finalContent);
+      await postToLinkedIn(post.finalContent, { firstComment: post.draft.firstComment });
       markPublished(post.id);
       console.log(`Post ${post.id} marked as published.`);
     } catch (err) {
@@ -36,6 +54,7 @@ async function publishDuePosts() {
 
 console.log('Atomic Authority scheduler starting...');
 startBot();
+setOnRejectHandler(runGenerate);
 
 // Generate a draft at 7pm Mon/Tue/Wed ET — approve that evening, posts next morning (Tue/Wed/Thu)
 cron.schedule('0 19 * * 1,2,3', async () => {

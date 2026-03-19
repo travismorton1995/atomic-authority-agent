@@ -42,6 +42,12 @@ export function addPendingPost(draft: DraftPost, screening: ScreeningResult): Pe
     : draft.content;
   const finalContent = sanitize(rawContent);
 
+  // Apply screening revision and em dash sanitization to firstComment
+  if (draft.firstComment) {
+    const rawComment = screening.revisedFirstComment ?? draft.firstComment;
+    draft.firstComment = sanitize(rawComment);
+  }
+
   const post: PendingPost = {
     id: `post_${Date.now()}`,
     draft,
@@ -62,20 +68,35 @@ export function getPendingPosts(): PendingPost[] {
 
 export interface SourceHistory {
   excludedTitles: string[];
+  excludedUrls: string[];
   rejectedSources: Array<{ title: string; usedPostType: string }>;
 }
 
 export function getSourceHistory(): SourceHistory {
   const posts = readFile<PendingPost[]>(PENDING_FILE, []);
-  const excludedTitles = posts
-    .filter(p => p.status === 'pending' || p.status === 'approved')
-    .map(p => p.draft.sourceTitle)
-    .filter(Boolean);
+
+  // Hard-exclude: pending or approved posts (not yet published)
+  const activePosts = posts.filter(p => p.status === 'pending' || p.status === 'approved');
+  const excludedTitles = activePosts.map(p => p.draft.sourceTitle).filter(Boolean);
+  const excludedUrls = activePosts.map(p => p.draft.sourceUrl).filter(Boolean);
+
+  // Also hard-exclude all URLs from posted history (no lookback limit)
+  const history = readFile<PendingPost[]>(HISTORY_FILE, []);
+  const postedUrls = history.map(p => p.draft.sourceUrl).filter(Boolean);
+  for (const url of postedUrls) {
+    if (!excludedUrls.includes(url)) excludedUrls.push(url);
+  }
+  const postedTitles = history.map(p => p.draft.sourceTitle).filter(Boolean);
+  for (const title of postedTitles) {
+    if (!excludedTitles.includes(title)) excludedTitles.push(title);
+  }
+
   const rejectedSources = posts
     .filter(p => p.status === 'rejected')
     .map(p => ({ title: p.draft.sourceTitle, usedPostType: p.draft.postType }))
     .filter(s => s.title);
-  return { excludedTitles, rejectedSources };
+
+  return { excludedTitles, excludedUrls, rejectedSources };
 }
 
 export function approvePost(id: string, scheduledFor: string): PendingPost | null {

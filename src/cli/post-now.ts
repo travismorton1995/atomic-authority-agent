@@ -33,7 +33,7 @@ async function main() {
   console.log('Opening browser...\n');
 
   try {
-    await postToLinkedIn(post.finalContent, { forceHeaded: true });
+    await postToLinkedIn(post.finalContent, { forceHeaded: true, firstComment: post.draft.firstComment });
     markPublished(post.id);
     console.log(`Done. Post ${post.id} marked as published.`);
   } catch (err) {

@@ -17,6 +17,7 @@ export class LinkedInSessionExpiredError extends Error {
 
 export interface PostOptions {
   forceHeaded?: boolean; // override LINKEDIN_HEADLESS — always show browser
+  firstComment?: string; // posted as first comment immediately after publishing
 }
 
 // Silently checks whether the saved LinkedIn session is still valid.
@@ -86,14 +87,11 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     await startPostBtn.waitFor({ state: 'visible', timeout: 20000 });
     await startPostBtn.click();
 
-    // Wait for the composer modal
-    const modal = page.locator('[role="dialog"]').first();
-    await modal.waitFor({ state: 'visible', timeout: 15000 });
-    await page.waitForTimeout(1000);
-
-    // Click into the contenteditable text area
-    const textArea = page.locator('div[contenteditable="true"], div[role="textbox"], .ql-editor').first();
-    await textArea.waitFor({ state: 'visible', timeout: 15000 });
+    // Wait for the composer text area — more reliable than waiting for the dialog wrapper,
+    // which has a hidden loader variant that confuses .first()
+    const textArea = page.locator('.share-box-v2__modal div[contenteditable="true"], div[role="textbox"], .ql-editor').first();
+    await textArea.waitFor({ state: 'visible', timeout: 20000 });
+    await page.waitForTimeout(500);
     await textArea.click();
 
     // Type content — use keyboard to handle newlines correctly
@@ -116,11 +114,98 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
 
     await postBtn.click();
 
-    // Wait for the modal to close — confirmation of successful post
-    await modal.waitFor({ state: 'hidden', timeout: 20000 });
+    // Wait for the composer to disappear — text area going hidden confirms the post was submitted
+    await textArea.waitFor({ state: 'hidden', timeout: 20000 });
 
     console.log('Successfully posted to LinkedIn.');
+
+    // Post first comment if provided
+    if (options.firstComment) {
+      await postFirstComment(page, options.firstComment);
+    }
   } finally {
     await context.close();
+  }
+}
+
+async function postFirstComment(page: import('playwright').Page, comment: string): Promise<void> {
+  const profileUrl = process.env.LINKEDIN_PROFILE_URL;
+  if (!profileUrl) {
+    console.warn('LINKEDIN_PROFILE_URL not set — skipping first comment.');
+    return;
+  }
+
+  try {
+    // Navigate to the profile's recent activity page — most recent post is always first
+    const activityUrl = profileUrl.replace(/\/$/, '') + '/recent-activity/all/';
+    console.log('Navigating to activity page for first comment...');
+    await page.goto(activityUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(3000);
+
+    // Find the first post on the activity page
+    const firstPost = page.locator('div[data-urn], div[data-id], article').first();
+    await firstPost.waitFor({ state: 'visible', timeout: 15000 });
+
+    // Scroll into view and hover to reveal the reaction bar / comment area
+    await firstPost.scrollIntoViewIfNeeded();
+    await firstPost.hover();
+    await page.waitForTimeout(1500);
+
+    // LinkedIn reaction buttons use <span class="artdeco-button__text">Comment</span>
+    // Use :has() to target the button containing that span, filtered by text content
+    const commentBtn = firstPost
+      .locator('button:has(span.artdeco-button__text)')
+      .filter({ hasText: 'Comment' })
+      .first();
+
+    await commentBtn.waitFor({ state: 'visible', timeout: 10000 });
+    await commentBtn.click();
+
+    // Input is auto-focused after click — type directly without locating the element
+    await page.waitForTimeout(1500);
+
+    const lines = comment.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      await page.keyboard.type(lines[i], { delay: 10 });
+      if (i < lines.length - 1) {
+        await page.keyboard.press('Shift+Enter'); // newline within comment
+      }
+    }
+
+    await page.waitForTimeout(1000);
+
+    // The submit "Comment" button is inside the comment composer box, NOT the reaction bar.
+    // Scope the search to comment-box containers to avoid clicking reaction bar buttons on other posts.
+    const clicked = await page.evaluate(() => {
+      const composerContainerSelectors = [
+        'div.comments-comment-box',
+        'div.comments-reply-box',
+        'div[class*="comment-box"]',
+        'div[class*="comment-form"]',
+      ];
+
+      for (const sel of composerContainerSelectors) {
+        const composer = document.querySelector(sel);
+        if (!composer) continue;
+        const spans = Array.from(composer.querySelectorAll('span.artdeco-button__text'));
+        const submitSpan = spans.find(s => s.textContent?.trim() === 'Comment');
+        if (submitSpan) {
+          (submitSpan.closest('button') as HTMLButtonElement)?.click();
+          return sel; // return which selector worked
+        }
+      }
+      return null;
+    });
+
+    if (!clicked) {
+      throw new Error('Could not find Comment submit button inside composer container');
+    }
+
+    console.log(`Comment submitted (found via: ${clicked}).`);
+    await page.waitForTimeout(20000); // wait to observe result before browser closes
+    console.log('First comment posted.');
+  } catch (err) {
+    // Non-fatal — post already succeeded
+    console.warn('Failed to post first comment (non-fatal):', err);
   }
 }

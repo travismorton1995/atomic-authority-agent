@@ -24,10 +24,11 @@ export async function runPipeline(): Promise<PendingPost> {
   if (items.length === 0) throw new Error('No feed items found. Check network or feed URLs.');
 
   console.log(`Ranking ${items.length} articles...`);
-  const { excludedTitles, rejectedSources } = getSourceHistory();
+  const { excludedTitles, excludedUrls, rejectedSources } = getSourceHistory();
   const ranked = await rankItems(items, {
     recentTitles: getRecentTitles(),
     excludedTitles,
+    excludedUrls,
     rejectedSources,
   });
 
