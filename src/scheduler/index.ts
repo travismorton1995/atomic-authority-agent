@@ -1,6 +1,18 @@
 import 'dotenv/config';
 import cron from 'node-cron';
 import { getPostsDueForPublishing, markPublished, incrementPublishFailures } from '../hitl/queue.js';
+import { readFileSync, existsSync } from 'fs';
+
+function alreadyPostedToday(): boolean {
+  if (!existsSync('posted_history.json')) return false;
+  try {
+    const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
+    const today = new Date().toDateString();
+    return history.some((p: any) => p.publishedAt && new Date(p.publishedAt).toDateString() === today);
+  } catch {
+    return false;
+  }
+}
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
 import { startBot, sendAlert, setOnRejectHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
@@ -33,6 +45,10 @@ async function runGenerate() {
 }
 
 async function publishDuePosts() {
+  if (alreadyPostedToday()) {
+    return;
+  }
+
   const due = getPostsDueForPublishing();
   if (due.length === 0) return;
 
