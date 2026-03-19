@@ -27,6 +27,7 @@ SCORE HIGH (7–10) if the article:
 - Involves regulation, safety culture, or major industry decisions with AI implications
 - Has a clear contrarian or surprising angle
 - Is 0–3 days old (breaking or very fresh news)
+- Mentions NPX or Nuclear Promise X — treat these as automatic high-priority candidates
 
 SCORE LOW (1–4) if the article:
 - Is purely operational with no AI angle and no broader insight potential

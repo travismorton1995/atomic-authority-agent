@@ -14,6 +14,7 @@ const FEEDS = [
   { url: 'https://api.io.canada.ca/io-server/gc/news/en/v2?dept=canadiannuclearsafetycommission&sort=publishedDate&orderBy=desc&publishedDate%3E=2021-07-23&pick=5&format=atom&atomtitle=Canadian%20Nuclear%20Safety%20Commission', source: 'CNSC' },
   { url: 'https://www.ans.org/news/feed/', source: 'ANS Newswire' },
   { url: 'https://www.iaea.org/feeds/topnews', source: 'IAEA' },
+  { url: 'https://www.brucepower.com/feed/', source: 'Bruce Power' },
 ];
 
 const parser = new Parser();
