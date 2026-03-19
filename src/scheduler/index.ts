@@ -1,38 +1,48 @@
 import 'dotenv/config';
 import cron from 'node-cron';
-import { pickPostTime } from './windows.js';
+import { getPostsDueForPublishing, markPublished } from '../hitl/queue.js';
+import { postToLinkedIn, LinkedInSessionExpiredError } from '../poster/index.js';
+import { startBot } from '../hitl/telegram.js';
+import { runPipeline } from '../content/pipeline.js';
 
-function scheduleTodayGeneration() {
-  const day = new Date().getDay(); // 0=Sun, 6=Sat
-  // Skip weekends (0, 6)
-  if (day === 0 || day === 6) {
-    console.log('Weekend — no post scheduled today.');
-    return;
+async function runGenerate() {
+  console.log('Scheduler triggered — running pipeline...');
+  try {
+    await runPipeline();
+  } catch (err) {
+    console.error('Generate failed:', err);
   }
+}
 
-  const { hour, minute } = pickPostTime();
-  const cronExpr = `${minute} ${hour} * * *`;
-  console.log(`Scheduled generation for today at ${hour}:${String(minute).padStart(2, '0')} ET (cron: ${cronExpr})`);
+async function publishDuePosts() {
+  const due = getPostsDueForPublishing();
+  if (due.length === 0) return;
 
-  cron.schedule(cronExpr, async () => {
-    console.log('Scheduler triggered — running generate...');
-    // Dynamically import to avoid loading dotenv twice
-    const { default: { execSync } } = await import('child_process') as any;
+  for (const post of due) {
+    console.log(`Publishing post ${post.id} — "${post.draft.sourceTitle}"`);
     try {
-      execSync('npm run generate', { stdio: 'inherit' });
+      await postToLinkedIn(post.finalContent);
+      markPublished(post.id);
+      console.log(`Post ${post.id} marked as published.`);
     } catch (err) {
-      console.error('Generate failed:', err);
+      if (err instanceof LinkedInSessionExpiredError) {
+        console.error(err.message);
+        break;
+      }
+      console.error(`Failed to publish post ${post.id}:`, err);
     }
-    // Reschedule for tomorrow
-    scheduleTodayGeneration();
-  }, { timezone: 'America/Toronto' });
+  }
 }
 
 console.log('Atomic Authority scheduler starting...');
-scheduleTodayGeneration();
+startBot();
 
-// Re-schedule at midnight each day
-cron.schedule('0 0 * * *', () => {
-  console.log('Midnight — recalculating post time for today...');
-  scheduleTodayGeneration();
+// Generate a draft every weekday at 8:30am ET
+cron.schedule('30 8 * * 1-5', async () => {
+  await runGenerate();
+}, { timezone: 'America/Toronto' });
+
+// Poll every minute for posts due to be published
+cron.schedule('* * * * *', async () => {
+  await publishDuePosts();
 }, { timezone: 'America/Toronto' });

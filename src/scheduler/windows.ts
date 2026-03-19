@@ -13,27 +13,45 @@ export function pickPostTime(): { hour: number; minute: number } {
   return { hour: Math.floor(totalMinutes / 60), minute: totalMinutes % 60 };
 }
 
+const MIN_BUFFER_MINUTES = 60; // must be at least this far in the future
+
+function nextWeekday(date: Date): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + 1);
+  const day = d.getDay();
+  if (day === 0) d.setDate(d.getDate() + 1); // Sun → Mon
+  if (day === 6) d.setDate(d.getDate() + 2); // Sat → Mon
+  return d;
+}
+
 // Returns the next available posting slot as an ISO timestamp (Eastern time).
-// If today is a weekend, advances to Monday.
+// Only picks from windows that are at least MIN_BUFFER_MINUTES in the future.
+// If no windows remain today, picks from tomorrow (or Monday if weekend).
 export function pickScheduledTime(): string {
-  const now = new Date();
+  const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+  const bufferMs = MIN_BUFFER_MINUTES * 60 * 1000;
 
-  // Determine target date — skip weekends
-  let targetDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
-  const day = targetDate.getDay(); // 0=Sun, 6=Sat
-  if (day === 0) targetDate.setDate(targetDate.getDate() + 1); // Sun → Mon
-  if (day === 6) targetDate.setDate(targetDate.getDate() + 2); // Sat → Mon
-
-  const { hour, minute } = pickPostTime();
-  targetDate.setHours(hour, minute, 0, 0);
-
-  // If the picked time has already passed today, advance to next weekday
-  if (targetDate <= now) {
-    targetDate.setDate(targetDate.getDate() + 1);
-    const nextDay = targetDate.getDay();
-    if (nextDay === 0) targetDate.setDate(targetDate.getDate() + 1);
-    if (nextDay === 6) targetDate.setDate(targetDate.getDate() + 2);
+  // Build candidate times for today from eligible windows
+  const todayCandidates: Date[] = [];
+  for (const w of WINDOWS) {
+    const minuteOffset = Math.floor(Math.random() * (w.minuteMax - w.minuteMin + 1)) + w.minuteMin;
+    const totalMinutes = w.hour * 60 + minuteOffset;
+    const candidate = new Date(nowET);
+    candidate.setHours(Math.floor(totalMinutes / 60), totalMinutes % 60, 0, 0);
+    if (candidate.getTime() - nowET.getTime() >= bufferMs) {
+      todayCandidates.push(candidate);
+    }
   }
 
-  return targetDate.toISOString();
+  if (todayCandidates.length > 0) {
+    // Pick randomly from eligible windows today
+    const picked = todayCandidates[Math.floor(Math.random() * todayCandidates.length)];
+    return picked.toISOString();
+  }
+
+  // No windows left today — pick any window on the next weekday
+  const tomorrow = nextWeekday(nowET);
+  const { hour, minute } = pickPostTime();
+  tomorrow.setHours(hour, minute, 0, 0);
+  return tomorrow.toISOString();
 }
