@@ -1,5 +1,7 @@
 import { chromium, type Page } from 'playwright';
 import path from 'path';
+import { tmpdir } from 'os';
+import { writeFileSync, unlinkSync } from 'fs';
 import { MENTIONS } from './mentions.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
@@ -19,6 +21,28 @@ export class LinkedInSessionExpiredError extends Error {
 export interface PostOptions {
   forceHeaded?: boolean; // override LINKEDIN_HEADLESS — always show browser
   firstComment?: string; // posted as first comment immediately after publishing
+  imageUrl?: string;     // og:image URL — downloaded and attached to the post
+}
+
+async function downloadImageToTemp(imageUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(imageUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AtomicAuthorityBot/1.0)' },
+    });
+    if (!res.ok) return null;
+
+    const contentType = res.headers.get('content-type') ?? '';
+    const ext = contentType.includes('png') ? '.png'
+      : contentType.includes('gif') ? '.gif'
+      : contentType.includes('webp') ? '.webp'
+      : '.jpg';
+
+    const tempPath = path.join(tmpdir(), `atomic-authority-image${ext}`);
+    writeFileSync(tempPath, Buffer.from(await res.arrayBuffer()));
+    return tempPath;
+  } catch {
+    return null;
+  }
 }
 
 // Silently checks whether the saved LinkedIn session is still valid.
@@ -97,6 +121,40 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
 
     // Type content — handle [[MENTION:X]] markers with LinkedIn autocomplete
     await typeContentWithMentions(page, content);
+
+    // Attach image if provided
+    if (options.imageUrl) {
+      const tempPath = await downloadImageToTemp(options.imageUrl);
+      if (tempPath) {
+        try {
+          console.log('Uploading image...');
+          // Click the image/media button in the composer toolbar to trigger the file chooser
+          const mediaBtn = page.locator([
+            'button[aria-label*="Photo"]',
+            'button[aria-label*="photo"]',
+            'button[aria-label*="media"]',
+            'button[aria-label*="Media"]',
+            'button[aria-label*="Image"]',
+          ].join(', ')).first();
+
+          const [fileChooser] = await Promise.all([
+            page.waitForEvent('filechooser', { timeout: 10000 }),
+            mediaBtn.click(),
+          ]);
+          await fileChooser.setFiles(tempPath);
+
+          // Wait for LinkedIn to process and show the image preview
+          await page.waitForTimeout(4000);
+          console.log('Image uploaded.');
+        } catch (err) {
+          console.warn('Image upload failed (non-fatal) — posting text only:', (err as any)?.message);
+        } finally {
+          unlinkSync(tempPath);
+        }
+      } else {
+        console.warn('Failed to download image — posting text only.');
+      }
+    }
 
     // Pause to let LinkedIn process the input and enable the Post button
     await page.waitForTimeout(1500);

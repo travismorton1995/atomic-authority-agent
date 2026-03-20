@@ -60,7 +60,10 @@ async function publishDuePosts() {
   for (const post of due) {
     console.log(`Publishing post ${post.id} — "${post.draft.sourceTitle}"`);
     try {
-      await postToLinkedIn(post.finalContent, { firstComment: post.draft.firstComment });
+      await postToLinkedIn(post.finalContent, {
+        firstComment: post.draft.firstComment,
+        imageUrl: post.draft.imageUrl,
+      });
       markPublished(post.id);
       console.log(`Post ${post.id} marked as published.`);
     } catch (err) {
