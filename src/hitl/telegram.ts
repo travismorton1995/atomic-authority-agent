@@ -38,49 +38,58 @@ export function startBot(): void {
 
     const [action, id] = data.split(':');
 
-    if (action === 'approve') {
-      const scheduledFor = pickScheduledTime();
-      const post = approvePost(id, scheduledFor);
-      if (!post) {
-        await ctx.answerCbQuery('Post not found or already actioned.');
-        return;
-      }
-      const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
-        timeZone: 'America/Toronto',
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZoneName: 'short',
-      });
-      await ctx.answerCbQuery('Approved!');
-      await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-      await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
-      pendingResolutions.get(id)?.('approved');
-      pendingResolutions.delete(id);
-    }
-
-    if (action === 'reject') {
-      const post = rejectPost(id);
-      if (!post) {
-        await ctx.answerCbQuery('Post not found or already actioned.');
-        return;
-      }
-      await ctx.answerCbQuery('Rejected.');
-      await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-      pendingResolutions.get(id)?.('rejected');
-      pendingResolutions.delete(id);
-
-      if (onRejectHandler) {
-        await ctx.reply('Post rejected. Generating a replacement...');
-        onRejectHandler().catch(err => {
-          console.error('Failed to generate replacement after rejection:', err);
-          ctx.reply('Failed to generate a replacement. Check the logs.').catch(() => {});
+    try {
+      if (action === 'approve') {
+        const scheduledFor = pickScheduledTime();
+        const post = approvePost(id, scheduledFor);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found or already actioned.');
+          return;
+        }
+        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short',
         });
-      } else {
-        await ctx.reply('Post rejected.');
+        await ctx.answerCbQuery('Approved!');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
+        pendingResolutions.get(id)?.('approved');
+        pendingResolutions.delete(id);
       }
+
+      if (action === 'reject') {
+        const post = rejectPost(id);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found or already actioned.');
+          return;
+        }
+        await ctx.answerCbQuery('Rejected.');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        pendingResolutions.get(id)?.('rejected');
+        pendingResolutions.delete(id);
+
+        if (onRejectHandler) {
+          await ctx.reply('Post rejected. Generating a replacement...');
+          onRejectHandler().catch(err => {
+            console.error('Failed to generate replacement after rejection:', err);
+            ctx.reply('Failed to generate a replacement. Check the logs.').catch(() => {});
+          });
+        } else {
+          await ctx.reply('Post rejected.');
+        }
+      }
+    } catch (err: any) {
+      if (err?.response?.error_code === 400) {
+        // Callback query expired — safe to ignore, happens when a new session
+        // picks up button presses from a previous generate run
+        return;
+      }
+      console.error('Unexpected error handling callback query:', err);
     }
   });
 
