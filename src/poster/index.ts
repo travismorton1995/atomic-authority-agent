@@ -195,8 +195,11 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
 
     console.log('Successfully posted to LinkedIn.');
 
-    // Post first comment if provided
+    // Post first comment if provided — wait for LinkedIn to process and surface
+    // the new post in the activity feed before navigating there
     if (options.firstComment) {
+      console.log('Waiting for post to appear in activity feed...');
+      await page.waitForTimeout(8000);
       await postFirstComment(page, options.firstComment);
     }
   } finally {
