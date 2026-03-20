@@ -15,6 +15,7 @@ export interface DraftPost {
   sourceFeed: string;       // RSS feed name (e.g. "ANS Newswire", "Bruce Power")
   combinedScore?: number;   // article score after all multipliers
   generatedAt: string;
+  imageUrl?: string;
 }
 
 const HOOK_THRESHOLD = 7;
@@ -183,5 +184,6 @@ ${item.link}`,
     sourceDate: item.pubDate,
     sourceFeed: item.source,
     generatedAt: new Date().toISOString(),
+    imageUrl: item.imageUrl,
   };
 }

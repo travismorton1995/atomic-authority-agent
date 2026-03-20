@@ -245,12 +245,16 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   console.log(`Score: ${top.articleScore}/10 — ${top.reasoning}`);
   console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x | Recency multiplier: ${top.recencyMultiplier.toFixed(2)}x | Combined score: ${top.combinedScore.toFixed(2)}`);
 
-  // Fetch full article body so Claude has specific facts, quotes, and figures to work with
-  if (top.item.link && !top.item.fullText) {
+  // Fetch full article body and og:image in one request
+  if (top.item.link && (!top.item.fullText || !top.item.imageUrl)) {
     try {
       console.log('Fetching full article text...');
       const fetched = await fetchArticle(top.item.link);
       if (fetched.fullText) top.item.fullText = fetched.fullText;
+      if (fetched.imageUrl) {
+        top.item.imageUrl = fetched.imageUrl;
+        console.log(`Image found: ${fetched.imageUrl}`);
+      }
     } catch {
       console.warn('Could not fetch full article text — will use RSS summary only.');
     }
