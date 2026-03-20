@@ -4,7 +4,7 @@ import { synthesizePost } from './synthesize.js';
 import { screenPost } from './screen.js';
 import { addPendingPost, getSourceHistory, PendingPost } from '../hitl/queue.js';
 import { notifyTelegram } from '../hitl/telegram.js';
-import { pickPostType, PostType } from './persona.js';
+import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
 import { rankItems } from './rank.js';
 import { readFileSync, existsSync } from 'fs';
 
@@ -32,6 +32,40 @@ function getLastPostType(): PostType | undefined {
   } catch {
     return undefined;
   }
+}
+
+// Returns a balance multiplier (0-2) for each post type based on how underused
+// it is relative to its target weight across recent posts.
+// Types used less than their target share score above 1.0 (boosted).
+// Types used more than their target share score below 1.0 (suppressed).
+function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
+  const weights = POST_TYPE_WEIGHTS;
+  const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+
+  const counts: Record<string, number> = {};
+  for (const type of Object.keys(weights)) counts[type] = 0;
+
+  if (existsSync('posted_history.json')) {
+    try {
+      const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
+      history.slice(-lookback).forEach((p: any) => {
+        const t = p.draft?.postType;
+        if (t && t in counts) counts[t]++;
+      });
+    } catch {}
+  }
+
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const multipliers: Record<string, number> = {};
+
+  for (const [type, weight] of Object.entries(weights)) {
+    const targetShare = weight / totalWeight;
+    const actualShare = total > 0 ? (counts[type] ?? 0) / total : 0;
+    // Clamp between 0.25 and 2.0 so no type is ever fully suppressed or overwhelms
+    multipliers[type] = Math.min(2.0, Math.max(0.25, targetShare / Math.max(actualShare, 0.01)));
+  }
+
+  return multipliers as Record<PostType, number>;
 }
 
 async function finalize(item: FeedItem, postType: PostType): Promise<PendingPost> {
@@ -80,7 +114,7 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   }
 
   console.log('Fetching RSS feeds...');
-  const items = await fetchLatestItems(5);
+  const items = await fetchLatestItems(6);
 
   if (items.length === 0) throw new Error('No feed items found. Check network or feed URLs.');
 
@@ -95,16 +129,31 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
 
   if (ranked.length === 0) throw new Error('No eligible articles after filtering pending/approved sources.');
 
-  ranked.sort((a, b) => b.score - a.score);
+  const balanceMultipliers = getTypeBalanceMultipliers();
 
-  const top = ranked[0];
-  const suggested = top.suggestedPostType as PostType;
-  const postType = suggested && suggested !== lastPostType
-    ? suggested
-    : pickPostType(lastPostType);
+  // Score each article+type combo: article score × balance multiplier
+  // Exclude the last post type to enforce rotation
+  const candidates = ranked
+    .filter(r => r.score > 0)
+    .map(r => {
+      const suggested = r.suggestedPostType as PostType;
+      const postType = (suggested && suggested !== lastPostType)
+        ? suggested
+        : pickPostType(lastPostType);
+      const multiplier = balanceMultipliers[postType] ?? 1.0;
+      const combinedScore = r.score * multiplier;
+      return { item: r.item, postType, articleScore: r.score, combinedScore, reasoning: r.reasoning };
+    });
+
+  candidates.sort((a, b) => b.combinedScore - a.combinedScore);
+
+  if (candidates.length === 0) throw new Error('No candidates after scoring. All articles may have scored 0.');
+
+  const top = candidates[0];
 
   console.log(`Selected: "${top.item.title}" (${top.item.source})`);
-  console.log(`Score: ${top.score}/10 — ${top.reasoning}`);
+  console.log(`Score: ${top.articleScore}/10 — ${top.reasoning}`);
+  console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x`);
 
-  return finalize(top.item, postType);
+  return finalize(top.item, top.postType);
 }

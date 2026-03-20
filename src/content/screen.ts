@@ -21,8 +21,15 @@ CRINGE TRIGGERS (flag any of these):
 - Phrases: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock potential," "seamlessly," "in today's landscape," "it's worth noting," "at the forefront," "at its core," "this matters because," "a masterclass in," "this is what [x] looks like"
 - Structure: Starting with a rhetorical question as a hook, ending with "What do you think?" or a hollow call-to-action, ending with any variation of "The question is no longer whether, but when/how"
 - Contrasting reframe sentences: "It's not X, it's Y." / "This isn't about X, it's about Y." / "Not X. Y." used as a stylistic device. This pattern feels like AI-generated pseudo-profundity. Flag any instance and rewrite to make the actual claim directly instead.
+- AI sentence patterns: listing exactly three things in a row used repeatedly, gerund openers ("Building on this...", "Recognizing the need..."), pivot filler sentences ("But here's the thing." / "Here's what that means." / "And that's the point."), stacked adjectives before nouns ("a structured, evidence-based, traceable argument"), and over-parallel paragraph structure where every paragraph follows the same rhythm.
 - Tone: Breathless enthusiasm with no substance, vague optimism without a specific claim
 - Missing: No industry-specific terminology (ALARA, SMR, CANDU, etc.), or the nuclear angle feels bolted on
+
+READABILITY CHECK:
+- The post should be understandable to a smart professional who is expert in one field (nuclear OR AI) but not both. If it requires fluency in both simultaneously, flag it and simplify.
+- Maximum one technical term per post that requires domain expertise. If more than one is used without plain-language explanation, flag it and revise.
+- Technical terms must be briefly explained inline — e.g. "probabilistic risk assessment (a method for quantifying the likelihood and impact of failure scenarios)." If a term is used without explanation, add one in the revision.
+- If the post reads like a white paper rather than a knowledgeable colleague talking, bump the cringe score and rewrite toward conversational.
 
 HOOK QUALITY (evaluate the opening line specifically):
 - A strong hook makes a specific, surprising, or tension-creating claim in the first sentence. It earns the scroll.
@@ -45,7 +52,7 @@ Respond ONLY in this exact JSON format:
 export async function screenPost(draft: DraftPost): Promise<ScreeningResult> {
   const message = await client.messages.create({
     model: 'claude-opus-4-6',
-    max_tokens: 1000,
+    max_tokens: 1500,
     system: SCREENER_SYSTEM,
     messages: [{
       role: 'user',
