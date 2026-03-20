@@ -6,6 +6,7 @@ export interface FeedItem {
   summary: string;
   source: string;
   pubDate: string;
+  imageUrl?: string;
 }
 
 const FEEDS = [
@@ -29,7 +30,7 @@ export async function fetchLatestItems(maxPerFeed = 5): Promise<FeedItem[]> {
       for (const item of recent) {
         items.push({
           title: item.title ?? '',
-          link: item.link ?? '',
+          link: (item.link ?? '').replace(/([^:])\/\/+/g, '$1/'),
           summary: item.contentSnippet ?? item.content ?? '',
           source: feed.source,
           pubDate: item.pubDate ?? '',

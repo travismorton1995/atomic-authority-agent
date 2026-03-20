@@ -35,6 +35,10 @@ function extractDescription(html: string): string {
   return extractMeta(html, 'og:description') || extractName(html, 'description') || '';
 }
 
+function extractImage(html: string): string {
+  return extractMeta(html, 'og:image') || extractMeta(html, 'twitter:image') || '';
+}
+
 function domainSource(url: string): string {
   try {
     const host = new URL(url).hostname.replace(/^www\./, '');
@@ -54,6 +58,7 @@ export async function fetchArticle(url: string): Promise<FeedItem> {
   const html = await res.text();
   const title = extractTitle(html);
   const summary = extractDescription(html);
+  const imageUrl = extractImage(html);
 
   if (!title) throw new Error(`Could not extract title from ${url}. Try using --topic instead.`);
 
@@ -63,5 +68,6 @@ export async function fetchArticle(url: string): Promise<FeedItem> {
     summary,
     source: domainSource(url),
     pubDate: new Date().toISOString(),
+    imageUrl: imageUrl || undefined,
   };
 }

@@ -12,6 +12,7 @@ export interface DraftPost {
   sourceUrl: string;
   sourceDate: string;
   generatedAt: string;
+  imageUrl?: string;
 }
 
 export async function synthesizePost(item: FeedItem, postType: PostType): Promise<DraftPost> {
@@ -56,5 +57,6 @@ Write the LinkedIn post now. Output only the post text — no preamble, no "here
     sourceUrl: item.link,
     sourceDate: item.pubDate,
     generatedAt: new Date().toISOString(),
+    imageUrl: item.imageUrl,
   };
 }

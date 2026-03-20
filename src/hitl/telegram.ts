@@ -121,6 +121,16 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
 
   // Send directly via API — no need for the polling bot to be running
   const sender = new Telegraf(token);
+
+  // Send image preview first if available
+  if (post.draft.imageUrl) {
+    try {
+      await sender.telegram.sendPhoto(chatId, post.draft.imageUrl);
+    } catch {
+      // Non-fatal — some image URLs may be inaccessible to Telegram's servers
+    }
+  }
+
   await sender.telegram.sendMessage(chatId, formatMessage(post), {
     parse_mode: 'Markdown',
     reply_markup: {

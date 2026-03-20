@@ -155,5 +155,18 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   console.log(`Score: ${top.articleScore}/10 — ${top.reasoning}`);
   console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x`);
 
+  // Fetch og:image from the article page (RSS items don't include it)
+  if (top.item.link && !top.item.imageUrl) {
+    try {
+      const fetched = await fetchArticle(top.item.link);
+      if (fetched.imageUrl) {
+        top.item.imageUrl = fetched.imageUrl;
+        console.log(`Image found: ${fetched.imageUrl}`);
+      }
+    } catch {
+      // Non-fatal — continue without image
+    }
+  }
+
   return finalize(top.item, top.postType);
 }
