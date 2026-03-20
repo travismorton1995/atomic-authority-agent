@@ -1,5 +1,5 @@
 import { Telegraf } from 'telegraf';
-import { approvePost, rejectPost } from './queue.js';
+import { approvePost, rejectPost, clearPostImage } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 
@@ -58,6 +58,30 @@ export function startBot(): void {
         await ctx.answerCbQuery('Approved!');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
         await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
+        pendingResolutions.get(id)?.('approved');
+        pendingResolutions.delete(id);
+      }
+
+      if (action === 'approve_no_image') {
+        clearPostImage(id);
+        const scheduledFor = pickScheduledTime();
+        const post = approvePost(id, scheduledFor);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found or already actioned.');
+          return;
+        }
+        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short',
+        });
+        await ctx.answerCbQuery('Approved (no image)!');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.reply(`Post approved (text only). Scheduled for ${scheduledStr}.`);
         pendingResolutions.get(id)?.('approved');
         pendingResolutions.delete(id);
       }
