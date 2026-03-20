@@ -128,23 +128,27 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
       if (tempPath) {
         try {
           console.log('Uploading image...');
-          // Click the image/media button in the composer toolbar to trigger the file chooser
-          const mediaBtn = page.locator([
-            'button[aria-label*="Photo"]',
-            'button[aria-label*="photo"]',
-            'button[aria-label*="media"]',
-            'button[aria-label*="Media"]',
-            'button[aria-label*="Image"]',
-          ].join(', ')).first();
 
-          const [fileChooser] = await Promise.all([
-            page.waitForEvent('filechooser', { timeout: 10000 }),
-            mediaBtn.click(),
-          ]);
-          await fileChooser.setFiles(tempPath);
+          // Click the media button (identified by its SVG data-test-icon attribute)
+          const mediaBtn = page.locator('button:has([data-test-icon="image-medium"])').first();
+          await mediaBtn.waitFor({ state: 'visible', timeout: 10000 });
+          await mediaBtn.click();
 
-          // Wait for LinkedIn to process and show the image preview
-          await page.waitForTimeout(4000);
+          // LinkedIn opens a native OS file picker — bypass it entirely by setting
+          // files directly on the hidden file input that backs the button
+          await page.waitForTimeout(1000);
+          const fileInput = page.locator('input[type="file"]').first();
+          await fileInput.setInputFiles(tempPath);
+
+          // Wait for LinkedIn to process the upload and show the image preview
+          await page.waitForTimeout(5000);
+
+          // Click "Next" to proceed past LinkedIn's image crop/edit step
+          const nextBtn = page.locator('button').filter({ hasText: 'Next' }).first();
+          await nextBtn.waitFor({ state: 'visible', timeout: 10000 });
+          await nextBtn.click();
+
+          await page.waitForTimeout(2000);
           console.log('Image uploaded.');
         } catch (err) {
           console.warn('Image upload failed (non-fatal) — posting text only:', (err as any)?.message);
