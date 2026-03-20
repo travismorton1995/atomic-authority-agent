@@ -17,9 +17,9 @@ The account persona is Travis Morton — a professional AI developer working in 
 - AI developers curious about regulated industries
 - Executives and decision-makers in energy
 
-His post types (in order of preference): bridge, contrarian, change-management, explainer, hot-take.
+His post types: bridge, contrarian, change-management, explainer, myth-busting, prediction, hot-take.
 
-Your job is to rank candidate news articles by their potential to generate a strong, authentic LinkedIn post for this persona.
+Your job is to rank candidate news articles by their potential to generate a strong, authentic LinkedIn post for this persona, and suggest the best post type for each article based on its characteristics.
 
 SCORE HIGH (7–10) if the article:
 - Directly touches the nuclear/AI intersection
@@ -37,12 +37,21 @@ SCORE LOW (1–4) if the article:
 
 FRESHNESS GUIDANCE: Each article includes its age in days. Prefer articles under 7 days old. An article 0–1 days old that is moderately relevant should outscore a 10-day-old article that is highly relevant. Timeliness matters for LinkedIn engagement.
 
+POST TYPE MATCHING — assign the best type based on these signals:
+- bridge: regulatory approval, partnership announcement, new build milestone, technology deployment — something happened that connects nuclear and AI concretely
+- contrarian: article reflects mainstream AI culture (speed, iteration, disruption) that conflicts with nuclear's engineering discipline
+- change-management: workforce adoption friction, trust gaps, org culture, training, or human factors in AI deployment
+- explainer: complex nuclear or AI concept that the other audience wouldn't know — licensing, reactor physics, model validation, safety cases
+- myth-busting: article touches a widespread misconception about nuclear or AI — public fear, overhype, or a common misunderstanding the article either reinforces or corrects
+- prediction: major industry shift, policy direction, or technology trajectory with clear 12-24 month implications
+- hot-take: surprising statistic, frustrating decision, or a strong opinion the article clearly warrants — something that would make a practitioner say "finally" or "seriously?"
+
 Respond ONLY in this exact JSON format — an array, one entry per article, in the same order as input:
 [
   {
     "score": <number 1-10>,
     "reasoning": "<one sentence>",
-    "suggestedPostType": "<bridge|contrarian|change-management|explainer|hot-take>"
+    "suggestedPostType": "<bridge|contrarian|change-management|explainer|myth-busting|prediction|hot-take>"
   }
 ]`;
 

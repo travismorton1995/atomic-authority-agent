@@ -1,11 +1,13 @@
-export type PostType = 'bridge' | 'contrarian' | 'change-management' | 'explainer' | 'hot-take';
+export type PostType = 'bridge' | 'contrarian' | 'change-management' | 'explainer' | 'myth-busting' | 'prediction' | 'hot-take';
 
 export const POST_TYPE_WEIGHTS: Record<PostType, number> = {
   bridge: 30,
-  contrarian: 25,
   'change-management': 20,
   explainer: 15,
-  'hot-take': 10,
+  contrarian: 15,
+  'myth-busting': 10,
+  prediction: 7,
+  'hot-take': 8,
 };
 
 export function pickPostType(exclude?: PostType): PostType {
@@ -62,5 +64,7 @@ export const POST_TYPE_INSTRUCTIONS: Record<PostType, string> = {
   contrarian: 'Write a Contrarian post. Use the nuclear sector\'s engineering culture to push back on a mainstream AI assumption (e.g., "move fast," "iterate in production," "fail fast"). The nuclear frame should be the argument, not just the backdrop.',
   'change-management': 'Write a Change Management post. Focus on the human side: why do nuclear engineers resist trusting black-box models? What does effective AI adoption look like in a zero-failure-tolerance culture? Ground it in the news item.',
   explainer: 'Write an Explainer post. Pick one concept from the news item and build a clear bridge — either explaining a nuclear concept to an AI audience, or an AI concept to a nuclear audience. Make the analogy precise, not fluffy.',
+  'myth-busting': 'Write a Myth-Busting post. Identify a specific, widespread misconception about either nuclear energy or AI — especially ones that show up when the two fields interact. State the myth plainly, then dismantle it with a specific, verifiable claim. Do not strawman the myth; steelman it first so the correction lands harder.',
+  prediction: 'Write a Prediction post. Based on the news item, make a specific, time-bounded claim about where nuclear AI is heading in the next 12-24 months. Avoid vague optimism — name a concrete outcome, who it affects, and what needs to happen first. It\'s okay to be wrong; what matters is that the reasoning is defensible.',
   'hot-take': 'Write a Hot Take post. Keep it under 120 words. Be direct and pointed. It\'s okay to express frustration or strong disagreement with a trend, decision, or statement in the news item. This should feel like a real human reaction, not a press release.',
 };
