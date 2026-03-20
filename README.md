@@ -17,7 +17,7 @@ RSS Feeds → Rank articles → Pick best → Synthesize draft → Screen for cr
      → Save to pending → Telegram notification → Human approves → Scheduler posts
 ```
 
-1. **Fetch** — pulls latest items from World Nuclear News, Canadian Nuclear Association, CNSC, and ANS Newswire
+1. **Fetch** — pulls latest items from World Nuclear News, Canadian Nuclear Association, CNSC, ANS Newswire, IAEA, Bruce Power, and NPX Innovation
 2. **Rank** — Claude Haiku scores all articles for nuclear/AI intersection, Canadian/NA relevance, and freshness vs recently posted topics. Hard-excludes articles already pending or approved.
 3. **Synthesize** — Claude Sonnet writes a draft using the full persona system prompt (post type, tone rules, banned phrases, required terminology)
 4. **Screen** — a second Claude call acts as an editorial critic, scoring 1–10 on a "Cringe Scale". Posts scoring >3 are auto-revised before saving.
@@ -83,13 +83,15 @@ wscript "C:\dev\atomic-authority-agent\run-hidden.vbs"
 
 To check if the scheduler is running:
 ```bash
-tasklist | findstr node
+npm run status
 ```
 
-To stop it, find the node PID from tasklist and run:
+To restart it after pulling code changes:
 ```bash
-taskkill /PID <pid> /F
+npm run restart-scheduler
 ```
+
+This kills the running scheduler processes by PID and relaunches silently in the background.
 
 ---
 
@@ -168,7 +170,14 @@ Runs continuously. Generates a draft at 7:00pm ET on Monday, Tuesday, and Wednes
 ### Generate a draft manually
 
 ```bash
+# From RSS (ranks and picks the best article automatically)
 npm run generate
+
+# From a specific article URL
+npm run generate -- --url https://example.com/article
+
+# From a free-text topic (skips RSS entirely)
+npm run generate -- --topic "your topic or observation"
 ```
 
 ### Review and approve pending posts
@@ -184,12 +193,28 @@ npm run approve -- --id <post_id>
 npm run reject -- --id <post_id>
 ```
 
+### Other commands
+
+```bash
+# Immediately publish the next approved post (bypass scheduled time)
+npm run post-now
+
+# Check if the background scheduler is running
+npm run status
+
+# Kill and relaunch the scheduler (use after pulling code changes)
+npm run restart-scheduler
+
+# Show all available commands
+npm run help
+```
+
 ## File structure
 
 ```
 src/
   content/        # RSS fetcher, ranker, synthesis prompt, screener
-  hitl/           # pending_posts.json manager, Discord notifier
+  hitl/           # pending_posts.json manager, Telegram notifier
   scheduler/      # cron logic, time window picker
   poster/         # LinkedIn browser automation (Playwright)
   cli/            # generate / approve / reject CLI commands
@@ -211,10 +236,12 @@ user_data/              # LinkedIn session persistence (gitignored)
 | Type | Weight | Description |
 |---|---|---|
 | bridge | 30% | Connect a regulatory/industry development to a concrete AI application |
-| contrarian | 25% | Challenge a mainstream AI assumption through the nuclear lens |
 | change-management | 20% | Human/org side of AI adoption in regulated industries |
 | explainer | 15% | Translate a nuclear concept for an AI audience, or vice versa |
-| hot-take | 10% | Short, pointed, designed for engagement |
+| contrarian | 15% | Challenge a mainstream AI assumption through the nuclear lens |
+| myth-busting | 10% | Identify and dismantle a widespread misconception about nuclear or AI |
+| hot-take | 8% | Short, pointed, designed for engagement |
+| prediction | 7% | Time-bounded claim about where nuclear AI is heading in 12–24 months |
 
 ## Environment variables
 
