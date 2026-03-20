@@ -46,7 +46,7 @@ POST TYPE MATCHING — assign the best type based on these signals:
 - prediction: major industry shift, policy direction, or technology trajectory with clear 12-24 month implications
 - hot-take: surprising statistic, frustrating decision, or a strong opinion the article clearly warrants — something that would make a practitioner say "finally" or "seriously?"
 
-Respond ONLY in this exact JSON format — an array, one entry per article, in the same order as input:
+Respond ONLY with a valid JSON array — no markdown, no summary, no extra text before or after. One entry per article, in the same order as input:
 [
   {
     "score": <number 1-10>,
@@ -103,7 +103,9 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
   });
 
   const rawText = message.content[0].type === 'text' ? message.content[0].text.trim() : '[]';
-  const raw = rawText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+  // Extract just the JSON array — ignore any markdown, summaries, or extra text the model appends
+  const arrayMatch = rawText.match(/\[[\s\S]*\]/);
+  const raw = arrayMatch ? arrayMatch[0].trim() : '[]';
 
   try {
     const scores = JSON.parse(raw) as Array<{ score: number; reasoning: string; suggestedPostType: string }>;

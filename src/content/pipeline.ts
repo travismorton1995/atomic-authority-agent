@@ -147,6 +147,8 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
 
   candidates.sort((a, b) => b.combinedScore - a.combinedScore);
 
+  if (candidates.length === 0) throw new Error('No candidates after scoring. All articles may have scored 0.');
+
   const top = candidates[0];
 
   console.log(`Selected: "${top.item.title}" (${top.item.source})`);
