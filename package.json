@@ -13,7 +13,7 @@
     "post-now": "tsx src/cli/post-now.ts",
     "help": "tsx src/cli/help.ts",
     "status": "powershell -Command \"if (Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like '*scheduler/index.ts*' }) { Write-Host 'Scheduler is RUNNING' } else { Write-Host 'Scheduler is NOT running' }\"",
-    "restart-scheduler": "restart-scheduler.bat"
+    "restart-scheduler": "powershell -Command \"Get-WmiObject Win32_Process | Where-Object { $_.Name -in @('node.exe','cmd.exe') -and $_.CommandLine -like '*scheduler/index.ts*' -and $_.CommandLine -notlike '*powershell*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue; Write-Host 'Stopped PID' $_.ProcessId }; Start-Sleep -Milliseconds 500; wscript 'C:\\dev\\atomic-authority-agent\\run-hidden.vbs'; Write-Host 'Scheduler relaunched.'\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
