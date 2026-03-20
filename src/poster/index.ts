@@ -148,7 +148,8 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
           await nextBtn.waitFor({ state: 'visible', timeout: 10000 });
           await nextBtn.click();
 
-          await page.waitForTimeout(2000);
+          // Wait for the composer to settle into the image post view
+          await page.waitForTimeout(3000);
           console.log('Image uploaded.');
         } catch (err) {
           console.warn('Image upload failed (non-fatal) — posting text only:', (err as any)?.message);
@@ -164,6 +165,7 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     await page.waitForTimeout(1500);
 
     // Click the Post button — try aria-label first, fall back to text content
+    // Use .last() as LinkedIn renders multiple candidate buttons; the active one is last
     const postBtn = page.locator('button[aria-label="Post"], button:has-text("Post")').last();
     await postBtn.waitFor({ state: 'visible', timeout: 15000 });
 
@@ -174,8 +176,22 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
 
     await postBtn.click();
 
-    // Wait for the composer to disappear — text area going hidden confirms the post was submitted
-    await textArea.waitFor({ state: 'hidden', timeout: 20000 });
+    // After image posts, LinkedIn may close the modal differently — wait for either
+    // the text area or the entire share modal overlay to disappear
+    const shareModal = page.locator('[role="dialog"], .share-box-v2__modal, .artdeco-modal').first();
+    try {
+      await Promise.race([
+        textArea.waitFor({ state: 'hidden', timeout: 30000 }),
+        shareModal.waitFor({ state: 'hidden', timeout: 30000 }),
+      ]);
+    } catch {
+      // If neither resolves, the post likely went through but the modal is slow to close —
+      // check for a visible post confirmation instead before giving up
+      const confirmed = await page.locator('text=Your post is now live, text=Post successful').first().isVisible().catch(() => false);
+      if (!confirmed) {
+        throw new Error('Timed out waiting for composer to close after posting.');
+      }
+    }
 
     console.log('Successfully posted to LinkedIn.');
 
