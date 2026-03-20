@@ -125,6 +125,7 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
     }));
   } catch {
     console.error('Ranker returned non-JSON response:', raw);
+    // Fall back to score 1 so the pipeline can still pick an article
     return eligible.map(item => ({ item, score: 1, reasoning: 'Ranker error — fallback score', suggestedPostType: 'bridge' }));
   }
 }

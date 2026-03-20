@@ -49,6 +49,7 @@ async function downloadImageToTemp(imageUrl: string): Promise<string | null> {
 // Returns true if the session is active, false if login is required.
 export async function pingSession(): Promise<boolean> {
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: 'chrome',
     headless: true,
     locale: 'en-US',
   });
@@ -75,10 +76,12 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
   const headless = options.forceHeaded ? false : process.env.LINKEDIN_HEADLESS === 'true';
 
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: 'chrome',
     headless,
     locale: 'en-US',
     timezoneId: 'America/Toronto',
     viewport: { width: 1280, height: 800 },
+    slowMo: 0,
   });
 
   const page = context.pages()[0] ?? await context.newPage();
@@ -123,34 +126,67 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     await typeContentWithMentions(page, content);
 
     // Attach image if provided
+    //
+    // KNOWN ISSUE (parked 2026-03-20): Image posts consistently fail on LinkedIn
+    // with "Network connection failed. Try refreshing the page." after the Post
+    // button is clicked. Text-only posts work fine on the same session.
+    //
+    // Root cause (suspected): Playwright sets navigator.webdriver = true even when
+    // using channel: 'chrome'. LinkedIn's JS detects this flag and is more aggressive
+    // about blocking automated sessions on image upload API endpoints (/dms/image).
+    // Regular text posts hit a simpler endpoint that is not as strictly gated.
+    //
+    // What was tried:
+    //   - Switched from Playwright's bundled Chromium to system Chrome (channel: 'chrome')
+    //     → same error, LinkedIn still detects webdriver flag
+    //   - Used page.waitForEvent('filechooser') instead of setInputFiles on hidden input
+    //     → this WORKS and prevents Windows Explorer from opening (keep this)
+    //   - Increased waits, slowMo, error detection → did not resolve the core issue
+    //
+    // To pick this up later:
+    //   - Try suppressing navigator.webdriver via context.addInitScript():
+    //       await context.addInitScript(() => {
+    //         Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    //       });
+    //   - If that doesn't work, investigate other Playwright detection vectors:
+    //     window.chrome object, permissions API, plugin count, etc.
+    //   - Consider using LinkedIn's official API (requires OAuth app approval) as
+    //     an alternative to browser automation for image posts.
+    //   - The Telegram "Approve (no image)" button already exists to strip imageUrl
+    //     before scheduling — use that as the workaround in the meantime.
     if (options.imageUrl) {
       const tempPath = await downloadImageToTemp(options.imageUrl);
       if (tempPath) {
         try {
           console.log('Uploading image...');
 
-          // Click the media button (identified by its SVG data-test-icon attribute)
+          // Click the media button (identified by its SVG data-test-icon attribute).
+          // Set up the filechooser listener BEFORE clicking so Playwright intercepts
+          // the event at the browser level — this prevents Windows Explorer from opening.
           const mediaBtn = page.locator('button:has([data-test-icon="image-medium"])').first();
           await mediaBtn.waitFor({ state: 'visible', timeout: 10000 });
-          await mediaBtn.click();
 
-          // LinkedIn opens a native OS file picker — bypass it entirely by setting
-          // files directly on the hidden file input that backs the button
-          await page.waitForTimeout(1000);
-          const fileInput = page.locator('input[type="file"]').first();
-          await fileInput.setInputFiles(tempPath);
+          console.log('Intercepting file chooser and setting image...');
+          const [fileChooser] = await Promise.all([
+            page.waitForEvent('filechooser', { timeout: 10000 }),
+            mediaBtn.click(),
+          ]);
+          await fileChooser.setFiles(tempPath);
+          console.log('File set — waiting for LinkedIn to process upload...');
 
           // Wait for LinkedIn to process the upload and show the image preview
           await page.waitForTimeout(5000);
 
           // Click "Next" to proceed past LinkedIn's image crop/edit step
+          console.log('Looking for Next button...');
           const nextBtn = page.locator('button').filter({ hasText: 'Next' }).first();
           await nextBtn.waitFor({ state: 'visible', timeout: 10000 });
+          console.log('Clicking Next...');
           await nextBtn.click();
 
           // Wait for the composer to settle into the image post view
           await page.waitForTimeout(3000);
-          console.log('Image uploaded.');
+          console.log('Image upload flow complete — back in composer.');
         } catch (err) {
           console.warn('Image upload failed (non-fatal) — posting text only:', (err as any)?.message);
         } finally {
@@ -174,23 +210,36 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
       throw new Error('Post button is disabled — content may not have been entered correctly.');
     }
 
+    console.log('Clicking Post button...');
     await postBtn.click();
+    console.log('Post button clicked — waiting for composer to close...');
 
-    // After image posts, LinkedIn may close the modal differently — wait for either
-    // the text area or the entire share modal overlay to disappear
-    const shareModal = page.locator('[role="dialog"], .share-box-v2__modal, .artdeco-modal').first();
+    // Wait for the Post button to disappear — this happens in both success and error cases
     try {
-      await Promise.race([
-        textArea.waitFor({ state: 'hidden', timeout: 30000 }),
-        shareModal.waitFor({ state: 'hidden', timeout: 30000 }),
-      ]);
+      await postBtn.waitFor({ state: 'hidden', timeout: 30000 });
     } catch {
-      // If neither resolves, the post likely went through but the modal is slow to close —
-      // check for a visible post confirmation instead before giving up
-      const confirmed = await page.locator('text=Your post is now live, text=Post successful').first().isVisible().catch(() => false);
-      if (!confirmed) {
+      const shareModal = page.locator('.artdeco-modal--active, [role="dialog"]').first();
+      const modalGone = await shareModal.waitFor({ state: 'hidden', timeout: 15000 }).then(() => true).catch(() => false);
+      if (!modalGone) {
         throw new Error('Timed out waiting for composer to close after posting.');
       }
+    }
+
+    // Wait a moment for any error messages to render — LinkedIn's network errors
+    // appear AFTER the button disappears, once its own timeout fires.
+    await page.waitForTimeout(3000);
+
+    // Now check for error messages. Use text matching as a reliable fallback
+    // since LinkedIn's error class names vary by version.
+    const errorEl = page.locator(
+      '.artdeco-inline-feedback--error, [class*="share-box"] [class*="error"], ' +
+      '.share-box-v2 [data-test-id*="error"], .artdeco-toast-item--error, ' +
+      'text="Network connection failed", text="Something went wrong"'
+    ).first();
+    const hasError = await errorEl.isVisible({ timeout: 1000 }).catch(() => false);
+    if (hasError) {
+      const errorText = await errorEl.textContent().catch(() => '');
+      throw new Error(`LinkedIn reported an error after clicking Post: "${errorText?.trim()}"`);
     }
 
     console.log('Successfully posted to LinkedIn.');
