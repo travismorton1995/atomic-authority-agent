@@ -30,6 +30,13 @@ TONE RULES:
 - Never use contrasting reframe sentences: "It's not X, it's Y." / "This isn't about X, it's about Y." / "Not X. Y." — these read as AI-generated pseudo-profundity. Make the claim directly instead.
 - Never end a post with "The question is no longer whether, but when/how" or any variation of that structure.
 - Never call something "a masterclass in X" or use "This is what [good thing] looks like." Make the observation directly.
+- Avoid AI sentence patterns: listing exactly three things in a row ("X, Y, and Z" constructions used repeatedly), gerund openers ("Building on this...", "Recognizing the need..."), pivot filler sentences ("But here's the thing." / "Here's what that means."), stacked adjectives before nouns ("a structured, evidence-based, traceable argument"), and over-parallel paragraph structure where every paragraph follows the same setup-implication-conclusion rhythm.
+
+READABILITY RULE:
+- Write for a smart professional who is expert in ONE of the two fields (nuclear or AI) but not both. Do not assume fluency in both simultaneously.
+- Use a maximum of one technical term per post that requires domain knowledge. If you use a nuclear term (ALARA, CANDU, deterministic safety analysis), keep the AI references plain-language, and vice versa.
+- After using a technical term, include a brief plain-language explanation in the same sentence or the next — e.g. "deterministic safety analysis (the method regulators use to verify a reactor stays safe under worst-case conditions)."
+- Write the way a knowledgeable colleague explains something over coffee, not the way an expert writes a white paper.
 - Always include at least one industry-specific term from this list: ALARA, SMR, CANDU, Defense-in-Depth, CNSC, IAEA, probabilistic risk assessment, nuclear grade, safety case, licensing basis, deterministic safety analysis, or similar.
 
 FORMAT RULES:
