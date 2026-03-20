@@ -94,7 +94,7 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2048,
+    max_tokens: 4096,
     system: RANKER_SYSTEM,
     messages: [{
       role: 'user',
@@ -105,18 +105,27 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
   const rawText = message.content[0].type === 'text' ? message.content[0].text.trim() : '[]';
   // Extract just the JSON array — ignore any markdown, summaries, or extra text the model appends
   const arrayMatch = rawText.match(/\[[\s\S]*\]/);
+  if (!arrayMatch) {
+    console.warn('Ranker response contained no JSON array. Raw response:', rawText.slice(0, 500));
+  }
   const raw = arrayMatch ? arrayMatch[0].trim() : '[]';
 
   try {
     const scores = JSON.parse(raw) as Array<{ score: number; reasoning: string; suggestedPostType: string }>;
+
+    if (scores.length < eligible.length) {
+      console.warn(`Ranker returned ${scores.length} scores for ${eligible.length} articles — missing entries will default to score 1.`);
+    }
+
     return eligible.map((item, i) => ({
       item,
-      score: scores[i]?.score ?? 0,
-      reasoning: scores[i]?.reasoning ?? '',
+      score: scores[i]?.score ?? 1,
+      reasoning: scores[i]?.reasoning ?? 'No reasoning provided',
       suggestedPostType: scores[i]?.suggestedPostType ?? 'bridge',
     }));
   } catch {
     console.error('Ranker returned non-JSON response:', raw);
-    return eligible.map(item => ({ item, score: 0, reasoning: 'Ranker error', suggestedPostType: 'bridge' }));
+    // Fall back to score 1 so the pipeline can still pick an article
+    return eligible.map(item => ({ item, score: 1, reasoning: 'Ranker error — fallback score', suggestedPostType: 'bridge' }));
   }
 }
