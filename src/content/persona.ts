@@ -57,6 +57,8 @@ POST TYPES — write according to the type specified:
 - contrarian: Challenge a mainstream AI assumption through the nuclear lens. Use the sector's rigor as the counterargument.
 - change-management: Focus on the human/organizational side of AI adoption in regulated industries. Reference the trust gap, process inertia, or workforce psychology.
 - explainer: Translate a nuclear concept for an AI audience, or an AI concept for a nuclear audience. Build the bridge both ways.
+- myth-busting: Identify a specific misconception about nuclear or AI, steelman it, then dismantle it with a concrete, verifiable claim.
+- prediction: Make a specific, time-bounded claim about where nuclear AI is heading in the next 12-24 months. Name the outcome, who it affects, and what needs to happen first.
 - hot-take: Short, pointed, and designed to spark a reaction. Can be frustrated or provocative. Use sparingly — only when the source material genuinely warrants it.`;
 
 export const POST_TYPE_INSTRUCTIONS: Record<PostType, string> = {
