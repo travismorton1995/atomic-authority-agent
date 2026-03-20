@@ -50,6 +50,11 @@ const commands = [
     detail: '',
   },
   {
+    command: 'npm run restart-scheduler',
+    description: 'Kill the running scheduler and relaunch it in the background',
+    detail: 'Use this after pulling code changes. Finds the scheduler process by command line, kills it by PID, and relaunches via run-hidden.vbs.',
+  },
+  {
     command: 'npm run help',
     description: 'Show this help message',
     detail: '',

@@ -12,7 +12,8 @@
     "scheduler": "tsx src/scheduler/index.ts",
     "post-now": "tsx src/cli/post-now.ts",
     "help": "tsx src/cli/help.ts",
-    "status": "powershell -Command \"if (Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like '*scheduler/index.ts*' }) { Write-Host 'Scheduler is RUNNING' } else { Write-Host 'Scheduler is NOT running' }\""
+    "status": "powershell -Command \"if (Get-WmiObject Win32_Process | Where-Object { $_.CommandLine -like '*scheduler/index.ts*' }) { Write-Host 'Scheduler is RUNNING' } else { Write-Host 'Scheduler is NOT running' }\"",
+    "restart-scheduler": "restart-scheduler.bat"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
