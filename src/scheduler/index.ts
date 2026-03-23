@@ -18,6 +18,7 @@ import { startBot, sendAlert, setOnRejectHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
 
 const GENERATE_RETRY_DELAY_MS = 10 * 60 * 1000; // 10 minutes
+const GENERATE_NETWORK_RETRY_DELAY_MS = 60 * 1000; // 1 minute
 const GENERATE_MAX_RETRIES = 3;
 
 async function runGenerate() {
@@ -28,13 +29,17 @@ async function runGenerate() {
       return;
     } catch (err: any) {
       const isOverloaded = err?.status === 529 || err?.error?.error?.type === 'overloaded_error';
-      if (isOverloaded && attempt < GENERATE_MAX_RETRIES) {
-        console.warn(`Anthropic API overloaded (attempt ${attempt}/${GENERATE_MAX_RETRIES}) — retrying in 10 minutes...`);
-        await new Promise(resolve => setTimeout(resolve, GENERATE_RETRY_DELAY_MS));
+      const isNetworkError = err?.code === 'ECONNRESET' || err?.code === 'ECONNREFUSED' || err?.code === 'ETIMEDOUT' || err?.type === 'system';
+
+      if (attempt < GENERATE_MAX_RETRIES && (isOverloaded || isNetworkError)) {
+        const delay = isNetworkError ? GENERATE_NETWORK_RETRY_DELAY_MS : GENERATE_RETRY_DELAY_MS;
+        const reason = isNetworkError ? 'Network error' : 'Anthropic API overloaded';
+        console.warn(`${reason} (attempt ${attempt}/${GENERATE_MAX_RETRIES}) — retrying in ${delay / 1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       } else {
         console.error(`Generate failed (attempt ${attempt}/${GENERATE_MAX_RETRIES}):`, err);
         await sendAlert(
-          `Pipeline failed after ${GENERATE_MAX_RETRIES} attempts.\n\n` +
+          `Pipeline failed after ${attempt} attempt(s).\n\n` +
           `Error: ${err?.message ?? String(err)}\n\n` +
           `Run \`npm run generate\` manually to retry.`
         );
