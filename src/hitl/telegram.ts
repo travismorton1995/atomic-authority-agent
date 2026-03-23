@@ -119,17 +119,32 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
     return;
   }
 
-  // Send directly via API — no need for the polling bot to be running
   const sender = new Telegraf(token);
-  await sender.telegram.sendMessage(chatId, formatMessage(post), {
-    parse_mode: 'Markdown',
-    reply_markup: {
-      inline_keyboard: [[
-        { text: '✅ Approve', callback_data: `approve:${post.id}` },
-        { text: '❌ Reject', callback_data: `reject:${post.id}` },
-      ]],
-    },
-  });
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = 15 * 1000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      await sender.telegram.sendMessage(chatId, formatMessage(post), {
+        parse_mode: 'Markdown',
+        reply_markup: {
+          inline_keyboard: [[
+            { text: '✅ Approve', callback_data: `approve:${post.id}` },
+            { text: '❌ Reject', callback_data: `reject:${post.id}` },
+          ]],
+        },
+      });
+      return;
+    } catch (err: any) {
+      const isNetwork = err?.code === 'ECONNRESET' || err?.code === 'ECONNREFUSED' || err?.code === 'ETIMEDOUT' || err?.type === 'system';
+      if (isNetwork && attempt < MAX_RETRIES) {
+        console.warn(`Telegram send failed (attempt ${attempt}/${MAX_RETRIES}) — retrying in ${RETRY_DELAY_MS / 1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+      } else {
+        throw err;
+      }
+    }
+  }
 }
 
 function formatMessage(post: PendingPost): string {
