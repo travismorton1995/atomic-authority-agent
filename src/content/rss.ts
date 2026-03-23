@@ -16,8 +16,6 @@ const FEEDS = [
   { url: 'https://www.ans.org/news/feed/', source: 'ANS Newswire' },
   { url: 'https://www.iaea.org/feeds/topnews', source: 'IAEA' },
   { url: 'https://www.brucepower.com/feed/', source: 'Bruce Power' },
-  { url: 'https://www.nrc.gov/reading-rm/doc-collections/news/rss.xml', source: 'NRC' },
-  { url: 'https://www.nei.org/rss/news', source: 'NEI' },
   { url: 'https://energy.mit.edu/feed/', source: 'MIT Energy Initiative' },
 ];
 
