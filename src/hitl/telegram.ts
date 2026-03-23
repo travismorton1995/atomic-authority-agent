@@ -141,9 +141,21 @@ function formatMessage(post: PendingPost): string {
     ? `\n\n*First comment:*\n${post.draft.firstComment}`
     : '';
 
+  const sourceDateStr = post.draft.sourceDate
+    ? new Date(post.draft.sourceDate).toLocaleDateString('en-US', {
+        timeZone: 'America/Toronto',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : null;
+  const sourceNote = sourceDateStr
+    ? `*Source:* ${post.draft.sourceTitle} _(${sourceDateStr})_`
+    : `*Source:* ${post.draft.sourceTitle}`;
+
   return `*New draft ready* | ${post.draft.postType} | ${cringeNote}
 
-*Source:* ${post.draft.sourceTitle}
+${sourceNote}
 
 ${post.finalContent}${commentSection}`;
 }
