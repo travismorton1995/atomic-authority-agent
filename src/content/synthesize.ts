@@ -15,17 +15,21 @@ export interface DraftPost {
 }
 
 export async function synthesizePost(item: FeedItem, postType: PostType): Promise<DraftPost> {
+  const articleContent = item.fullText
+    ? `Summary: ${item.summary}\n\nFull article text:\n${item.fullText}`
+    : `Summary: ${item.summary}`;
+
   const userPrompt = `NEWS ITEM:
 Title: ${item.title}
 Source: ${item.source}
 Date: ${item.pubDate}
 URL: ${item.link}
-Summary: ${item.summary}
+${articleContent}
 
 POST TYPE: ${postType}
 INSTRUCTION: ${POST_TYPE_INSTRUCTIONS[postType]}
 
-Write the LinkedIn post now. Output only the post text — no preamble, no "here is your post," no quotation marks wrapping the whole thing.`;
+Write the LinkedIn post now. You have the full article text above — use specific facts, figures, quotes, or details from it where they strengthen the post. Output only the post text — no preamble, no "here is your post," no quotation marks wrapping the whole thing.`;
 
   const message = await client.messages.create({
     model: 'claude-opus-4-6',

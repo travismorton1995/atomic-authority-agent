@@ -155,5 +155,16 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   console.log(`Score: ${top.articleScore}/10 — ${top.reasoning}`);
   console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x`);
 
+  // Fetch full article body so Claude has specific facts, quotes, and figures to work with
+  if (top.item.link && !top.item.fullText) {
+    try {
+      console.log('Fetching full article text...');
+      const fetched = await fetchArticle(top.item.link);
+      if (fetched.fullText) top.item.fullText = fetched.fullText;
+    } catch {
+      console.warn('Could not fetch full article text — will use RSS summary only.');
+    }
+  }
+
   return finalize(top.item, top.postType);
 }

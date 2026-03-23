@@ -6,6 +6,7 @@ export interface FeedItem {
   summary: string;
   source: string;
   pubDate: string;
+  fullText?: string;
 }
 
 const FEEDS = [
