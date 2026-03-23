@@ -53,6 +53,10 @@ function extractBodyText(html: string, maxWords = 2500): string {
     cleaned.match(/<main[\s\S]*?<\/main>/i)?.[0] ||
     // Common WordPress/CMS content div patterns
     cleaned.match(/<div[^>]+class="[^"]*(?:entry-content|post-content|article-content|article-body|post-body|td-post-content|single-content)[^"]*"[\s\S]*?<\/div>/i)?.[0] ||
+    // Government/Drupal patterns (NRC, DOE, etc.)
+    cleaned.match(/<div[^>]+(?:id|class)="[^"]*(?:main-content|content-main|page-content|node-content|field-item)[^"]*"[\s\S]*?<\/div>/i)?.[0] ||
+    // NEI and similar industry association sites
+    cleaned.match(/<div[^>]+class="[^"]*(?:wysiwyg|body-content|content-body|press-release-body)[^"]*"[\s\S]*?<\/div>/i)?.[0] ||
     cleaned;
 
   // Extract text from paragraph tags, filtering out very short ones (captions, labels)

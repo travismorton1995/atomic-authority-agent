@@ -2,6 +2,7 @@ import { fetchLatestItems, FeedItem } from './rss.js';
 import { fetchArticle } from './fetch-article.js';
 import { synthesizePost } from './synthesize.js';
 import { screenPost } from './screen.js';
+import { verifyPost } from './verify.js';
 import { addPendingPost, getSourceHistory, PendingPost } from '../hitl/queue.js';
 import { notifyTelegram } from '../hitl/telegram.js';
 import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
@@ -72,7 +73,19 @@ async function finalize(item: FeedItem, postType: PostType): Promise<PendingPost
   console.log(`Post type: ${postType}`);
 
   console.log('Synthesizing draft...');
-  const draft = await synthesizePost(item, postType);
+  let draft = await synthesizePost(item, postType);
+
+  if (item.fullText) {
+    console.log('Verifying factual claims...');
+    const verification = await verifyPost(draft.content, item.fullText);
+    if (verification.changed) {
+      console.log(`Verifier corrected ${verification.flaggedClaims.length} claim(s):`);
+      for (const claim of verification.flaggedClaims) console.log(`  - ${claim}`);
+      draft = { ...draft, content: verification.correctedContent };
+    } else {
+      console.log('Verification passed — no corrections needed.');
+    }
+  }
 
   console.log('Running screening agent...');
   const screening = await screenPost(draft);
@@ -114,7 +127,7 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   }
 
   console.log('Fetching RSS feeds...');
-  const items = await fetchLatestItems(6);
+  const items = await fetchLatestItems(3);
 
   if (items.length === 0) throw new Error('No feed items found. Check network or feed URLs.');
 
@@ -131,8 +144,9 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
 
   const balanceMultipliers = getTypeBalanceMultipliers();
 
-  // Score each article+type combo: article score × balance multiplier
+  // Score each article+type combo: article score × balance multiplier × recency multiplier
   // Exclude the last post type to enforce rotation
+  const now = Date.now();
   const candidates = ranked
     .filter(r => r.score > 0)
     .map(r => {
@@ -141,8 +155,20 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
         ? suggested
         : pickPostType(lastPostType);
       const multiplier = balanceMultipliers[postType] ?? 1.0;
-      const combinedScore = r.score * multiplier;
-      return { item: r.item, postType, articleScore: r.score, combinedScore, reasoning: r.reasoning };
+
+      const ageDays = r.item.pubDate
+        ? Math.floor((now - new Date(r.item.pubDate).getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+      const recencyMultiplier =
+        ageDays === null ? 1.0
+        : ageDays <= 1   ? 1.5
+        : ageDays <= 3   ? 1.0
+        : ageDays <= 7   ? 0.8
+        : ageDays <= 14  ? 0.6
+        :                  0.4;
+
+      const combinedScore = r.score * multiplier * recencyMultiplier;
+      return { item: r.item, postType, articleScore: r.score, combinedScore, recencyMultiplier, reasoning: r.reasoning };
     });
 
   candidates.sort((a, b) => b.combinedScore - a.combinedScore);
@@ -153,7 +179,7 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
 
   console.log(`Selected: "${top.item.title}" (${top.item.source})`);
   console.log(`Score: ${top.articleScore}/10 — ${top.reasoning}`);
-  console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x`);
+  console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x | Recency multiplier: ${top.recencyMultiplier.toFixed(2)}x`);
 
   // Fetch full article body so Claude has specific facts, quotes, and figures to work with
   if (top.item.link && !top.item.fullText) {
