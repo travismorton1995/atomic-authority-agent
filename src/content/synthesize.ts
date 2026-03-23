@@ -139,16 +139,7 @@ Write the LinkedIn post now. You have the full article text above — use specif
     max_tokens: 200,
     messages: [{
       role: 'user',
-      content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment in this exact format — nothing else, no preamble, no sign-off:
-
-1. One sentence of genuine follow-up thought that adds a specific angle or detail not in the post.
-2. One direct question to invite practitioners to reply (e.g. "What's your experience with X in practice?" or "Has your org tackled this yet?"). The question must be specific — not "What do you think?" or "Thoughts?".
-3. The source URL on its own line.
-
-Format:
-<follow-up sentence>
-
-<engagement question>
+      content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Maximum 2 short sentences total — no preamble, no sign-off. Either one sentence that adds a specific angle AND invites a reply, or two very short sentences where the second is a direct question to practitioners (not "What do you think?" — make it specific). Then the source URL on its own line.
 
 ${item.link}`,
     }],
