@@ -47,10 +47,12 @@ function extractBodyText(html: string, maxWords = 2500): string {
     .replace(/<figure[\s\S]*?<\/figure>/gi, '')
     .replace(/<!--[\s\S]*?-->/g, '');
 
-  // Prefer <article> or <main> block if present — more likely to be the actual content
+  // Prefer semantic content containers — try progressively broader selectors
   const contentBlock =
     cleaned.match(/<article[\s\S]*?<\/article>/i)?.[0] ||
     cleaned.match(/<main[\s\S]*?<\/main>/i)?.[0] ||
+    // Common WordPress/CMS content div patterns
+    cleaned.match(/<div[^>]+class="[^"]*(?:entry-content|post-content|article-content|article-body|post-body|td-post-content|single-content)[^"]*"[\s\S]*?<\/div>/i)?.[0] ||
     cleaned;
 
   // Extract text from paragraph tags, filtering out very short ones (captions, labels)
@@ -94,7 +96,11 @@ function domainSource(url: string): string {
 
 export async function fetchArticle(url: string): Promise<FeedItem> {
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AtomicAuthorityBot/1.0)' },
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+    },
   });
 
   if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
