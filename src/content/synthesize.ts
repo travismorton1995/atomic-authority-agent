@@ -18,6 +18,19 @@ const HOOK_THRESHOLD = 7;
 const HOOKS_PER_ROUND = 3;
 const MAX_HOOK_ROUNDS = 2;
 
+function articleAgeDays(pubDate: string): number | null {
+  if (!pubDate) return null;
+  const ms = Date.now() - new Date(pubDate).getTime();
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
+function ageLanguageRule(ageDays: number | null): string {
+  if (ageDays === null) return '';
+  if (ageDays <= 2) return 'The article is very recent — time-sensitive language ("just announced", "this week") is appropriate.';
+  if (ageDays <= 7) return `The article is ${ageDays} days old. Avoid "just" or "today" — use "recently" or past tense at most.`;
+  return `The article is ${ageDays} days old. Do NOT use any recency language ("just", "recently", "this week", "new", "breaking"). Write in past tense and frame it as established context, not breaking news.`;
+}
+
 async function generateBestHook(item: FeedItem, postType: PostType): Promise<string> {
   let bestHook = '';
   let bestScore = 0;
@@ -25,6 +38,9 @@ async function generateBestHook(item: FeedItem, postType: PostType): Promise<str
   const articleSnippet = item.fullText
     ? item.fullText.split(/\s+/).slice(0, 200).join(' ')
     : item.summary?.slice(0, 400) ?? '';
+
+  const ageDays = articleAgeDays(item.pubDate);
+  const ageRule = ageLanguageRule(ageDays);
 
   for (let round = 0; round < MAX_HOOK_ROUNDS; round++) {
     const response = await client.messages.create({
@@ -38,6 +54,7 @@ Article: ${item.title}
 Source: ${item.source}
 Content snippet: ${articleSnippet}
 Post type: ${postType}
+${ageRule ? `\nTEMPORAL RULE: ${ageRule}` : ''}
 
 Rules for a strong hook (score 7-10):
 - Makes a specific, surprising, or tension-creating claim
@@ -51,6 +68,7 @@ Rules for a weak hook (score 1-5):
 - Starts with "I followed by a bland statement"
 - Opens with "In [year], ..." or a definition
 - Asks a rhetorical question
+- Violates the TEMPORAL RULE above
 
 Return ONLY a valid JSON array (no markdown, no extra text):
 [{"hook": "<opening line>", "score": <1-10>}, ...]`,
@@ -85,6 +103,9 @@ export async function synthesizePost(item: FeedItem, postType: PostType): Promis
     ? `Summary: ${item.summary}\n\nFull article text:\n${item.fullText}`
     : `Summary: ${item.summary}`;
 
+  const ageDays = articleAgeDays(item.pubDate);
+  const ageRule = ageLanguageRule(ageDays);
+
   console.log('Generating hooks...');
   const bestHook = await generateBestHook(item, postType);
   const hookConstraint = bestHook
@@ -100,7 +121,7 @@ ${articleContent}
 
 POST TYPE: ${postType}
 INSTRUCTION: ${POST_TYPE_INSTRUCTIONS[postType]}
-${hookConstraint}
+${ageRule ? `TEMPORAL RULE: ${ageRule}\n` : ''}${hookConstraint}
 Write the LinkedIn post now. You have the full article text above — use specific facts, figures, quotes, or details from it where they strengthen the post. Output only the post text — no preamble, no "here is your post," no quotation marks wrapping the whole thing.`;
 
   const message = await client.messages.create({

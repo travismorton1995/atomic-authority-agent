@@ -127,7 +127,7 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   }
 
   console.log('Fetching RSS feeds...');
-  const items = await fetchLatestItems(3);
+  const items = await fetchLatestItems(5);
 
   if (items.length === 0) throw new Error('No feed items found. Check network or feed URLs.');
 
