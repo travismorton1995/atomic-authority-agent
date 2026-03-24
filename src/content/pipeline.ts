@@ -19,16 +19,21 @@ function stripMentionMarkers(text: string): { clean: string; markers: Array<{ na
   return { clean, markers };
 }
 
-// Re-inject [[MENTION:X]] markers into revised text by replacing plain company
-// names that were previously marked. Uses whole-word matching, longest first.
+// Re-inject [[MENTION:X]] markers into revised text — first occurrence only,
+// and never inside a hashtag. Longest names matched first to avoid partials.
 function reInjectMentionMarkers(revised: string, markers: Array<{ name: string; plainName: string }>): string {
   if (markers.length === 0) return revised;
   const names = [...new Set(markers.map(m => m.name))].sort((a, b) => b.length - a.length);
   let result = revised;
   for (const name of names) {
+    const marker = `[[MENTION:${name}]]`;
+    if (result.includes(marker)) continue; // already injected
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    result = result.replace(new RegExp(`\\b${escaped}\\b`, 'g'), `[[MENTION:${name}]]`);
+    // Replace first whole-word occurrence that isn't preceded by #
+    result = result.replace(new RegExp(`(?<!#)\\b${escaped}\\b`), marker);
   }
+  // Strip any markers that ended up inside hashtags (e.g. #[[MENTION:NPX]])
+  result = result.replace(/#\[\[MENTION:([^\]]+)\]\]/g, '#$1');
   return result;
 }
 
