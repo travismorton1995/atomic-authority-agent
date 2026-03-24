@@ -244,12 +244,21 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     while (Date.now() < deadline) {
       await page.waitForTimeout(500);
 
-      // Check for error messages first — they appear while modal is still open
+      // Check for error messages — they appear INSIDE the composer while it is still open.
+      // LinkedIn renders errors as visible text AND in aria-label/title attributes.
       for (const msg of knownErrors) {
-        const visible = await page.getByText(msg, { exact: false }).first().isVisible().catch(() => false);
-        if (visible) {
+        const byText = await page.getByText(msg, { exact: false }).first().isVisible().catch(() => false);
+        const byAriaLabel = await page.locator(`[aria-label*="${msg}"]`).first().isVisible().catch(() => false);
+        const byTitle = await page.locator(`[title*="${msg}"]`).first().isVisible().catch(() => false);
+        if (byText || byAriaLabel || byTitle) {
           throw new Error(`LinkedIn error during post: "${msg}"`);
         }
+      }
+      // CSS class-based fallback (LinkedIn inline feedback component)
+      const inlineFeedback = await page.locator('.artdeco-inline-feedback--error').first().isVisible().catch(() => false);
+      if (inlineFeedback) {
+        const errorText = await page.locator('.artdeco-inline-feedback--error').first().textContent().catch(() => 'unknown');
+        throw new Error(`LinkedIn error during post: "${errorText?.trim()}"`);
       }
 
       // Check if composer closed (success)
@@ -258,6 +267,10 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     }
 
     if (!posted) {
+      // Capture a screenshot to diagnose what LinkedIn is showing
+      const screenshotPath = 'post-failure-debug.png';
+      await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
+      console.error(`Screenshot saved to ${screenshotPath} — check it to see what LinkedIn is showing.`);
       throw new Error('Timed out waiting for post to complete — composer still open after 30s.');
     }
 
