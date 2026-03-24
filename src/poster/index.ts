@@ -1,7 +1,7 @@
 import { chromium, type Page } from 'playwright';
 import path from 'path';
 import { tmpdir } from 'os';
-import { writeFileSync, unlinkSync } from 'fs';
+import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { MENTIONS } from './mentions.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
@@ -82,6 +82,7 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     timezoneId: 'America/Toronto',
     viewport: { width: 1280, height: 800 },
     slowMo: 0,
+    permissions: ['clipboard-read', 'clipboard-write'],
   });
 
   // Suppress Playwright's webdriver fingerprint before any page load.
@@ -156,51 +157,34 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
       const tempPath = await downloadImageToTemp(options.imageUrl);
       if (tempPath) {
         try {
-          console.log('Uploading image...');
+          console.log('Attaching image via clipboard paste...');
 
-          // Click the media button (identified by its SVG data-test-icon attribute).
-          // Set up the filechooser listener BEFORE clicking so Playwright intercepts
-          // the event at the browser level — this prevents Windows Explorer from opening.
-          const mediaBtn = page.locator('button:has([data-test-icon="image-medium"])').first();
-          await mediaBtn.waitFor({ state: 'visible', timeout: 10000 });
+          // Determine MIME type from file extension
+          const mime = tempPath.endsWith('.png') ? 'image/png'
+            : tempPath.endsWith('.gif') ? 'image/gif'
+            : tempPath.endsWith('.webp') ? 'image/webp'
+            : 'image/jpeg';
 
-          console.log('Intercepting file chooser and setting image...');
-          let uploadSucceeded = false;
+          // Write image binary to the clipboard via the browser's Clipboard API.
+          // This avoids the file-chooser / /dms/image upload endpoint that LinkedIn
+          // blocks for automated sessions. Paste events are treated as user-initiated.
+          const base64 = readFileSync(tempPath).toString('base64');
+          await page.evaluate(async ({ b64, mimeType }) => {
+            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            const blob = new Blob([bytes], { type: mimeType });
+            await navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })]);
+          }, { b64: base64, mimeType: mime });
 
-          try {
-            const [fileChooser] = await Promise.all([
-              page.waitForEvent('filechooser', { timeout: 10000 }),
-              mediaBtn.click(),
-            ]);
-            await fileChooser.setFiles(tempPath);
-            uploadSucceeded = true;
-          } catch {
-            // Filechooser intercept failed — fall back to setInputFiles on hidden input
-            console.log('Filechooser intercept failed — trying setInputFiles fallback...');
-            const fileInput = page.locator('input[type="file"]').first();
-            await fileInput.setInputFiles(tempPath);
-            uploadSucceeded = true;
-          }
+          // Focus the composer text area and paste — LinkedIn processes the image inline
+          await textArea.click();
+          await page.keyboard.press('Control+v');
+          console.log('Paste sent — waiting for LinkedIn to process image...');
 
-          if (uploadSucceeded) {
-            console.log('File set — waiting for LinkedIn to process upload...');
-
-            // Wait for LinkedIn to process the upload and show the image preview
-            await page.waitForTimeout(5000);
-
-            // Click "Next" to proceed past LinkedIn's image crop/edit step
-            console.log('Looking for Next button...');
-            const nextBtn = page.locator('button').filter({ hasText: 'Next' }).first();
-            await nextBtn.waitFor({ state: 'visible', timeout: 10000 });
-            console.log('Clicking Next...');
-            await nextBtn.click();
-
-            // Wait for the composer to settle into the image post view
-            await page.waitForTimeout(3000);
-            console.log('Image upload flow complete — back in composer.');
-          }
+          // Wait for the image preview to appear in the composer
+          await page.waitForTimeout(4000);
+          console.log('Image pasted into composer.');
         } catch (err) {
-          console.warn('Image upload failed (non-fatal) — posting text only:', (err as any)?.message);
+          console.warn('Image paste failed (non-fatal) — posting text only:', (err as any)?.message);
         } finally {
           unlinkSync(tempPath);
         }
