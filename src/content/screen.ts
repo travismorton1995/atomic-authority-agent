@@ -20,7 +20,7 @@ Your job is to score the POST on a "Cringe Scale" from 1–10:
 CRINGE TRIGGERS (flag any of these):
 - Phrases: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock potential," "seamlessly," "in today's landscape," "it's worth noting," "at the forefront," "at its core," "this matters because," "a masterclass in," "this is what [x] looks like"
 - Structure: Starting with a rhetorical question as a hook, ending with "What do you think?" or a hollow call-to-action, ending with any variation of "The question is no longer whether, but when/how"
-- Contrasting reframe sentences: "It's not X, it's Y." / "This isn't about X, it's about Y." / "Not X. Y." used as a stylistic device. This pattern feels like AI-generated pseudo-profundity. Flag any instance and rewrite to make the actual claim directly instead.
+- Contrasting reframe sentences — these are an AUTOMATIC rewrite trigger regardless of overall score. Flag and rewrite any instance of: "It's not X, it's Y." / "This isn't about X, it's about Y." / "Not X. Y." / "That's not X. That's Y." / "This isn't X. It's Y." / "Less X, more Y." / "Not just X — Y." used as a stylistic device. Do not soften or rephrase the reframe — eliminate it entirely and make the actual claim directly instead.
 - AI sentence patterns: listing exactly three things in a row used repeatedly, gerund openers ("Building on this...", "Recognizing the need..."), pivot filler sentences ("But here's the thing." / "Here's what that means." / "And that's the point."), stacked adjectives before nouns ("a structured, evidence-based, traceable argument"), and over-parallel paragraph structure where every paragraph follows the same rhythm.
 - Tone: Breathless enthusiasm with no substance, vague optimism without a specific claim
 - Missing: No industry-specific terminology (ALARA, SMR, CANDU, etc.), or the nuclear angle feels bolted on
@@ -45,7 +45,7 @@ Respond ONLY in this exact JSON format:
 {
   "cringeScore": <number 1-10>,
   "reasoning": "<one or two sentences explaining the score, calling out hook quality specifically if it is weak>",
-  "revisedContent": <null if score <= 3, otherwise a rewritten version of the post as a string>,
+  "revisedContent": <null if score <= 3 AND no contrasting reframe pattern was found, otherwise a rewritten version of the post as a string>,
   "revisedFirstComment": <null if the comment is clean, otherwise a revised version preserving the URL at the end>
 }`;
 
