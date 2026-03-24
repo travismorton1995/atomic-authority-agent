@@ -172,75 +172,66 @@ async function typeContentWithMentions(page: Page, content: string): Promise<voi
   }
 }
 
-// Types `@searchTerm`, waits for LinkedIn's typeahead, then clicks the first
-// visible result via JS — avoids keyboard focus ambiguity (ArrowDown+Enter can
-// accidentally submit the post if focus returns to the composer).
+// Types `@searchTerm` and uses a MutationObserver to catch the LinkedIn typeahead
+// the instant it appears in the DOM, then clicks the first result immediately.
 // Returns true if the mention was inserted, false if the dropdown never appeared.
 async function insertMention(page: Page, searchTerm: string, displayName: string): Promise<boolean> {
   const typed = `@${searchTerm}`;
+  const NAV_TEXTS = ['Home', 'My Network', 'Jobs', 'Messaging', 'Notifications', 'Me', 'For Business'];
+
   try {
-    await page.keyboard.type(typed, { delay: 40 });
-
-    // Give LinkedIn time to query and render the typeahead
-    await page.waitForTimeout(2500);
-
-    // Debug: screenshot + DOM snapshot to identify the correct selector
-    await page.screenshot({ path: 'mention-debug.png', fullPage: false });
-    const domSnapshot = await page.evaluate(() => {
-      // Dump all elements that might be part of a typeahead
-      const candidates = Array.from(document.querySelectorAll('*')).filter(el => {
-        const cls = el.className?.toString() ?? '';
-        const role = el.getAttribute('role') ?? '';
-        const tag = el.tagName.toLowerCase();
-        return (
-          cls.includes('typeahead') || cls.includes('mention') || cls.includes('suggestion') ||
-          role === 'listbox' || role === 'option' ||
-          (tag === 'li' && (el as HTMLElement).offsetParent !== null)
-        );
-      });
-      return candidates.slice(0, 20).map(el => ({
-        tag: el.tagName,
-        role: el.getAttribute('role'),
-        class: el.className?.toString().slice(0, 120),
-        text: el.textContent?.trim().slice(0, 60),
-        visible: (el as HTMLElement).offsetParent !== null,
-      }));
-    });
-    console.log('Typeahead DOM candidates:', JSON.stringify(domSnapshot, null, 2));
-
-    // Click the first visible item in the typeahead dropdown via JS.
-    // Casts a wide net across possible LinkedIn markup variations.
-    const clicked = await page.evaluate(() => {
-      const selectors = [
-        '[class*="typeahead"] li',
-        '[class*="typeahead"] [role="option"]',
-        '[role="listbox"] [role="option"]',
-        '[role="listbox"] li',
-        '[class*="mention"] li',
-        '[class*="suggestion"] li',
-        '[data-test-id*="typeahead"] li',
-      ];
-      for (const sel of selectors) {
-        const items = Array.from(document.querySelectorAll(sel));
-        const first = items.find(el => (el as HTMLElement).offsetParent !== null);
-        if (first) {
-          (first as HTMLElement).click();
-          return sel;
+    // Register a MutationObserver before typing so we catch the dropdown the
+    // instant it's added to the DOM — avoids racing against a fixed timeout.
+    await page.evaluate((navTexts) => {
+      (window as any).__liMentionResult = null;
+      const observer = new MutationObserver(() => {
+        const lis = Array.from(document.querySelectorAll('li')) as HTMLElement[];
+        const match = lis.find(li => {
+          const text = li.textContent?.trim() ?? '';
+          const isNav = navTexts.some((n: string) => text.startsWith(n));
+          return text && !isNav && li.offsetParent !== null;
+        });
+        if (match) {
+          (window as any).__liMentionResult = match;
+          observer.disconnect();
         }
-      }
-      return null;
-    });
+      });
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+      (window as any).__liMentionObserver = observer;
+    }, NAV_TEXTS);
 
-    if (!clicked) {
-      throw new Error('no dropdown item found');
+    // Type @ to enter mention mode, pause briefly, then type the search term
+    await page.keyboard.type('@', { delay: 50 });
+    await page.waitForTimeout(400);
+    for (const char of searchTerm) {
+      await page.keyboard.type(char, { delay: 60 });
     }
 
+    // Wait up to 5 seconds for the observer to capture a result
+    await page.waitForFunction(
+      () => (window as any).__liMentionResult !== null,
+      { timeout: 5000, polling: 100 }
+    );
+
+    // Click the captured element
+    const clicked = await page.evaluate(() => {
+      const el = (window as any).__liMentionResult as HTMLElement | null;
+      (window as any).__liMentionObserver?.disconnect();
+      if (el && el.offsetParent !== null) {
+        el.click();
+        return true;
+      }
+      return false;
+    });
+
+    if (!clicked) throw new Error('captured element no longer visible');
+
     await page.waitForTimeout(400);
-    console.log(`Inserted @mention: ${displayName} (via ${clicked})`);
+    console.log(`Inserted @mention: ${displayName}`);
     return true;
   } catch {
-    console.warn(`@mention dropdown did not appear for "${displayName}" — using plain text fallback.`);
-    // Backspace out the typed @searchTerm
+    await page.evaluate(() => (window as any).__liMentionObserver?.disconnect());
+    console.warn(`@mention failed for "${displayName}" — using plain text fallback.`);
     for (let i = 0; i < typed.length; i++) await page.keyboard.press('Backspace');
     return false;
   }
