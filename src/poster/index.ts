@@ -172,66 +172,55 @@ async function typeContentWithMentions(page: Page, content: string): Promise<voi
   }
 }
 
-// Types `@searchTerm` and uses a MutationObserver to catch the LinkedIn typeahead
-// the instant it appears in the DOM, then clicks the first result immediately.
-// Returns true if the mention was inserted, false if the dropdown never appeared.
+// Types `@searchTerm` then polls for any visible leaf element whose text
+// contains the first word of the search term — matches the typeahead result
+// regardless of what element type LinkedIn uses for its dropdown.
+// Returns true if the mention was inserted, false if nothing was found.
 async function insertMention(page: Page, searchTerm: string, displayName: string): Promise<boolean> {
   const typed = `@${searchTerm}`;
-  const NAV_TEXTS = ['Home', 'My Network', 'Jobs', 'Messaging', 'Notifications', 'Me', 'For Business'];
+  // Use first word as the match target (e.g. "Bruce" from "Bruce Power")
+  const matchWord = searchTerm.split(' ')[0].toLowerCase();
 
   try {
-    // Register a MutationObserver before typing so we catch the dropdown the
-    // instant it's added to the DOM — avoids racing against a fixed timeout.
-    await page.evaluate((navTexts) => {
-      (window as any).__liMentionResult = null;
-      const observer = new MutationObserver(() => {
-        const lis = Array.from(document.querySelectorAll('li')) as HTMLElement[];
-        const match = lis.find(li => {
-          const text = li.textContent?.trim() ?? '';
-          const isNav = navTexts.some((n: string) => text.startsWith(n));
-          return text && !isNav && li.offsetParent !== null;
-        });
-        if (match) {
-          (window as any).__liMentionResult = match;
-          observer.disconnect();
-        }
-      });
-      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-      (window as any).__liMentionObserver = observer;
-    }, NAV_TEXTS);
-
-    // Type @ to enter mention mode, pause briefly, then type the search term
+    // Type @ to trigger mention mode, pause, then type the search term
     await page.keyboard.type('@', { delay: 50 });
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(500);
     for (const char of searchTerm) {
       await page.keyboard.type(char, { delay: 60 });
     }
 
-    // Wait up to 5 seconds for the observer to capture a result
-    await page.waitForFunction(
-      () => (window as any).__liMentionResult !== null,
-      { timeout: 5000, polling: 100 }
-    );
+    // Poll every 100ms for a visible leaf element containing our search word.
+    // Leaf elements (no children) avoid matching large container divs.
+    await page.waitForFunction((word: string) => {
+      const all = Array.from(document.querySelectorAll('*')) as HTMLElement[];
+      return all.some(el =>
+        el.children.length === 0 &&
+        el.offsetParent !== null &&
+        (el.textContent ?? '').toLowerCase().includes(word) &&
+        !['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA'].includes(el.tagName)
+      );
+    }, matchWord, { timeout: 5000, polling: 100 });
 
-    // Click the captured element
-    const clicked = await page.evaluate(() => {
-      const el = (window as any).__liMentionResult as HTMLElement | null;
-      (window as any).__liMentionObserver?.disconnect();
-      if (el && el.offsetParent !== null) {
-        el.click();
-        return true;
-      }
-      return false;
-    });
+    // Click the matched element
+    const clicked = await page.evaluate((word: string) => {
+      const all = Array.from(document.querySelectorAll('*')) as HTMLElement[];
+      const match = all.find(el =>
+        el.children.length === 0 &&
+        el.offsetParent !== null &&
+        (el.textContent ?? '').toLowerCase().includes(word) &&
+        !['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA'].includes(el.tagName)
+      );
+      if (match) { match.click(); return match.textContent?.trim() ?? 'unknown'; }
+      return null;
+    }, matchWord);
 
-    if (!clicked) throw new Error('captured element no longer visible');
+    if (!clicked) throw new Error('match element disappeared before click');
 
     await page.waitForTimeout(400);
-    console.log(`Inserted @mention: ${displayName}`);
+    console.log(`Inserted @mention: ${displayName} — clicked "${clicked}"`);
     return true;
-  } catch {
-    await page.evaluate(() => (window as any).__liMentionObserver?.disconnect());
-    console.warn(`@mention failed for "${displayName}" — using plain text fallback.`);
+  } catch (err) {
+    console.warn(`@mention failed for "${displayName}" — using plain text fallback. (${(err as Error).message})`);
     for (let i = 0; i < typed.length; i++) await page.keyboard.press('Backspace');
     return false;
   }
