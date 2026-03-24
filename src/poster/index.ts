@@ -184,6 +184,30 @@ async function insertMention(page: Page, searchTerm: string, displayName: string
     // Give LinkedIn time to query and render the typeahead
     await page.waitForTimeout(2500);
 
+    // Debug: screenshot + DOM snapshot to identify the correct selector
+    await page.screenshot({ path: 'mention-debug.png', fullPage: false });
+    const domSnapshot = await page.evaluate(() => {
+      // Dump all elements that might be part of a typeahead
+      const candidates = Array.from(document.querySelectorAll('*')).filter(el => {
+        const cls = el.className?.toString() ?? '';
+        const role = el.getAttribute('role') ?? '';
+        const tag = el.tagName.toLowerCase();
+        return (
+          cls.includes('typeahead') || cls.includes('mention') || cls.includes('suggestion') ||
+          role === 'listbox' || role === 'option' ||
+          (tag === 'li' && (el as HTMLElement).offsetParent !== null)
+        );
+      });
+      return candidates.slice(0, 20).map(el => ({
+        tag: el.tagName,
+        role: el.getAttribute('role'),
+        class: el.className?.toString().slice(0, 120),
+        text: el.textContent?.trim().slice(0, 60),
+        visible: (el as HTMLElement).offsetParent !== null,
+      }));
+    });
+    console.log('Typeahead DOM candidates:', JSON.stringify(domSnapshot, null, 2));
+
     // Click the first visible item in the typeahead dropdown via JS.
     // Casts a wide net across possible LinkedIn markup variations.
     const clicked = await page.evaluate(() => {
