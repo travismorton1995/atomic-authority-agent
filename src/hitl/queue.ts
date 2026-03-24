@@ -94,6 +94,16 @@ export function getSourceHistory(): SourceHistory {
   }
 
   const rejected = readFile<PendingPost[]>(REJECTED_FILE, []);
+
+  // Temporarily hard-exclude articles rejected in the last 24 hours
+  const cooldownCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  for (const p of rejected) {
+    if (p.actedAt && p.actedAt < cooldownCutoff) continue;
+    if (p.draft.sourceUrl && !excludedUrls.includes(p.draft.sourceUrl)) excludedUrls.push(p.draft.sourceUrl);
+    if (p.draft.sourceTitle && !excludedTitles.includes(p.draft.sourceTitle)) excludedTitles.push(p.draft.sourceTitle);
+  }
+
+  // All-time rejected sources still inform the ranker to try a different post type
   const rejectedSources = rejected
     .map(p => ({ title: p.draft.sourceTitle, usedPostType: p.draft.postType }))
     .filter(s => s.title);
