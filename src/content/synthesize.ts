@@ -12,6 +12,8 @@ export interface DraftPost {
   sourceTitle: string;
   sourceUrl: string;
   sourceDate: string;
+  sourceFeed: string;       // RSS feed name (e.g. "ANS Newswire", "Bruce Power")
+  combinedScore?: number;   // article score after all multipliers
   generatedAt: string;
 }
 
@@ -179,6 +181,7 @@ ${item.link}`,
     sourceTitle: item.title,
     sourceUrl: item.link,
     sourceDate: item.pubDate,
+    sourceFeed: item.source,
     generatedAt: new Date().toISOString(),
   };
 }

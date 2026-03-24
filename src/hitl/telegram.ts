@@ -168,11 +168,17 @@ function formatMessage(post: PendingPost): string {
     ? `*Source:* ${post.draft.sourceTitle} _(${sourceDateStr})_`
     : `*Source:* ${post.draft.sourceTitle}`;
 
+  const feedNote = post.draft.sourceFeed ? `*Feed:* ${post.draft.sourceFeed}` : '';
+  const scoreNote = post.draft.combinedScore !== undefined
+    ? `*Score:* ${post.draft.combinedScore.toFixed(2)}`
+    : '';
+  const metaLine = [feedNote, scoreNote].filter(Boolean).join(' | ');
+
   const displayContent = post.finalContent.replace(/\[\[MENTION:([^\]]+)\]\]/g, '*$1*');
 
   return `*New draft ready* | ${post.draft.postType} | ${cringeNote}
 
-${sourceNote}
+${sourceNote}${metaLine ? `\n${metaLine}` : ''}
 
 ${displayContent}${commentSection}`;
 }

@@ -97,11 +97,12 @@ function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
   return multipliers as Record<PostType, number>;
 }
 
-async function finalize(item: FeedItem, postType: PostType): Promise<PendingPost> {
+async function finalize(item: FeedItem, postType: PostType, combinedScore?: number): Promise<PendingPost> {
   console.log(`Post type: ${postType}`);
 
   console.log('Synthesizing draft...');
   let draft = await synthesizePost(item, postType);
+  if (combinedScore !== undefined) draft = { ...draft, combinedScore };
 
   // Strip [[MENTION:X]] markers before passing to verifier/screener so they
   // see clean prose. Markers are re-injected into any revised output afterward.
@@ -228,5 +229,5 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
     }
   }
 
-  return finalize(top.item, top.postType);
+  return finalize(top.item, top.postType, top.combinedScore);
 }
