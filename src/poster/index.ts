@@ -84,6 +84,13 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     slowMo: 0,
   });
 
+  // Suppress Playwright's webdriver fingerprint before any page load.
+  // LinkedIn's JS checks navigator.webdriver and is more aggressive about
+  // blocking automated sessions on the image upload API endpoint (/dms/image).
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+  });
+
   const page = context.pages()[0] ?? await context.newPage();
 
   try {
@@ -145,15 +152,6 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     //
     // To pick this up later:
     //   - Try suppressing navigator.webdriver via context.addInitScript():
-    //       await context.addInitScript(() => {
-    //         Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-    //       });
-    //   - If that doesn't work, investigate other Playwright detection vectors:
-    //     window.chrome object, permissions API, plugin count, etc.
-    //   - Consider using LinkedIn's official API (requires OAuth app approval) as
-    //     an alternative to browser automation for image posts.
-    //   - The Telegram "Approve (no image)" button already exists to strip imageUrl
-    //     before scheduling — use that as the workaround in the meantime.
     if (options.imageUrl) {
       const tempPath = await downloadImageToTemp(options.imageUrl);
       if (tempPath) {
@@ -167,26 +165,40 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
           await mediaBtn.waitFor({ state: 'visible', timeout: 10000 });
 
           console.log('Intercepting file chooser and setting image...');
-          const [fileChooser] = await Promise.all([
-            page.waitForEvent('filechooser', { timeout: 10000 }),
-            mediaBtn.click(),
-          ]);
-          await fileChooser.setFiles(tempPath);
-          console.log('File set — waiting for LinkedIn to process upload...');
+          let uploadSucceeded = false;
 
-          // Wait for LinkedIn to process the upload and show the image preview
-          await page.waitForTimeout(5000);
+          try {
+            const [fileChooser] = await Promise.all([
+              page.waitForEvent('filechooser', { timeout: 10000 }),
+              mediaBtn.click(),
+            ]);
+            await fileChooser.setFiles(tempPath);
+            uploadSucceeded = true;
+          } catch {
+            // Filechooser intercept failed — fall back to setInputFiles on hidden input
+            console.log('Filechooser intercept failed — trying setInputFiles fallback...');
+            const fileInput = page.locator('input[type="file"]').first();
+            await fileInput.setInputFiles(tempPath);
+            uploadSucceeded = true;
+          }
 
-          // Click "Next" to proceed past LinkedIn's image crop/edit step
-          console.log('Looking for Next button...');
-          const nextBtn = page.locator('button').filter({ hasText: 'Next' }).first();
-          await nextBtn.waitFor({ state: 'visible', timeout: 10000 });
-          console.log('Clicking Next...');
-          await nextBtn.click();
+          if (uploadSucceeded) {
+            console.log('File set — waiting for LinkedIn to process upload...');
 
-          // Wait for the composer to settle into the image post view
-          await page.waitForTimeout(3000);
-          console.log('Image upload flow complete — back in composer.');
+            // Wait for LinkedIn to process the upload and show the image preview
+            await page.waitForTimeout(5000);
+
+            // Click "Next" to proceed past LinkedIn's image crop/edit step
+            console.log('Looking for Next button...');
+            const nextBtn = page.locator('button').filter({ hasText: 'Next' }).first();
+            await nextBtn.waitFor({ state: 'visible', timeout: 10000 });
+            console.log('Clicking Next...');
+            await nextBtn.click();
+
+            // Wait for the composer to settle into the image post view
+            await page.waitForTimeout(3000);
+            console.log('Image upload flow complete — back in composer.');
+          }
         } catch (err) {
           console.warn('Image upload failed (non-fatal) — posting text only:', (err as any)?.message);
         } finally {
