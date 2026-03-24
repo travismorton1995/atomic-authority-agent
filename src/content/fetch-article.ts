@@ -35,9 +35,28 @@ function extractDescription(html: string): string {
   return extractMeta(html, 'og:description') || extractName(html, 'description') || '';
 }
 
+function extractParagraphs(source: string): string[] {
+  const paragraphs: string[] = [];
+  const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
+  let match;
+  while ((match = pRegex.exec(source)) !== null) {
+    const text = match[1]
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#\d+;/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (text.length > 40) paragraphs.push(text);
+  }
+  return paragraphs;
+}
+
 function extractBodyText(html: string, maxWords = 2500): string {
   // Remove non-content blocks entirely
-  let cleaned = html
+  const cleaned = html
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<nav[\s\S]*?<\/nav>/gi, '')
@@ -47,45 +66,45 @@ function extractBodyText(html: string, maxWords = 2500): string {
     .replace(/<figure[\s\S]*?<\/figure>/gi, '')
     .replace(/<!--[\s\S]*?-->/g, '');
 
-  // Prefer semantic content containers — try progressively broader selectors
-  const contentBlock =
-    cleaned.match(/<article[\s\S]*?<\/article>/i)?.[0] ||
-    cleaned.match(/<main[\s\S]*?<\/main>/i)?.[0] ||
-    // Common WordPress/CMS content div patterns
-    cleaned.match(/<div[^>]+class="[^"]*(?:entry-content|post-content|article-content|article-body|post-body|td-post-content|single-content)[^"]*"[\s\S]*?<\/div>/i)?.[0] ||
-    // Government/Drupal patterns (NRC, DOE, etc.)
-    cleaned.match(/<div[^>]+(?:id|class)="[^"]*(?:main-content|content-main|page-content|node-content|field-item)[^"]*"[\s\S]*?<\/div>/i)?.[0] ||
-    // NEI and similar industry association sites
-    cleaned.match(/<div[^>]+class="[^"]*(?:wysiwyg|body-content|content-body|press-release-body)[^"]*"[\s\S]*?<\/div>/i)?.[0] ||
-    cleaned;
+  // Find the character offset where the main content begins.
+  // We look for the OPENING TAG only — not the full container — because
+  // lazy regex ([\s\S]*?<\/div>) stops at the first nested </div>, truncating content.
+  // Slicing from the opening tag gives us everything inside without that bug.
+  const contentPatterns = [
+    /<article[\s\S]*?>/i,
+    /<main[\s\S]*?>/i,
+    // WordPress / CMS class patterns
+    /<(?:div|section)[^>]+class="[^"]*(?:entry-content|post-content|article-content|article-body|post-body|td-post-content|single-content|single__body|single__content)[^"]*"/i,
+    // Theme-specific: GeneratePress (Bruce Power), BEM doubles
+    /<(?:div|section)[^>]+class="[^"]*(?:inside-article|inside-page-header|post__content|article__body|article__content)[^"]*"/i,
+    // Government / Drupal
+    /<(?:div|section)[^>]+(?:id|class)="[^"]*(?:main-content|content-main|page-content|node-content|field-item)[^"]*"/i,
+    // NEI, press releases, industry sites
+    /<(?:div|section)[^>]+class="[^"]*(?:wysiwyg|body-content|content-body|press-release-body|article-text|story-body)[^"]*"/i,
+  ];
 
-  // Extract text from paragraph tags, filtering out very short ones (captions, labels)
-  const paragraphs: string[] = [];
-  const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
-  let match;
-  while ((match = pRegex.exec(contentBlock)) !== null) {
-    const text = match[1]
-      .replace(/<[^>]+>/g, '')          // strip inner tags
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&#\d+;/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (text.length > 40) {             // skip captions, nav labels, etc.
-      paragraphs.push(text);
-    }
+  let contentStart = -1;
+  for (const pattern of contentPatterns) {
+    const m = cleaned.match(pattern);
+    if (m?.index !== undefined) { contentStart = m.index; break; }
+  }
+
+  // Slice from content start so we include all nested paragraphs.
+  // Fall back to full cleaned document if no container was found.
+  const slice = contentStart >= 0 ? cleaned.slice(contentStart) : cleaned;
+  let paragraphs = extractParagraphs(slice);
+
+  // If sliced extraction found very little, retry on the full cleaned document
+  if (paragraphs.length < 3) {
+    const fallback = extractParagraphs(cleaned);
+    if (fallback.length > paragraphs.length) paragraphs = fallback;
   }
 
   const body = paragraphs.join('\n\n');
   if (!body) return '';
 
-  // Truncate to maxWords to keep token costs reasonable
   const words = body.split(/\s+/);
-  if (words.length > maxWords) {
-    return words.slice(0, maxWords).join(' ') + ' [truncated]';
-  }
+  if (words.length > maxWords) return words.slice(0, maxWords).join(' ') + ' [truncated]';
   return body;
 }
 
