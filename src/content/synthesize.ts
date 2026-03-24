@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { FeedItem } from './rss.js';
 import { PostType, SYSTEM_PROMPT, POST_TYPE_INSTRUCTIONS } from './persona.js';
+import { verifiedMentions } from '../poster/mentions.js';
 
 const client = new Anthropic();
 
@@ -98,6 +99,29 @@ Return ONLY a valid JSON array (no markdown, no extra text):
   return bestHook;
 }
 
+// Wraps verified company names in post text with [[MENTION:Name]] markers.
+// Matches only whole-word occurrences; skips if already wrapped.
+// Longer names are matched first to avoid partial replacements (e.g. "CNL" inside "Canadian Nuclear Laboratories").
+function injectMentionMarkers(text: string): string {
+  const verified = verifiedMentions();
+  if (Object.keys(verified).length === 0) return text;
+
+  // Sort by length descending so longer names match before shorter abbreviations
+  const names = Object.keys(verified).sort((a, b) => b.length - a.length);
+  let result = text;
+
+  for (const name of names) {
+    const marker = `[[MENTION:${name}]]`;
+    // Skip if already marked
+    if (result.includes(marker)) continue;
+    // Match whole word, case-sensitive
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(`\\b${escaped}\\b`, 'g'), marker);
+  }
+
+  return result;
+}
+
 export async function synthesizePost(item: FeedItem, postType: PostType): Promise<DraftPost> {
   const articleContent = item.fullText
     ? `Summary: ${item.summary}\n\nFull article text:\n${item.fullText}`
@@ -131,7 +155,8 @@ Write the LinkedIn post now. You have the full article text above — use specif
     messages: [{ role: 'user', content: userPrompt }],
   });
 
-  const content = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
+  const rawContent = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
+  const content = injectMentionMarkers(rawContent);
 
   // Generate first comment: follow-up thought + engagement question + source URL
   const commentMessage = await client.messages.create({

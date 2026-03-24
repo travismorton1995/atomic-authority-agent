@@ -1,0 +1,101 @@
+// npm run test-mentions
+// Opens LinkedIn composer in a headed browser and walks through each entry
+// in the mentions dictionary. For each one, types @searchTerm and pauses so
+// you can visually confirm the correct company appears as the first result.
+// Press y to mark verified, n to skip, q to quit and save.
+
+import 'dotenv/config';
+import * as readline from 'readline';
+import * as fs from 'fs';
+import * as path from 'path';
+import { chromium } from 'playwright';
+import { MENTIONS } from '../poster/mentions.js';
+
+const USER_DATA_DIR = path.resolve('user_data');
+const LINKEDIN_FEED = 'https://www.linkedin.com/feed/';
+const MENTIONS_PATH = path.resolve('src/poster/mentions.ts');
+
+function prompt(question: string): Promise<string> {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  return new Promise(resolve => rl.question(question, answer => { rl.close(); resolve(answer.trim().toLowerCase()); }));
+}
+
+async function openComposer(page: import('playwright').Page): Promise<void> {
+  await page.goto(LINKEDIN_FEED, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForTimeout(2000);
+
+  const startPostBtn = page.locator('[aria-label="Start a post"]').first();
+  await startPostBtn.waitFor({ state: 'visible', timeout: 20000 });
+  await startPostBtn.click();
+
+  const textArea = page.locator('.share-box-v2__modal div[contenteditable="true"], div[role="textbox"], .ql-editor').first();
+  await textArea.waitFor({ state: 'visible', timeout: 20000 });
+  await page.waitForTimeout(500);
+  await textArea.click();
+}
+
+async function clearComposer(page: import('playwright').Page): Promise<void> {
+  await page.keyboard.press('Control+a');
+  await page.keyboard.press('Backspace');
+  await page.waitForTimeout(300);
+}
+
+async function testEntry(page: import('playwright').Page, searchTerm: string): Promise<void> {
+  await clearComposer(page);
+  await page.keyboard.type(`@${searchTerm}`, { delay: 40 });
+  // Wait 3s for the dropdown to appear so user can see it
+  await page.waitForTimeout(3000);
+}
+
+async function markVerified(name: string): Promise<void> {
+  let src = fs.readFileSync(MENTIONS_PATH, 'utf8');
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`('${escaped}'\\s*:\\s*\\{[^}]*?)verified:\\s*false`, 's');
+  if (re.test(src)) {
+    src = src.replace(re, '$1verified: true');
+    fs.writeFileSync(MENTIONS_PATH, src, 'utf8');
+    console.log(`  Marked "${name}" as verified.`);
+  } else {
+    console.warn(`  Could not find unverified entry for "${name}" in source file.`);
+  }
+}
+
+(async () => {
+  const entries = Object.entries(MENTIONS);
+  const unverified = entries.filter(([, e]) => !e.verified);
+
+  if (unverified.length === 0) {
+    console.log('All entries are already verified. Nothing to test.');
+    process.exit(0);
+  }
+
+  console.log(`\nTesting ${unverified.length} unverified mention(s).`);
+  console.log('Controls: y = verified, n = skip, q = quit and save\n');
+
+  const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    headless: false,
+    locale: 'en-US',
+    timezoneId: 'America/Toronto',
+    viewport: { width: 1280, height: 800 },
+  });
+
+  const page = context.pages()[0] ?? await context.newPage();
+
+  try {
+    await openComposer(page);
+
+    for (const [name, entry] of unverified) {
+      console.log(`\nTesting: "${name}"  →  @${entry.searchTerm}`);
+      await testEntry(page, entry.searchTerm);
+
+      const answer = await prompt('  Correct company in dropdown? (y/n/q): ');
+      if (answer === 'q') break;
+      if (answer === 'y') await markVerified(name);
+    }
+  } finally {
+    await context.close();
+  }
+
+  console.log('\nDone. Run npm run test-mentions again to test remaining entries.');
+  process.exit(0);
+})();

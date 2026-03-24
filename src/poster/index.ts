@@ -1,5 +1,6 @@
-import { chromium } from 'playwright';
+import { chromium, type Page } from 'playwright';
 import path from 'path';
+import { MENTIONS } from './mentions.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 const LINKEDIN_FEED = 'https://www.linkedin.com/feed/';
@@ -94,11 +95,8 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     await page.waitForTimeout(500);
     await textArea.click();
 
-    // Type content — use keyboard to handle newlines correctly
-    for (const line of content.split('\n')) {
-      await page.keyboard.type(line, { delay: 10 });
-      await page.keyboard.press('Enter');
-    }
+    // Type content — handle [[MENTION:X]] markers with LinkedIn autocomplete
+    await typeContentWithMentions(page, content);
 
     // Pause to let LinkedIn process the input and enable the Post button
     await page.waitForTimeout(1500);
@@ -128,7 +126,81 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
   }
 }
 
-async function postFirstComment(page: import('playwright').Page, comment: string): Promise<void> {
+// Splits post content on [[MENTION:Name]] markers and types each segment,
+// performing the LinkedIn @mention autocomplete interaction for each marker.
+// Falls back to plain text if the dropdown doesn't appear.
+async function typeContentWithMentions(page: Page, content: string): Promise<void> {
+  const MENTION_RE = /\[\[MENTION:([^\]]+)\]\]/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = MENTION_RE.exec(content)) !== null) {
+    // Type any plain text before this marker
+    const before = content.slice(lastIndex, match.index);
+    if (before) {
+      for (const line of before.split('\n')) {
+        await page.keyboard.type(line, { delay: 10 });
+        if (before.indexOf('\n') !== -1) await page.keyboard.press('Enter');
+      }
+    }
+
+    const name = match[1];
+    const entry = MENTIONS[name];
+
+    if (entry?.verified) {
+      const inserted = await insertMention(page, entry.searchTerm, name);
+      if (!inserted) {
+        // Fallback: type plain name
+        await page.keyboard.type(name, { delay: 10 });
+      }
+    } else {
+      // Not verified — type plain name
+      await page.keyboard.type(name, { delay: 10 });
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Type any remaining text after the last marker
+  const tail = content.slice(lastIndex);
+  if (tail) {
+    for (const line of tail.split('\n')) {
+      await page.keyboard.type(line, { delay: 10 });
+      await page.keyboard.press('Enter');
+    }
+  }
+}
+
+// Types `@searchTerm` into the composer and clicks the first autocomplete result.
+// Returns true if the mention was successfully inserted, false if the dropdown
+// didn't appear (caller should fall back to plain text).
+async function insertMention(page: Page, searchTerm: string, displayName: string): Promise<boolean> {
+  try {
+    await page.keyboard.type(`@${searchTerm}`, { delay: 30 });
+
+    // Wait for the typeahead dropdown to appear
+    const dropdown = page.locator(
+      'div.mention-typeahead, ul[role="listbox"], div[data-test-id="mention-typeahead"]'
+    ).first();
+    await dropdown.waitFor({ state: 'visible', timeout: 5000 });
+
+    // Click the first result
+    const firstResult = dropdown.locator('li, [role="option"]').first();
+    await firstResult.waitFor({ state: 'visible', timeout: 3000 });
+    await firstResult.click();
+
+    console.log(`Inserted @mention: ${displayName}`);
+    return true;
+  } catch {
+    console.warn(`@mention dropdown did not appear for "${displayName}" — using plain text fallback.`);
+    // Clear the typed @searchTerm before falling back
+    const typed = `@${searchTerm}`;
+    for (let i = 0; i < typed.length; i++) await page.keyboard.press('Backspace');
+    return false;
+  }
+}
+
+async function postFirstComment(page: Page, comment: string): Promise<void> {
   const profileUrl = process.env.LINKEDIN_PROFILE_URL;
   if (!profileUrl) {
     console.warn('LINKEDIN_PROFILE_URL not set — skipping first comment.');
