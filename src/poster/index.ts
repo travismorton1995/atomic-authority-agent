@@ -262,9 +262,12 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
         throw new Error(`LinkedIn error during post: "${errorText?.trim()}"`);
       }
 
-      // Check if composer closed (success)
-      const buttonGone = await postBtn.isHidden().catch(() => false);
-      if (buttonGone) { posted = true; break; }
+      // Check if composer closed (success).
+      // Use textArea (inside the modal) rather than postBtn — postBtn is a re-querying
+      // locator and after the modal closes LinkedIn renders a new "Post" button in the
+      // compose bar, causing postBtn.isHidden() to keep returning false indefinitely.
+      const composerGone = await textArea.isHidden().catch(() => true);
+      if (composerGone) { posted = true; break; }
     }
 
     if (!posted) {
