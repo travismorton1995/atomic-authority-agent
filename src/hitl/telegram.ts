@@ -1,5 +1,5 @@
 import { Telegraf } from 'telegraf';
-import { approvePost, rejectPost } from './queue.js';
+import { approvePost, rejectPost, clearPostImage } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 
@@ -58,6 +58,30 @@ export function startBot(): void {
         await ctx.answerCbQuery('Approved!');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
         await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
+        pendingResolutions.get(id)?.('approved');
+        pendingResolutions.delete(id);
+      }
+
+      if (action === 'approve_no_image') {
+        clearPostImage(id);
+        const scheduledFor = pickScheduledTime();
+        const post = approvePost(id, scheduledFor);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found or already actioned.');
+          return;
+        }
+        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short',
+        });
+        await ctx.answerCbQuery('Approved (no image)!');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.reply(`Post approved (text only). Scheduled for ${scheduledStr}.`);
         pendingResolutions.get(id)?.('approved');
         pendingResolutions.delete(id);
       }
@@ -123,16 +147,31 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
   const MAX_RETRIES = 3;
   const RETRY_DELAY_MS = 15 * 1000;
 
+  // Send image preview first if available (non-fatal if it fails)
+  if (post.draft.imageUrl) {
+    try {
+      await sender.telegram.sendPhoto(chatId, post.draft.imageUrl);
+    } catch {
+      // Non-fatal — some image URLs may be inaccessible to Telegram's servers
+    }
+  }
+
+  const keyboard = post.draft.imageUrl
+    ? [
+        [{ text: '✅ Approve', callback_data: `approve:${post.id}` }],
+        [{ text: '🚫 Approve (no image)', callback_data: `approve_no_image:${post.id}` }],
+        [{ text: '❌ Reject', callback_data: `reject:${post.id}` }],
+      ]
+    : [[
+        { text: '✅ Approve', callback_data: `approve:${post.id}` },
+        { text: '❌ Reject', callback_data: `reject:${post.id}` },
+      ]];
+
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       await sender.telegram.sendMessage(chatId, formatMessage(post), {
         parse_mode: 'Markdown',
-        reply_markup: {
-          inline_keyboard: [[
-            { text: '✅ Approve', callback_data: `approve:${post.id}` },
-            { text: '❌ Reject', callback_data: `reject:${post.id}` },
-          ]],
-        },
+        reply_markup: { inline_keyboard: keyboard },
       });
       return;
     } catch (err: any) {

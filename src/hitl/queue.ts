@@ -160,6 +160,14 @@ export function markPublished(id: string): PendingPost | null {
   return post;
 }
 
+export function clearPostImage(id: string): void {
+  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const post = posts.find(p => p.id === id);
+  if (!post) return;
+  delete post.draft.imageUrl;
+  writeFile(PENDING_FILE, posts);
+}
+
 export function incrementPublishFailures(id: string): number {
   const posts = readFile<PendingPost[]>(PENDING_FILE, []);
   const post = posts.find(p => p.id === id);

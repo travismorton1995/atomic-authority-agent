@@ -1,5 +1,7 @@
 import { chromium, type Page } from 'playwright';
 import path from 'path';
+import { tmpdir } from 'os';
+import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { MENTIONS } from './mentions.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
@@ -19,12 +21,35 @@ export class LinkedInSessionExpiredError extends Error {
 export interface PostOptions {
   forceHeaded?: boolean; // override LINKEDIN_HEADLESS — always show browser
   firstComment?: string; // posted as first comment immediately after publishing
+  imageUrl?: string;     // og:image URL — downloaded and attached to the post
+}
+
+async function downloadImageToTemp(imageUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(imageUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; AtomicAuthorityBot/1.0)' },
+    });
+    if (!res.ok) return null;
+
+    const contentType = res.headers.get('content-type') ?? '';
+    const ext = contentType.includes('png') ? '.png'
+      : contentType.includes('gif') ? '.gif'
+      : contentType.includes('webp') ? '.webp'
+      : '.jpg';
+
+    const tempPath = path.join(tmpdir(), `atomic-authority-image${ext}`);
+    writeFileSync(tempPath, Buffer.from(await res.arrayBuffer()));
+    return tempPath;
+  } catch {
+    return null;
+  }
 }
 
 // Silently checks whether the saved LinkedIn session is still valid.
 // Returns true if the session is active, false if login is required.
 export async function pingSession(): Promise<boolean> {
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: 'chrome',
     headless: true,
     locale: 'en-US',
   });
@@ -51,10 +76,20 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
   const headless = options.forceHeaded ? false : process.env.LINKEDIN_HEADLESS === 'true';
 
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: 'chrome',
     headless,
     locale: 'en-US',
     timezoneId: 'America/Toronto',
     viewport: { width: 1280, height: 800 },
+    slowMo: 0,
+    permissions: ['clipboard-read', 'clipboard-write'],
+  });
+
+  // Suppress Playwright's webdriver fingerprint before any page load.
+  // LinkedIn's JS checks navigator.webdriver and is more aggressive about
+  // blocking automated sessions on the image upload API endpoint (/dms/image).
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
   });
 
   const page = context.pages()[0] ?? await context.newPage();
@@ -98,10 +133,88 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     // Type content — handle [[MENTION:X]] markers with LinkedIn autocomplete
     await typeContentWithMentions(page, content);
 
+    // Attach image if provided
+    //
+    // KNOWN ISSUE (parked 2026-03-20): Image posts consistently fail on LinkedIn
+    // with "Network connection failed. Try refreshing the page." after the Post
+    // button is clicked. Text-only posts work fine on the same session.
+    //
+    // Root cause (suspected): Playwright sets navigator.webdriver = true even when
+    // using channel: 'chrome'. LinkedIn's JS detects this flag and is more aggressive
+    // about blocking automated sessions on image upload API endpoints (/dms/image).
+    // Regular text posts hit a simpler endpoint that is not as strictly gated.
+    //
+    // What was tried:
+    //   - Switched from Playwright's bundled Chromium to system Chrome (channel: 'chrome')
+    //     → same error, LinkedIn still detects webdriver flag
+    //   - Used page.waitForEvent('filechooser') instead of setInputFiles on hidden input
+    //     → this WORKS and prevents Windows Explorer from opening (keep this)
+    //   - Increased waits, slowMo, error detection → did not resolve the core issue
+    //
+    // To pick this up later:
+    //   - Try suppressing navigator.webdriver via context.addInitScript():
+    if (options.imageUrl) {
+      const tempPath = await downloadImageToTemp(options.imageUrl);
+      if (tempPath) {
+        try {
+          console.log('Attaching image via clipboard paste...');
+
+          // Determine MIME type from file extension
+          const mime = tempPath.endsWith('.png') ? 'image/png'
+            : tempPath.endsWith('.gif') ? 'image/gif'
+            : tempPath.endsWith('.webp') ? 'image/webp'
+            : 'image/jpeg';
+
+          // Write image to clipboard as PNG via canvas conversion.
+          // Chrome's Clipboard API only accepts image/png — convert any format
+          // (jpeg, webp, gif) by drawing to a canvas element first.
+          const base64 = readFileSync(tempPath).toString('base64');
+          await page.evaluate(async ({ b64, mimeType }) => {
+            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+            const srcBlob = new Blob([bytes], { type: mimeType });
+            const objectUrl = URL.createObjectURL(srcBlob);
+            const pngBlob = await new Promise<Blob>((resolve, reject) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d')!;
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(blob => {
+                  URL.revokeObjectURL(objectUrl);
+                  blob ? resolve(blob) : reject(new Error('canvas.toBlob returned null'));
+                }, 'image/png');
+              };
+              img.onerror = () => reject(new Error('Image load failed'));
+              img.src = objectUrl;
+            });
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
+          }, { b64: base64, mimeType: mime });
+
+          // Focus the composer text area and paste — LinkedIn processes the image inline
+          await textArea.click();
+          await page.keyboard.press('Control+v');
+          console.log('Paste sent — waiting for LinkedIn to process image...');
+
+          // Wait for the image preview to appear in the composer
+          await page.waitForTimeout(4000);
+          console.log('Image pasted into composer.');
+        } catch (err) {
+          console.warn('Image paste failed (non-fatal) — posting text only:', (err as any)?.message);
+        } finally {
+          unlinkSync(tempPath);
+        }
+      } else {
+        console.warn('Failed to download image — posting text only.');
+      }
+    }
+
     // Pause to let LinkedIn process the input and enable the Post button
     await page.waitForTimeout(1500);
 
     // Click the Post button — try aria-label first, fall back to text content
+    // Use .last() as LinkedIn renders multiple candidate buttons; the active one is last
     const postBtn = page.locator('button[aria-label="Post"], button:has-text("Post")').last();
     await postBtn.waitFor({ state: 'visible', timeout: 15000 });
 
@@ -110,15 +223,68 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
       throw new Error('Post button is disabled — content may not have been entered correctly.');
     }
 
+    console.log('Clicking Post button...');
     await postBtn.click();
+    console.log('Post button clicked — watching for success or error...');
 
-    // Wait for the composer to disappear — text area going hidden confirms the post was submitted
-    await textArea.waitFor({ state: 'hidden', timeout: 20000 });
+    // LinkedIn shows "Network connection failed" INSIDE the composer (next to the Post
+    // button) while the modal is still open. We must detect it before the modal closes,
+    // otherwise it disappears and we incorrectly report success.
+    //
+    // Strategy: poll every 500ms for up to 30s, checking for either:
+    //   - Post button gone → success
+    //   - Known error text visible → throw immediately
+    const knownErrors = [
+      'Network connection failed',
+      'Something went wrong',
+      'Try refreshing the page',
+    ];
+    const deadline = Date.now() + 90000;
+    let posted = false;
+
+    while (Date.now() < deadline) {
+      await page.waitForTimeout(500);
+
+      // Check for error messages — they appear INSIDE the composer while it is still open.
+      // LinkedIn renders errors as visible text AND in aria-label/title attributes.
+      for (const msg of knownErrors) {
+        const byText = await page.getByText(msg, { exact: false }).first().isVisible().catch(() => false);
+        const byAriaLabel = await page.locator(`[aria-label*="${msg}"]`).first().isVisible().catch(() => false);
+        const byTitle = await page.locator(`[title*="${msg}"]`).first().isVisible().catch(() => false);
+        if (byText || byAriaLabel || byTitle) {
+          throw new Error(`LinkedIn error during post: "${msg}"`);
+        }
+      }
+      // CSS class-based fallback (LinkedIn inline feedback component)
+      const inlineFeedback = await page.locator('.artdeco-inline-feedback--error').first().isVisible().catch(() => false);
+      if (inlineFeedback) {
+        const errorText = await page.locator('.artdeco-inline-feedback--error').first().textContent().catch(() => 'unknown');
+        throw new Error(`LinkedIn error during post: "${errorText?.trim()}"`);
+      }
+
+      // Check if composer closed (success).
+      // Use textArea (inside the modal) rather than postBtn — postBtn is a re-querying
+      // locator and after the modal closes LinkedIn renders a new "Post" button in the
+      // compose bar, causing postBtn.isHidden() to keep returning false indefinitely.
+      const composerGone = await textArea.isHidden().catch(() => true);
+      if (composerGone) { posted = true; break; }
+    }
+
+    if (!posted) {
+      // Capture a screenshot to diagnose what LinkedIn is showing
+      const screenshotPath = 'post-failure-debug.png';
+      await page.screenshot({ path: screenshotPath, fullPage: false }).catch(() => {});
+      console.error(`Screenshot saved to ${screenshotPath} — check it to see what LinkedIn is showing.`);
+      throw new Error('Timed out waiting for post to complete — composer still open after 30s.');
+    }
 
     console.log('Successfully posted to LinkedIn.');
 
-    // Post first comment if provided
+    // Post first comment if provided — wait for LinkedIn to process and surface
+    // the new post in the activity feed before navigating there
     if (options.firstComment) {
+      console.log('Waiting for post to appear in activity feed...');
+      await page.waitForTimeout(8000);
       await postFirstComment(page, options.firstComment);
     }
   } finally {
