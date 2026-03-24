@@ -4,6 +4,7 @@ import { ScreeningResult } from '../content/screen.js';
 
 const PENDING_FILE = 'pending_posts.json';
 const HISTORY_FILE = 'posted_history.json';
+const REJECTED_FILE = 'rejected_posts.json';
 
 export interface PendingPost {
   id: string;
@@ -92,8 +93,8 @@ export function getSourceHistory(): SourceHistory {
     if (!excludedTitles.includes(title)) excludedTitles.push(title);
   }
 
-  const rejectedSources = posts
-    .filter(p => p.status === 'rejected')
+  const rejected = readFile<PendingPost[]>(REJECTED_FILE, []);
+  const rejectedSources = rejected
     .map(p => ({ title: p.draft.sourceTitle, usedPostType: p.draft.postType }))
     .filter(s => s.title);
 
@@ -159,12 +160,12 @@ export function incrementPublishFailures(id: string): number {
 }
 
 export function cleanupRejectedPosts(olderThanDays = 90): number {
-  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const rejected = readFile<PendingPost[]>(REJECTED_FILE, []);
   const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000).toISOString();
-  const trimmed = posts.filter(p => !(p.status === 'rejected' && p.actedAt != null && p.actedAt < cutoff));
-  const removed = posts.length - trimmed.length;
+  const trimmed = rejected.filter(p => !(p.actedAt != null && p.actedAt < cutoff));
+  const removed = rejected.length - trimmed.length;
   if (removed > 0) {
-    writeFile(PENDING_FILE, trimmed);
+    writeFile(REJECTED_FILE, trimmed);
     console.log(`Cleaned up ${removed} rejected post(s) older than ${olderThanDays} days.`);
   }
   return removed;
@@ -177,6 +178,12 @@ export function rejectPost(id: string): PendingPost | null {
 
   post.status = 'rejected';
   post.actedAt = new Date().toISOString();
-  writeFile(PENDING_FILE, posts);
+
+  // Remove from pending and archive to rejected_posts.json
+  writeFile(PENDING_FILE, posts.filter(p => p.id !== id));
+  const rejected = readFile<PendingPost[]>(REJECTED_FILE, []);
+  rejected.push(post);
+  writeFile(REJECTED_FILE, rejected);
+
   return post;
 }
