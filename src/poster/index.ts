@@ -172,8 +172,9 @@ async function typeContentWithMentions(page: Page, content: string): Promise<voi
   }
 }
 
-// Types `@searchTerm`, waits for LinkedIn's typeahead, then uses ArrowDown+Enter
-// to select the first result — keyboard nav works regardless of dropdown markup.
+// Types `@searchTerm`, waits for LinkedIn's typeahead, then clicks the first
+// visible result via JS — avoids keyboard focus ambiguity (ArrowDown+Enter can
+// accidentally submit the post if focus returns to the composer).
 // Returns true if the mention was inserted, false if the dropdown never appeared.
 async function insertMention(page: Page, searchTerm: string, displayName: string): Promise<boolean> {
   const typed = `@${searchTerm}`;
@@ -181,34 +182,37 @@ async function insertMention(page: Page, searchTerm: string, displayName: string
     await page.keyboard.type(typed, { delay: 40 });
 
     // Give LinkedIn time to query and render the typeahead
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(2500);
 
-    // Detect whether a typeahead dropdown appeared — try a broad set of selectors
-    const dropdownVisible = await page.evaluate(() => {
+    // Click the first visible item in the typeahead dropdown via JS.
+    // Casts a wide net across possible LinkedIn markup variations.
+    const clicked = await page.evaluate(() => {
       const selectors = [
-        '[data-test-id*="typeahead"]',
-        '[class*="typeahead"]',
-        '[class*="mention"]',
-        '[role="listbox"]',
-        '[role="option"]',
+        '[class*="typeahead"] li',
+        '[class*="typeahead"] [role="option"]',
+        '[role="listbox"] [role="option"]',
+        '[role="listbox"] li',
+        '[class*="mention"] li',
+        '[class*="suggestion"] li',
+        '[data-test-id*="typeahead"] li',
       ];
-      return selectors.some(sel => {
-        const el = document.querySelector(sel);
-        return el != null && (el as HTMLElement).offsetParent !== null;
-      });
+      for (const sel of selectors) {
+        const items = Array.from(document.querySelectorAll(sel));
+        const first = items.find(el => (el as HTMLElement).offsetParent !== null);
+        if (first) {
+          (first as HTMLElement).click();
+          return sel;
+        }
+      }
+      return null;
     });
 
-    if (!dropdownVisible) {
-      throw new Error('no dropdown');
+    if (!clicked) {
+      throw new Error('no dropdown item found');
     }
 
-    // Select first result via keyboard — reliable regardless of exact DOM structure
-    await page.keyboard.press('ArrowDown');
-    await page.waitForTimeout(300);
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(300);
-
-    console.log(`Inserted @mention: ${displayName}`);
+    await page.waitForTimeout(400);
+    console.log(`Inserted @mention: ${displayName} (via ${clicked})`);
     return true;
   } catch {
     console.warn(`@mention dropdown did not appear for "${displayName}" — using plain text fallback.`);
