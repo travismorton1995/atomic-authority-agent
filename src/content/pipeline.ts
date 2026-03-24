@@ -216,7 +216,7 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
 
   console.log(`Selected: "${top.item.title}" (${top.item.source})`);
   console.log(`Score: ${top.articleScore}/10 — ${top.reasoning}`);
-  console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x | Recency multiplier: ${top.recencyMultiplier.toFixed(2)}x`);
+  console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x | Recency multiplier: ${top.recencyMultiplier.toFixed(2)}x | Combined score: ${top.combinedScore.toFixed(2)}`);
 
   // Fetch full article body so Claude has specific facts, quotes, and figures to work with
   if (top.item.link && !top.item.fullText) {
