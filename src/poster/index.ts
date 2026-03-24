@@ -165,14 +165,31 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
             : tempPath.endsWith('.webp') ? 'image/webp'
             : 'image/jpeg';
 
-          // Write image binary to the clipboard via the browser's Clipboard API.
-          // This avoids the file-chooser / /dms/image upload endpoint that LinkedIn
-          // blocks for automated sessions. Paste events are treated as user-initiated.
+          // Write image to clipboard as PNG via canvas conversion.
+          // Chrome's Clipboard API only accepts image/png — convert any format
+          // (jpeg, webp, gif) by drawing to a canvas element first.
           const base64 = readFileSync(tempPath).toString('base64');
           await page.evaluate(async ({ b64, mimeType }) => {
             const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-            const blob = new Blob([bytes], { type: mimeType });
-            await navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })]);
+            const srcBlob = new Blob([bytes], { type: mimeType });
+            const objectUrl = URL.createObjectURL(srcBlob);
+            const pngBlob = await new Promise<Blob>((resolve, reject) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.naturalWidth;
+                canvas.height = img.naturalHeight;
+                const ctx = canvas.getContext('2d')!;
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(blob => {
+                  URL.revokeObjectURL(objectUrl);
+                  blob ? resolve(blob) : reject(new Error('canvas.toBlob returned null'));
+                }, 'image/png');
+              };
+              img.onerror = () => reject(new Error('Image load failed'));
+              img.src = objectUrl;
+            });
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
           }, { b64: base64, mimeType: mime });
 
           // Focus the composer text area and paste — LinkedIn processes the image inline
