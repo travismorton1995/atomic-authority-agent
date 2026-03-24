@@ -238,7 +238,7 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
       'Something went wrong',
       'Try refreshing the page',
     ];
-    const deadline = Date.now() + 30000;
+    const deadline = Date.now() + 90000;
     let posted = false;
 
     while (Date.now() < deadline) {
