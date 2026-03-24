@@ -172,14 +172,11 @@ async function typeContentWithMentions(page: Page, content: string): Promise<voi
   }
 }
 
-// Types `@searchTerm` then polls for any visible leaf element whose text
-// contains the first word of the search term — matches the typeahead result
-// regardless of what element type LinkedIn uses for its dropdown.
-// Returns true if the mention was inserted, false if nothing was found.
+// Types `@searchTerm` then uses Playwright's native locators (accessibility tree)
+// to find and click the first typeahead suggestion. Falls back to plain text
+// if no suggestion appears within 5 seconds.
 async function insertMention(page: Page, searchTerm: string, displayName: string): Promise<boolean> {
   const typed = `@${searchTerm}`;
-  // Use first word as the match target (e.g. "Bruce" from "Bruce Power")
-  const matchWord = searchTerm.split(' ')[0].toLowerCase();
 
   try {
     // Type @ to trigger mention mode, pause, then type the search term
@@ -189,38 +186,34 @@ async function insertMention(page: Page, searchTerm: string, displayName: string
       await page.keyboard.type(char, { delay: 60 });
     }
 
-    // Poll every 100ms for a visible leaf element containing our search word.
-    // Leaf elements (no children) avoid matching large container divs.
-    await page.waitForFunction((word: string) => {
-      const all = Array.from(document.querySelectorAll('*')) as HTMLElement[];
-      return all.some(el =>
-        el.children.length === 0 &&
-        el.offsetParent !== null &&
-        (el.textContent ?? '').toLowerCase().includes(word) &&
-        !['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA'].includes(el.tagName)
-      );
-    }, matchWord, { timeout: 5000, polling: 100 });
+    // Try Playwright's accessibility-tree locators in order of specificity.
+    // getByRole uses ARIA roles which LinkedIn's typeahead should expose.
+    const candidates = [
+      page.getByRole('option').first(),
+      page.getByRole('listitem').filter({ hasText: searchTerm.split(' ')[0] }).first(),
+      page.locator('[role="option"]').first(),
+      page.locator('[role="listbox"]').locator('*').first(),
+    ];
 
-    // Click the matched element
-    const clicked = await page.evaluate((word: string) => {
-      const all = Array.from(document.querySelectorAll('*')) as HTMLElement[];
-      const match = all.find(el =>
-        el.children.length === 0 &&
-        el.offsetParent !== null &&
-        (el.textContent ?? '').toLowerCase().includes(word) &&
-        !['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA'].includes(el.tagName)
-      );
-      if (match) { match.click(); return match.textContent?.trim() ?? 'unknown'; }
-      return null;
-    }, matchWord);
+    let clicked = false;
+    for (const locator of candidates) {
+      try {
+        await locator.waitFor({ state: 'visible', timeout: 3000 });
+        const text = await locator.textContent();
+        await locator.click();
+        await page.waitForTimeout(400);
+        console.log(`Inserted @mention: ${displayName} — clicked "${text?.trim()}"`);
+        clicked = true;
+        break;
+      } catch {
+        // try next locator
+      }
+    }
 
-    if (!clicked) throw new Error('match element disappeared before click');
-
-    await page.waitForTimeout(400);
-    console.log(`Inserted @mention: ${displayName} — clicked "${clicked}"`);
+    if (!clicked) throw new Error('no typeahead option found via any locator');
     return true;
   } catch (err) {
-    console.warn(`@mention failed for "${displayName}" — using plain text fallback. (${(err as Error).message})`);
+    console.warn(`@mention failed for "${displayName}" — plain text fallback. (${(err as Error).message})`);
     for (let i = 0; i < typed.length; i++) await page.keyboard.press('Backspace');
     return false;
   }
