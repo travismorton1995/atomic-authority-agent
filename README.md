@@ -5,7 +5,7 @@ A self-hosted, Human-in-the-Loop LinkedIn content engine for the Nuclear/AI nich
 ## Stack
 
 - Node.js v22+, TypeScript
-- `@anthropic-ai/sdk` — all LLM calls (Claude)
+- `@anthropic-ai/sdk` — all LLM calls (Claude Haiku + Opus)
 - `playwright` — LinkedIn browser automation
 - `node-cron` — scheduling
 - Telegram bot — HITL notifications and approval flow
@@ -13,17 +13,23 @@ A self-hosted, Human-in-the-Loop LinkedIn content engine for the Nuclear/AI nich
 ## How it works
 
 ```
-RSS Feeds → Rank articles → Pick best → Synthesize draft → Screen for cringe
-     → Save to pending → Telegram notification → Human approves → Scheduler posts
+RSS Feeds → Rank & score articles → Pick best → Fetch full article text
+  → Generate hook → Synthesize draft → Verify facts → Screen for cringe
+  → Save to pending → Telegram notification → Human approves → Scheduler posts
 ```
 
-1. **Fetch** — pulls latest items from World Nuclear News, Canadian Nuclear Association, CNSC, ANS Newswire, IAEA, Bruce Power, and NPX Innovation
-2. **Rank** — Claude Haiku scores all articles for nuclear/AI intersection, Canadian/NA relevance, and freshness vs recently posted topics. Hard-excludes articles already pending or approved.
-3. **Synthesize** — Claude Sonnet writes a draft using the full persona system prompt (post type, tone rules, banned phrases, required terminology)
-4. **Screen** — a second Claude call acts as an editorial critic, scoring 1–10 on a "Cringe Scale". Posts scoring >3 are auto-revised before saving.
-5. **Notify** — Telegram bot sends the draft with inline approve/reject buttons
-6. **Approve** — human reviews and approves via Telegram; a posting time is automatically picked from optimal LinkedIn windows
-7. **Post** — the scheduler publishes to LinkedIn via Playwright at the scheduled time
+1. **Fetch** — pulls up to 50 articles (5 per feed) from 10 nuclear/energy RSS sources
+2. **Rank** — Claude Haiku scores all eligible articles on nuclear/AI intersection, Canadian/NA relevance, recency, and freshness vs. recently posted topics. Hard-excludes articles already pending, approved, or rejected within the last 24 hours.
+3. **Score** — each article gets a combined score: `article score × post-type balance multiplier × recency multiplier`. The balance multiplier steers toward underused post types. The recency multiplier rewards articles 0–1 days old (1.5×) and penalises older ones (down to 0.4× at 15+ days).
+4. **Fetch full text** — the winning article's full body is fetched and passed to synthesis so Claude has specific facts, figures, and quotes to work with.
+5. **Hook generation** — Claude Haiku generates up to 6 candidate opening lines across 2 rounds, scores each, and selects the best (target score ≥ 7). The chosen hook is injected as a hard constraint into the synthesis prompt.
+6. **Synthesize** — Claude Opus writes the post draft using the full persona system prompt (post type, tone rules, banned phrases, required terminology, temporal language rules based on article age).
+7. **Verify** — a separate Claude call checks the draft's factual claims against the full article text and corrects any inaccuracies before saving.
+8. **Screen** — Claude Haiku acts as an editorial critic, scoring 1–10 on a cringe scale. Posts scoring >3, or containing contrasting reframe patterns ("That's not X. That's Y." / "Less X, more Y."), are auto-revised before saving.
+9. **Mentions** — company and org names in the post are automatically wrapped in `[[MENTION:Name]]` markers using a verified dictionary. During posting, Playwright types `@searchTerm` in the LinkedIn composer and selects the first autocomplete result. Any new org names detected in the post are appended to the dictionary as unverified for future review.
+10. **Notify** — Telegram bot sends the draft with source, feed name, combined score, and inline approve/reject buttons.
+11. **Approve** — human reviews in Telegram; a posting time is automatically picked from optimal LinkedIn windows with random variance.
+12. **Post** — the scheduler publishes to LinkedIn via Playwright at the scheduled time, resolving `[[MENTION:X]]` markers into real LinkedIn @mentions.
 
 ## Setup
 
@@ -90,8 +96,6 @@ To restart it after pulling code changes:
 ```bash
 npm run restart-scheduler
 ```
-
-This kills the running scheduler processes by PID and relaunches silently in the background.
 
 ---
 
@@ -193,12 +197,35 @@ npm run approve -- --id <post_id>
 npm run reject -- --id <post_id>
 ```
 
+### Post immediately
+
+```bash
+# Publish the oldest approved post right now (bypasses scheduled time)
+npm run post-now
+
+# Publish a specific post by ID (accepts pending or approved status)
+npm run post-now -- --post_id=<post_id>
+```
+
+### Manage @mentions dictionary
+
+```bash
+npm run test-mentions
+```
+
+Opens a headed LinkedIn browser and walks through each unverified entry in the mentions dictionary. For each entry it types `@searchTerm` in the composer so you can visually confirm the correct company appears as the first autocomplete result.
+
+Controls:
+- `y` — mark as verified (will be @mentioned in future posts)
+- `n` — skip for now
+- `r` — remove from dictionary entirely (wrong result or no LinkedIn page)
+- `q` — quit and save
+
+New company/org names are automatically detected after each `generate` run and appended as unverified. Run `test-mentions` periodically to process the queue.
+
 ### Other commands
 
 ```bash
-# Immediately publish the next approved post (bypass scheduled time)
-npm run post-now
-
 # Check if the background scheduler is running
 npm run status
 
@@ -213,13 +240,14 @@ npm run help
 
 ```
 src/
-  content/        # RSS fetcher, ranker, synthesis prompt, screener
-  hitl/           # pending_posts.json manager, Telegram notifier
+  content/        # RSS fetcher, ranker, hook generator, synthesizer, verifier, screener
+  hitl/           # queue manager, Telegram notifier
   scheduler/      # cron logic, time window picker
-  poster/         # LinkedIn browser automation (Playwright)
-  cli/            # generate / approve / reject CLI commands
-pending_posts.json      # active queue (pending, approved, rejected, published)
-posted_history.json     # archive of approved and published posts
+  poster/         # LinkedIn browser automation (Playwright), @mentions dictionary
+  cli/            # generate / approve / reject / post-now / test-mentions CLI commands
+pending_posts.json      # active queue (pending and approved posts)
+rejected_posts.json     # rejected posts (24-hour cooldown before re-selection)
+posted_history.json     # archive of published posts
 user_data/              # LinkedIn session persistence (gitignored)
 .env                    # API keys and config (gitignored)
 ```
@@ -229,7 +257,7 @@ user_data/              # LinkedIn session persistence (gitignored)
 - **Max 1 post per day**
 - **Preferred days:** Tuesday, Wednesday, Thursday
 - **Time windows (Eastern):** 7:30–9:00am, 12:00–1:00pm, 5:00–6:30pm
-- Random variance applied to avoid robotic patterns
+- Random variance applied (±15 min) to avoid robotic patterns
 
 ## Post types
 
@@ -242,6 +270,44 @@ user_data/              # LinkedIn session persistence (gitignored)
 | myth-busting | 10% | Identify and dismantle a widespread misconception about nuclear or AI |
 | hot-take | 8% | Short, pointed, designed for engagement |
 | prediction | 7% | Time-bounded claim about where nuclear AI is heading in 12–24 months |
+
+## Article scoring
+
+Combined score = `article score (1–10) × balance multiplier × recency multiplier`
+
+**Recency multipliers:**
+
+| Article age | Multiplier |
+|---|---|
+| 0–1 days | 1.5× |
+| 2–3 days | 1.0× |
+| 4–7 days | 0.8× |
+| 8–14 days | 0.6× |
+| 15+ days | 0.4× |
+
+The balance multiplier (0.25–2.0×) boosts post types that are underused relative to their target weight over the last 14 posts.
+
+## RSS sources
+
+| Source | URL |
+|---|---|
+| World Nuclear News | worldnuclearnews.org |
+| Canadian Nuclear Association | cna.ca |
+| CNSC | Canadian Nuclear Safety Commission API |
+| ANS Newswire | ans.org |
+| IAEA | iaea.org |
+| Bruce Power | brucepower.com |
+| NEI Magazine | neimagazine.com |
+| Power Magazine | powermag.com (nuclear category) |
+| Canadian Nuclear Society | cns-snc.ca |
+| Canadian Nuclear Laboratories | cnl.ca |
+
+## Rejection handling
+
+Rejected posts are moved to `rejected_posts.json`. The pipeline applies two layers of exclusion:
+
+- **24-hour URL/title cooldown** — the same article won't be re-selected for the next day's run
+- **All-time post-type avoidance** — if an article was previously rejected, the ranker is instructed to suggest a different post type if it resurfaces
 
 ## Environment variables
 

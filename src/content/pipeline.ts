@@ -7,7 +7,11 @@ import { addPendingPost, getSourceHistory, PendingPost } from '../hitl/queue.js'
 import { notifyTelegram } from '../hitl/telegram.js';
 import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
 import { rankItems } from './rank.js';
+import { addUnverifiedMentions } from '../poster/mentions.js';
+import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, existsSync } from 'fs';
+
+const anthropic = new Anthropic();
 
 // Strip [[MENTION:X]] markers from text, returning cleaned text and the marker positions.
 function stripMentionMarkers(text: string): { clean: string; markers: Array<{ name: string; plainName: string }> } {
@@ -97,6 +101,26 @@ function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
   return multipliers as Record<PostType, number>;
 }
 
+async function extractAndRegisterMentions(content: string): Promise<void> {
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: `Extract all company, organization, and institution names from this text. Include acronyms that refer to specific organizations. Exclude: generic terms, people's names, hashtags, and post types. Return ONLY a valid JSON array of strings, no other text.\n\nText:\n${content}`,
+      }],
+    });
+    const raw = response.content[0].type === 'text' ? response.content[0].text : '[]';
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) return;
+    const names = JSON.parse(match[0]) as string[];
+    addUnverifiedMentions(names);
+  } catch {
+    // Non-critical — don't block the pipeline
+  }
+}
+
 async function finalize(item: FeedItem, postType: PostType, combinedScore?: number): Promise<PendingPost> {
   console.log(`Post type: ${postType}`);
 
@@ -135,6 +159,9 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
   const post = addPendingPost(draft, screening);
   console.log(`Draft saved as ID: ${post.id}`);
 
+  // Extract and register any company names not yet in the mentions dictionary
+  await extractAndRegisterMentions(post.finalContent);
+
   await notifyTelegram(post);
   console.log('Done. Awaiting your approval.');
 
@@ -164,7 +191,7 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   }
 
   console.log('Fetching RSS feeds...');
-  const items = await fetchLatestItems(7);
+  const items = await fetchLatestItems(5);
 
   if (items.length === 0) throw new Error('No feed items found. Check network or feed URLs.');
 

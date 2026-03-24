@@ -18,6 +18,8 @@ const FEEDS = [
   { url: 'https://www.brucepower.com/feed/', source: 'Bruce Power' },
   { url: 'https://www.neimagazine.com/rss', source: 'NEI Magazine' },
   { url: 'https://www.powermag.com/category/nuclear/feed/', source: 'Power Magazine' },
+  { url: 'https://www.cns-snc.ca/feed/', source: 'Canadian Nuclear Society' },
+  { url: 'https://www.cnl.ca/feed/', source: 'Canadian Nuclear Laboratories' },
 ];
 
 const parser = new Parser();

@@ -2,14 +2,14 @@
 // Opens LinkedIn composer in a headed browser and walks through each entry
 // in the mentions dictionary. For each one, types @searchTerm and pauses so
 // you can visually confirm the correct company appears as the first result.
-// Press y to mark verified, n to skip, q to quit and save.
+// Press y to mark verified, n to skip, r to remove from dictionary, q to quit.
 
 import 'dotenv/config';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
 import { chromium } from 'playwright';
-import { MENTIONS } from '../poster/mentions.js';
+import { MENTIONS, removeMentionEntry } from '../poster/mentions.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 const LINKEDIN_FEED = 'https://www.linkedin.com/feed/';
@@ -70,7 +70,7 @@ async function markVerified(name: string): Promise<void> {
   }
 
   console.log(`\nTesting ${unverified.length} unverified mention(s).`);
-  console.log('Controls: y = verified, n = skip, q = quit and save\n');
+  console.log('Controls: y = verified, n = skip, r = remove, q = quit\n');
 
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     headless: false,
@@ -88,9 +88,10 @@ async function markVerified(name: string): Promise<void> {
       console.log(`\nTesting: "${name}"  →  @${entry.searchTerm}`);
       await testEntry(page, entry.searchTerm);
 
-      const answer = await prompt('  Correct company in dropdown? (y/n/q): ');
+      const answer = await prompt('  Correct company in dropdown? (y/n/r/q): ');
       if (answer === 'q') break;
       if (answer === 'y') await markVerified(name);
+      if (answer === 'r') removeMentionEntry(name);
     }
   } finally {
     await context.close();

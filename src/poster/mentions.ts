@@ -6,6 +6,11 @@
 // `verified` is set to true only after manually confirming via `npm run test-mentions`.
 // Unverified entries are ignored during posting.
 
+import { readFileSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
+
+const MENTIONS_FILE = resolve(process.cwd(), 'src/poster/mentions.ts');
+
 export interface MentionEntry {
   searchTerm: string;  // what to type after @ in the LinkedIn composer
   verified: boolean;
@@ -42,11 +47,23 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'Makwa Development':                     { searchTerm: 'Makwa Development',               verified: true },
   'Kairos Power':                          { searchTerm: 'Kairos Power',                    verified: true },
 
+  // From post content analysis — run npm run test-mentions to verify
+  'Helion':                                { searchTerm: 'Helion - Future Energy',          verified: true },
+  'NRC':                                   { searchTerm: 'Nuclear Regulatory Commission',   verified: true },
+  'Nuclear Regulatory Commission':         { searchTerm: 'Nuclear Regulatory Commission',   verified: true },
+  'OpenAI':                                { searchTerm: 'OpenAI',                          verified: true },
+  'Google':                                { searchTerm: 'Google',                          verified: true },
+  'TVA':                                   { searchTerm: 'Tennessee Valley Authority',       verified: true },
+  'Tennessee Valley Authority':            { searchTerm: 'Tennessee Valley Authority',       verified: true },
+  'Ontario Tech University':               { searchTerm: 'Ontario Tech University',          verified: true },
+  'Ontario Tech':                          { searchTerm: 'Ontario Tech University',          verified: true },
+  'Great British Energy':                  { searchTerm: 'Great British Energy',             verified: true },
+  'Skills Ontario':                        { searchTerm: 'Skills Ontario',                   verified: true },
+
   // From RSS feed analysis — run npm run test-mentions to verify
   'Oklo':                                  { searchTerm: 'Oklo',                            verified: true },
   'NexGen Energy':                         { searchTerm: 'NexGen Energy',                   verified: true },
   'Denison Mines':                         { searchTerm: 'Denison Mines',                   verified: true },
-  'Arup':                                  { searchTerm: 'Arup',                            verified: false },
   'Rolls-Royce SMR':                       { searchTerm: 'Rolls-Royce SMR',                 verified: true },
   'APS':                                   { searchTerm: 'Arizona Public Service',          verified: true },
   'Arizona Public Service':                { searchTerm: 'Arizona Public Service',          verified: true },
@@ -66,4 +83,43 @@ export function verifiedMentions(): Record<string, MentionEntry> {
   return Object.fromEntries(
     Object.entries(MENTIONS).filter(([, entry]) => entry.verified)
   );
+}
+
+// Appends newly discovered company names as unverified entries.
+// Skips names already present in the dictionary (case-insensitive).
+// Called automatically after each post is generated.
+export function addUnverifiedMentions(names: string[]): void {
+  const existingKeys = new Set(Object.keys(MENTIONS).map(k => k.toLowerCase()));
+  const toAdd = names.filter(n => n.length > 2 && !existingKeys.has(n.toLowerCase()));
+  if (toAdd.length === 0) return;
+
+  let src = readFileSync(MENTIONS_FILE, 'utf8');
+  const insertPoint = src.lastIndexOf('\n};\n');
+  if (insertPoint === -1) { console.warn('mentions.ts: could not find insertion point'); return; }
+
+  let newLines = '\n  // Auto-detected — run npm run test-mentions to verify\n';
+  for (const name of toAdd) {
+    const safe = name.replace(/'/g, "\\'");
+    const pad = Math.max(1, 42 - safe.length);
+    newLines += `  '${safe}':${' '.repeat(pad)}{ searchTerm: '${safe}',${' '.repeat(Math.max(1, 27 - safe.length))}verified: false },\n`;
+  }
+
+  src = src.slice(0, insertPoint) + newLines + src.slice(insertPoint);
+  writeFileSync(MENTIONS_FILE, src, 'utf8');
+  console.log(`Mentions: added ${toAdd.length} unverified — ${toAdd.join(', ')}`);
+}
+
+// Removes an entry from the dictionary source file entirely.
+// Used by test-mentions when a search term doesn't resolve correctly.
+export function removeMentionEntry(name: string): void {
+  const src = readFileSync(MENTIONS_FILE, 'utf8');
+  const lines = src.split(/\r?\n/);
+  // Match the line that starts this entry, e.g.:  'Arup':  { ... }
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const lineRe = new RegExp(`^\\s*'${escaped}'\\s*:`);
+  const idx = lines.findIndex(l => lineRe.test(l));
+  if (idx === -1) { console.warn(`  Could not find entry for "${name}" to remove.`); return; }
+  lines.splice(idx, 1);
+  writeFileSync(MENTIONS_FILE, lines.join('\n'), 'utf8');
+  console.log(`  Removed "${name}" from mentions.`);
 }
