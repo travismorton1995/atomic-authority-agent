@@ -109,6 +109,7 @@ export async function fetchArticle(url: string): Promise<FeedItem> {
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       'Accept-Language': 'en-US,en;q=0.5',
     },
+    signal: AbortSignal.timeout(15000),
   });
 
   if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
