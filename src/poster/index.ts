@@ -186,31 +186,12 @@ async function insertMention(page: Page, searchTerm: string, displayName: string
       await page.keyboard.type(char, { delay: 60 });
     }
 
-    // Try Playwright's accessibility-tree locators in order of specificity.
-    // getByRole uses ARIA roles which LinkedIn's typeahead should expose.
-    const candidates = [
-      page.getByRole('option').first(),
-      page.getByRole('listitem').filter({ hasText: searchTerm.split(' ')[0] }).first(),
-      page.locator('[role="option"]').first(),
-      page.locator('[role="listbox"]').locator('*').first(),
-    ];
-
-    let clicked = false;
-    for (const locator of candidates) {
-      try {
-        await locator.waitFor({ state: 'visible', timeout: 3000 });
-        const text = await locator.textContent();
-        await locator.click();
-        await page.waitForTimeout(400);
-        console.log(`Inserted @mention: ${displayName} — clicked "${text?.trim()}"`);
-        clicked = true;
-        break;
-      } catch {
-        // try next locator
-      }
-    }
-
-    if (!clicked) throw new Error('no typeahead option found via any locator');
+    // LinkedIn's typeahead exposes results as ARIA role="option" elements.
+    const option = page.getByRole('option').first();
+    await option.waitFor({ state: 'visible', timeout: 5000 });
+    await option.click();
+    await page.waitForTimeout(400);
+    console.log(`Inserted @mention: ${displayName}`);
     return true;
   } catch (err) {
     console.warn(`@mention failed for "${displayName}" — plain text fallback. (${(err as Error).message})`);
