@@ -224,34 +224,41 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
 
     console.log('Clicking Post button...');
     await postBtn.click();
-    console.log('Post button clicked — waiting for composer to close...');
+    console.log('Post button clicked — watching for success or error...');
 
-    // Wait for the Post button to disappear — this happens in both success and error cases
-    try {
-      await postBtn.waitFor({ state: 'hidden', timeout: 30000 });
-    } catch {
-      const shareModal = page.locator('.artdeco-modal--active, [role="dialog"]').first();
-      const modalGone = await shareModal.waitFor({ state: 'hidden', timeout: 15000 }).then(() => true).catch(() => false);
-      if (!modalGone) {
-        throw new Error('Timed out waiting for composer to close after posting.');
+    // LinkedIn shows "Network connection failed" INSIDE the composer (next to the Post
+    // button) while the modal is still open. We must detect it before the modal closes,
+    // otherwise it disappears and we incorrectly report success.
+    //
+    // Strategy: poll every 500ms for up to 30s, checking for either:
+    //   - Post button gone → success
+    //   - Known error text visible → throw immediately
+    const knownErrors = [
+      'Network connection failed',
+      'Something went wrong',
+      'Try refreshing the page',
+    ];
+    const deadline = Date.now() + 30000;
+    let posted = false;
+
+    while (Date.now() < deadline) {
+      await page.waitForTimeout(500);
+
+      // Check for error messages first — they appear while modal is still open
+      for (const msg of knownErrors) {
+        const visible = await page.getByText(msg, { exact: false }).first().isVisible().catch(() => false);
+        if (visible) {
+          throw new Error(`LinkedIn error during post: "${msg}"`);
+        }
       }
+
+      // Check if composer closed (success)
+      const buttonGone = await postBtn.isHidden().catch(() => false);
+      if (buttonGone) { posted = true; break; }
     }
 
-    // Wait a moment for any error messages to render — LinkedIn's network errors
-    // appear AFTER the button disappears, once its own timeout fires.
-    await page.waitForTimeout(3000);
-
-    // Now check for error messages. Use text matching as a reliable fallback
-    // since LinkedIn's error class names vary by version.
-    const errorEl = page.locator(
-      '.artdeco-inline-feedback--error, [class*="share-box"] [class*="error"], ' +
-      '.share-box-v2 [data-test-id*="error"], .artdeco-toast-item--error, ' +
-      'text="Network connection failed", text="Something went wrong"'
-    ).first();
-    const hasError = await errorEl.isVisible({ timeout: 1000 }).catch(() => false);
-    if (hasError) {
-      const errorText = await errorEl.textContent().catch(() => '');
-      throw new Error(`LinkedIn reported an error after clicking Post: "${errorText?.trim()}"`);
+    if (!posted) {
+      throw new Error('Timed out waiting for post to complete — composer still open after 30s.');
     }
 
     console.log('Successfully posted to LinkedIn.');
