@@ -112,11 +112,11 @@ function injectMentionMarkers(text: string): string {
 
   for (const name of names) {
     const marker = `[[MENTION:${name}]]`;
-    // Skip if already marked
+    // Skip if already marked (first occurrence already captured)
     if (result.includes(marker)) continue;
-    // Match whole word, case-sensitive
+    // Replace only the first whole-word occurrence
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    result = result.replace(new RegExp(`\\b${escaped}\\b`, 'g'), marker);
+    result = result.replace(new RegExp(`\\b${escaped}\\b`), marker);
   }
 
   return result;

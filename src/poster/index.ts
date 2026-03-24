@@ -138,9 +138,10 @@ async function typeContentWithMentions(page: Page, content: string): Promise<voi
     // Type any plain text before this marker
     const before = content.slice(lastIndex, match.index);
     if (before) {
-      for (const line of before.split('\n')) {
-        await page.keyboard.type(line, { delay: 10 });
-        if (before.indexOf('\n') !== -1) await page.keyboard.press('Enter');
+      const lines = before.split('\n');
+      for (let i = 0; i < lines.length; i++) {
+        await page.keyboard.type(lines[i], { delay: 10 });
+        if (i < lines.length - 1) await page.keyboard.press('Enter');
       }
     }
 
@@ -171,30 +172,47 @@ async function typeContentWithMentions(page: Page, content: string): Promise<voi
   }
 }
 
-// Types `@searchTerm` into the composer and clicks the first autocomplete result.
-// Returns true if the mention was successfully inserted, false if the dropdown
-// didn't appear (caller should fall back to plain text).
+// Types `@searchTerm`, waits for LinkedIn's typeahead, then uses ArrowDown+Enter
+// to select the first result — keyboard nav works regardless of dropdown markup.
+// Returns true if the mention was inserted, false if the dropdown never appeared.
 async function insertMention(page: Page, searchTerm: string, displayName: string): Promise<boolean> {
+  const typed = `@${searchTerm}`;
   try {
-    await page.keyboard.type(`@${searchTerm}`, { delay: 30 });
+    await page.keyboard.type(typed, { delay: 40 });
 
-    // Wait for the typeahead dropdown to appear
-    const dropdown = page.locator(
-      'div.mention-typeahead, ul[role="listbox"], div[data-test-id="mention-typeahead"]'
-    ).first();
-    await dropdown.waitFor({ state: 'visible', timeout: 5000 });
+    // Give LinkedIn time to query and render the typeahead
+    await page.waitForTimeout(2000);
 
-    // Click the first result
-    const firstResult = dropdown.locator('li, [role="option"]').first();
-    await firstResult.waitFor({ state: 'visible', timeout: 3000 });
-    await firstResult.click();
+    // Detect whether a typeahead dropdown appeared — try a broad set of selectors
+    const dropdownVisible = await page.evaluate(() => {
+      const selectors = [
+        '[data-test-id*="typeahead"]',
+        '[class*="typeahead"]',
+        '[class*="mention"]',
+        '[role="listbox"]',
+        '[role="option"]',
+      ];
+      return selectors.some(sel => {
+        const el = document.querySelector(sel);
+        return el != null && (el as HTMLElement).offsetParent !== null;
+      });
+    });
+
+    if (!dropdownVisible) {
+      throw new Error('no dropdown');
+    }
+
+    // Select first result via keyboard — reliable regardless of exact DOM structure
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(300);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(300);
 
     console.log(`Inserted @mention: ${displayName}`);
     return true;
   } catch {
     console.warn(`@mention dropdown did not appear for "${displayName}" — using plain text fallback.`);
-    // Clear the typed @searchTerm before falling back
-    const typed = `@${searchTerm}`;
+    // Backspace out the typed @searchTerm
     for (let i = 0; i < typed.length; i++) await page.keyboard.press('Backspace');
     return false;
   }
