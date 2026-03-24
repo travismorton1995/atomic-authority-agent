@@ -9,6 +9,29 @@ import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
 import { rankItems } from './rank.js';
 import { readFileSync, existsSync } from 'fs';
 
+// Strip [[MENTION:X]] markers from text, returning cleaned text and the marker positions.
+function stripMentionMarkers(text: string): { clean: string; markers: Array<{ name: string; plainName: string }> } {
+  const markers: Array<{ name: string; plainName: string }> = [];
+  const clean = text.replace(/\[\[MENTION:([^\]]+)\]\]/g, (_, name) => {
+    markers.push({ name, plainName: name });
+    return name;
+  });
+  return { clean, markers };
+}
+
+// Re-inject [[MENTION:X]] markers into revised text by replacing plain company
+// names that were previously marked. Uses whole-word matching, longest first.
+function reInjectMentionMarkers(revised: string, markers: Array<{ name: string; plainName: string }>): string {
+  if (markers.length === 0) return revised;
+  const names = [...new Set(markers.map(m => m.name))].sort((a, b) => b.length - a.length);
+  let result = revised;
+  for (const name of names) {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(`\\b${escaped}\\b`, 'g'), `[[MENTION:${name}]]`);
+  }
+  return result;
+}
+
 export interface PipelineOptions {
   url?: string;
   topic?: string;
@@ -75,23 +98,31 @@ async function finalize(item: FeedItem, postType: PostType): Promise<PendingPost
   console.log('Synthesizing draft...');
   let draft = await synthesizePost(item, postType);
 
+  // Strip [[MENTION:X]] markers before passing to verifier/screener so they
+  // see clean prose. Markers are re-injected into any revised output afterward.
+  const { clean: cleanContent, markers } = stripMentionMarkers(draft.content);
+
   if (item.fullText) {
     console.log('Verifying factual claims...');
-    const verification = await verifyPost(draft.content, item.fullText);
+    const verification = await verifyPost(cleanContent, item.fullText);
     if (verification.changed) {
       console.log(`Verifier corrected ${verification.flaggedClaims.length} claim(s):`);
       for (const claim of verification.flaggedClaims) console.log(`  - ${claim}`);
-      draft = { ...draft, content: verification.correctedContent };
+      draft = { ...draft, content: reInjectMentionMarkers(verification.correctedContent, markers) };
     } else {
       console.log('Verification passed — no corrections needed.');
+      draft = { ...draft, content: reInjectMentionMarkers(cleanContent, markers) };
     }
   }
 
   console.log('Running screening agent...');
-  const screening = await screenPost(draft);
+  const screeningDraft = { ...draft, content: stripMentionMarkers(draft.content).clean };
+  const screening = await screenPost(screeningDraft);
 
   console.log(`Cringe score: ${screening.cringeScore}/10 — ${screening.reasoning}`);
   if (screening.cringeScore > 3 && screening.revisedContent) {
+    // Re-inject markers into the screener's revised content
+    screening.revisedContent = reInjectMentionMarkers(screening.revisedContent, markers);
     console.log('Auto-revised by screener.');
   }
 
