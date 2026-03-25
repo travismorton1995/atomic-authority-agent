@@ -41,6 +41,12 @@ Also review the FIRST COMMENT separately. Apply the same cringe standards — it
 
 FORMATTING RULE (applies to both post and comment): Never use em dashes (—). Replace with a comma, period, or rewrite the sentence.
 
+HASHTAG RULE: Count all hashtags in the post. If there are more than 5, the revised version must trim to the 3–5 most relevant. Fewer is better — 3–4 is ideal. A post with 6+ hashtags should have its score bumped by at least 1 point.
+
+PARAGRAPH LENGTH: LinkedIn rewards short paragraphs. Each paragraph should be 1–3 sentences maximum. If any paragraph is 4 or more sentences, treat it as a wall of text — bump the cringe score and reformat it in the revised version by splitting into shorter paragraphs. The revision must break up any such paragraphs without losing substance.
+
+FIRST COMMENT ENGAGEMENT QUALITY: The first comment must end with a question that is specific enough that a practitioner in nuclear or AI would have a clear, opinionated answer. These are generic and do NOT meet the bar: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "Have you seen this in your work?", "What's your take?". The question must name a specific tension, tradeoff, decision, or scenario that professionals would actually debate — something a senior engineer or regulator could answer with conviction. If the question is generic, revise the first comment to replace it with a specific one. Always preserve the URL on its own line at the end.
+
 Respond ONLY in this exact JSON format:
 {
   "cringeScore": <number 1-10>,

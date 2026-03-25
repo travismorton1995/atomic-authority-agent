@@ -158,7 +158,23 @@ Write the LinkedIn post now. You have the full article text above — use specif
     messages: [{ role: 'user', content: userPrompt }],
   });
 
-  const rawContent = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
+  let rawContent = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
+
+  // Word count enforcement: revise if < 80 or > 250 words
+  const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
+  if (wordCount < 80 || wordCount > 250) {
+    console.log(`Word count ${wordCount} — ${wordCount < 80 ? 'too short, expanding' : 'too long, trimming'}...`);
+    const reviseMsg = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 600,
+      messages: [{
+        role: 'user',
+        content: `This LinkedIn post is ${wordCount} words, which is ${wordCount < 80 ? 'too short (minimum 80 words)' : 'too long (maximum 250 words)'}. Revise it to be between 130–200 words. Preserve the opening line, the key insight, and all hashtags. Output only the revised post — no preamble.\n\n${rawContent}`,
+      }],
+    });
+    rawContent = reviseMsg.content[0].type === 'text' ? reviseMsg.content[0].text.trim() : rawContent;
+  }
+
   const content = injectMentionMarkers(rawContent);
 
   // Generate first comment: follow-up thought + engagement question + source URL

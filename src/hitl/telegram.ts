@@ -117,7 +117,25 @@ export function startBot(): void {
     }
   });
 
-  bot.launch();
+  // Launch with retry — Telegram returns 409 if a previous polling session is still active.
+  // Retry on the same bot instance (handlers are preserved) until the old session expires.
+  (async () => {
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      try {
+        await bot!.launch();
+        return;
+      } catch (err: any) {
+        const is409 = err?.response?.error_code === 409 || String(err?.message).includes('409');
+        if (is409 && attempt < 5) {
+          console.warn(`Telegram 409 conflict (attempt ${attempt}/5) — retrying in 10s...`);
+          await new Promise(r => setTimeout(r, 10_000));
+        } else {
+          console.error('Telegram bot failed to launch:', err);
+          return;
+        }
+      }
+    }
+  })();
   console.log('Telegram bot started.');
 
   process.once('SIGINT', () => bot?.stop('SIGINT'));

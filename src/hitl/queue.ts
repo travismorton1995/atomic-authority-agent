@@ -121,10 +121,6 @@ export function approvePost(id: string, scheduledFor: string): PendingPost | nul
   post.scheduledFor = scheduledFor;
   writeFile(PENDING_FILE, posts);
 
-  const history = readFile<PendingPost[]>(HISTORY_FILE, []);
-  history.push(post);
-  writeFile(HISTORY_FILE, history);
-
   return post;
 }
 
@@ -145,17 +141,12 @@ export function markPublished(id: string): PendingPost | null {
   post.status = 'published';
   post.publishedAt = publishedAt;
 
-  // Remove from pending — it's fully archived in history
+  // Remove from pending and archive to history
   writeFile(PENDING_FILE, posts.filter(p => p.id !== id));
 
-  // Sync updated status back into history
   const history = readFile<PendingPost[]>(HISTORY_FILE, []);
-  const historyEntry = history.find(p => p.id === id);
-  if (historyEntry) {
-    historyEntry.status = 'published';
-    historyEntry.publishedAt = publishedAt;
-    writeFile(HISTORY_FILE, history);
-  }
+  history.push(post);
+  writeFile(HISTORY_FILE, history);
 
   return post;
 }

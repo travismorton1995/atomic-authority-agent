@@ -76,6 +76,33 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'Holtec International':                  { searchTerm: 'Holtec International',            verified: true },
   'IAEA':                                  { searchTerm: 'International Atomic Energy',     verified: true },
   'ANS':                                   { searchTerm: 'American Nuclear Society',        verified: true },
+  // Auto-detected — run npm run test-mentions to verify
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Framatome':                                 { searchTerm: 'Framatome',                  verified: true },
+  'SCK CEN':                                   { searchTerm: 'SCK CEN',                    verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'National Innovation Centre for Cyber Security': { searchTerm: 'National Innovation Centre for Cyber Security', verified: false },
+  'Nuclearelectrica':                          { searchTerm: 'Nuclearelectrica',           verified: false },
+  'Cernavodă Nuclear Power Plant':             { searchTerm: 'Cernavodă Nuclear Power Plant', verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Hunterston B':                              { searchTerm: 'Hunterston B',               verified: false },
+  'NRS':                                       { searchTerm: 'NRS',                        verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'BR2':                                       { searchTerm: 'BR2',                        verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'S&P Global':                                { searchTerm: 'S&P Global',                 verified: true },
+  'Crane Energy Center':                       { searchTerm: 'Crane Energy Center',        verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'U.S.':                                      { searchTerm: 'U.S.',                       verified: false },
+  'PROMETHEUS':                                { searchTerm: 'PROMETHEUS',                 verified: false },
+  'Senate':                                    { searchTerm: 'Senate',                     verified: false },
+
 };
 
 // Returns only verified entries — used during posting
@@ -93,7 +120,7 @@ export function addUnverifiedMentions(names: string[]): void {
   const toAdd = names.filter(n => n.length > 2 && !existingKeys.has(n.toLowerCase()));
   if (toAdd.length === 0) return;
 
-  let src = readFileSync(MENTIONS_FILE, 'utf8');
+  let src = readFileSync(MENTIONS_FILE, 'utf8').replace(/\r\n/g, '\n');
   const insertPoint = src.lastIndexOf('\n};\n');
   if (insertPoint === -1) { console.warn('mentions.ts: could not find insertion point'); return; }
 
