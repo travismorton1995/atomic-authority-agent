@@ -16,36 +16,48 @@ function alreadyPostedToday(): boolean {
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
 import { startBot, sendAlert, setOnRejectHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
+import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
 
 const GENERATE_RETRY_DELAY_MS = 10 * 60 * 1000; // 10 minutes
 const GENERATE_NETWORK_RETRY_DELAY_MS = 60 * 1000; // 1 minute
 const GENERATE_MAX_RETRIES = 3;
 
-async function runGenerate() {
-  console.log('Scheduler triggered — running pipeline...');
-  for (let attempt = 1; attempt <= GENERATE_MAX_RETRIES; attempt++) {
-    try {
-      await runPipeline();
-      return;
-    } catch (err: any) {
-      const isOverloaded = err?.status === 529 || err?.error?.error?.type === 'overloaded_error';
-      const isNetworkError = err?.code === 'ECONNRESET' || err?.code === 'ECONNREFUSED' || err?.code === 'ETIMEDOUT' || err?.type === 'system';
+let isGenerating = false;
 
-      if (attempt < GENERATE_MAX_RETRIES && (isOverloaded || isNetworkError)) {
-        const delay = isNetworkError ? GENERATE_NETWORK_RETRY_DELAY_MS : GENERATE_RETRY_DELAY_MS;
-        const reason = isNetworkError ? 'Network error' : 'Anthropic API overloaded';
-        console.warn(`${reason} (attempt ${attempt}/${GENERATE_MAX_RETRIES}) — retrying in ${delay / 1000}s...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      } else {
-        console.error(`Generate failed (attempt ${attempt}/${GENERATE_MAX_RETRIES}):`, err);
-        await sendAlert(
-          `Pipeline failed after ${attempt} attempt(s).\n\n` +
-          `Error: ${err?.message ?? String(err)}\n\n` +
-          `Run \`npm run generate\` manually to retry.`
-        );
+async function runGenerate() {
+  if (isGenerating) {
+    console.log('Pipeline already running — ignoring duplicate trigger.');
+    return;
+  }
+  isGenerating = true;
+  console.log('Scheduler triggered — running pipeline...');
+  try {
+    for (let attempt = 1; attempt <= GENERATE_MAX_RETRIES; attempt++) {
+      try {
+        await runPipeline();
         return;
+      } catch (err: any) {
+        const isOverloaded = err?.status === 529 || err?.error?.error?.type === 'overloaded_error';
+        const isNetworkError = err?.code === 'ECONNRESET' || err?.code === 'ECONNREFUSED' || err?.code === 'ETIMEDOUT' || err?.type === 'system';
+
+        if (attempt < GENERATE_MAX_RETRIES && (isOverloaded || isNetworkError)) {
+          const delay = isNetworkError ? GENERATE_NETWORK_RETRY_DELAY_MS : GENERATE_RETRY_DELAY_MS;
+          const reason = isNetworkError ? 'Network error' : 'Anthropic API overloaded';
+          console.warn(`${reason} (attempt ${attempt}/${GENERATE_MAX_RETRIES}) — retrying in ${delay / 1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          console.error(`Generate failed (attempt ${attempt}/${GENERATE_MAX_RETRIES}):`, err);
+          await sendAlert(
+            `Pipeline failed after ${attempt} attempt(s).\n\n` +
+            `Error: ${err?.message ?? String(err)}\n\n` +
+            `Run \`npm run generate\` manually to retry.`
+          );
+          return;
+        }
       }
     }
+  } finally {
+    isGenerating = false;
   }
 }
 
@@ -60,11 +72,11 @@ async function publishDuePosts() {
   for (const post of due) {
     console.log(`Publishing post ${post.id} — "${post.draft.sourceTitle}"`);
     try {
-      await postToLinkedIn(post.finalContent, {
+      const linkedInPostUrl = await postToLinkedIn(post.finalContent, {
         firstComment: post.draft.firstComment,
         imageUrl: post.draft.imageUrl,
       });
-      markPublished(post.id);
+      markPublished(post.id, linkedInPostUrl);
       console.log(`Post ${post.id} marked as published.`);
     } catch (err) {
       if (err instanceof LinkedInSessionExpiredError) {
@@ -98,10 +110,11 @@ cron.schedule('* * * * *', async () => {
   await publishDuePosts();
 }, { timezone: 'America/Toronto' });
 
-// Daily session ping at 8am ET — alerts via Telegram if login is required
+// Daily maintenance at 8am ET: session check, metrics fetch, rejected post cleanup
 cron.schedule('0 8 * * *', async () => {
-  console.log('Running daily LinkedIn session check...');
+  console.log('Running daily maintenance...');
   cleanupRejectedPosts(90);
+
   const valid = await pingSession();
   if (!valid) {
     console.warn('LinkedIn session expired — sending Telegram alert.');
@@ -112,5 +125,14 @@ cron.schedule('0 8 * * *', async () => {
     );
   } else {
     console.log('LinkedIn session OK.');
+    console.log('Fetching engagement metrics...');
+    await runMetricsFetch().catch(err => console.error('Metrics fetch failed (non-fatal):', err));
+
+    // Send weekly report on Mondays
+    if (new Date().getDay() === 1) {
+      await runWeeklyReport().catch(err => console.error('Weekly report failed (non-fatal):', err));
+    }
+
+    console.log('Daily maintenance complete.');
   }
 }, { timezone: 'America/Toronto' });

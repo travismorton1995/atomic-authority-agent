@@ -1,4 +1,5 @@
 import { Telegraf } from 'telegraf';
+import { readFileSync, existsSync } from 'fs';
 import { approvePost, rejectPost, clearPostImage } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
@@ -153,6 +154,15 @@ export async function sendAlert(message: string): Promise<void> {
   });
 }
 
+export async function sendMessage(message: string): Promise<void> {
+  if (!token || !chatId) {
+    console.log(`[REPORT]\n${message}`);
+    return;
+  }
+  const sender = new Telegraf(token);
+  await sender.telegram.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+}
+
 export async function notifyTelegram(post: PendingPost): Promise<void> {
   if (!token || !chatId) {
     console.log('\n--- TELEGRAM NOTIFICATION (not configured) ---');
@@ -204,6 +214,23 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
   }
 }
 
+function getNextCandidatesSummary(): string {
+  try {
+    if (!existsSync('candidates.json')) return '';
+    const store = JSON.parse(readFileSync('candidates.json', 'utf-8'));
+    const next = (store.candidates as any[]).slice(store.nextIndex, store.nextIndex + 2);
+    if (next.length === 0) return '';
+    const lines = next.map((c: any, i: number) => {
+      const b = c.scoreBreakdown;
+      const bStr = b ? ` (I:${b.intersection} N:${b.novelty} G:${b.geography})` : '';
+      return `  #${store.nextIndex + i + 1} · ${c.articleScore}/10${bStr} · "${c.item.title.slice(0, 50)}" _(${c.postType})_`;
+    });
+    return `\n\n*If rejected, next up:*\n${lines.join('\n')}`;
+  } catch {
+    return '';
+  }
+}
+
 function formatMessage(post: PendingPost): string {
   const cringeNote = post.screening.cringeScore > 3
     ? `Cringe: ${post.screening.cringeScore}/10 — auto-revised`
@@ -226,8 +253,10 @@ function formatMessage(post: PendingPost): string {
     : `*Source:* ${post.draft.sourceTitle}`;
 
   const feedNote = post.draft.sourceFeed ? `*Feed:* ${post.draft.sourceFeed}` : '';
+  const bd = post.draft.scoreBreakdown;
+  const bdStr = bd ? ` (I:${bd.intersection} N:${bd.novelty} G:${bd.geography} NPX:${bd.npx})` : '';
   const scoreNote = post.draft.combinedScore !== undefined
-    ? `*Score:* ${post.draft.combinedScore.toFixed(2)}`
+    ? `*Score:* ${post.draft.combinedScore.toFixed(2)}${bdStr}`
     : '';
   const metaLine = [feedNote, scoreNote].filter(Boolean).join(' | ');
 
@@ -237,5 +266,5 @@ function formatMessage(post: PendingPost): string {
 
 ${sourceNote}${metaLine ? `\n${metaLine}` : ''}
 
-${displayContent}${commentSection}`;
+${displayContent}${commentSection}${getNextCandidatesSummary()}`;
 }

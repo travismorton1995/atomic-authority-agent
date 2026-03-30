@@ -72,7 +72,7 @@ export async function pingSession(): Promise<boolean> {
   }
 }
 
-export async function postToLinkedIn(content: string, options: PostOptions = {}): Promise<void> {
+export async function postToLinkedIn(content: string, options: PostOptions = {}): Promise<string | null> {
   const headless = options.forceHeaded ? false : process.env.LINKEDIN_HEADLESS === 'true';
 
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
@@ -285,8 +285,10 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     if (options.firstComment) {
       console.log('Waiting for post to appear in activity feed...');
       await page.waitForTimeout(8000);
-      await postFirstComment(page, options.firstComment);
+      return await postFirstComment(page, options.firstComment);
     }
+
+    return null;
   } finally {
     await context.close();
   }
@@ -366,11 +368,11 @@ async function insertMention(page: Page, searchTerm: string, displayName: string
   }
 }
 
-async function postFirstComment(page: Page, comment: string): Promise<void> {
+async function postFirstComment(page: Page, comment: string): Promise<string | null> {
   const profileUrl = process.env.LINKEDIN_PROFILE_URL;
   if (!profileUrl) {
     console.warn('LINKEDIN_PROFILE_URL not set — skipping first comment.');
-    return;
+    return null;
   }
 
   try {
@@ -383,6 +385,11 @@ async function postFirstComment(page: Page, comment: string): Promise<void> {
     // Find the first post on the activity page
     const firstPost = page.locator('div[data-urn], div[data-id], article').first();
     await firstPost.waitFor({ state: 'visible', timeout: 15000 });
+
+    // Extract the post URN to construct the LinkedIn post URL for metrics tracking
+    const urn = await firstPost.getAttribute('data-urn').catch(() => null);
+    const linkedInPostUrl = urn ? `https://www.linkedin.com/feed/update/${urn}/` : null;
+    if (linkedInPostUrl) console.log(`Post URL: ${linkedInPostUrl}`);
 
     // Scroll into view and hover to reveal the reaction bar / comment area
     await firstPost.scrollIntoViewIfNeeded();
@@ -410,7 +417,9 @@ async function postFirstComment(page: Page, comment: string): Promise<void> {
       }
     }
 
-    await page.waitForTimeout(1000);
+    // Wait for LinkedIn to fetch and render the URL preview card before submitting.
+    // Too short and the comment posts without a thumbnail.
+    await page.waitForTimeout(5000);
 
     // The submit "Comment" button is inside the comment composer box, NOT the reaction bar.
     // Scope the search to comment-box containers to avoid clicking reaction bar buttons on other posts.
@@ -442,8 +451,10 @@ async function postFirstComment(page: Page, comment: string): Promise<void> {
     console.log(`Comment submitted (found via: ${clicked}).`);
     await page.waitForTimeout(20000); // wait to observe result before browser closes
     console.log('First comment posted.');
+    return linkedInPostUrl;
   } catch (err) {
     // Non-fatal — post already succeeded
     console.warn('Failed to post first comment (non-fatal):', err);
+    return null;
   }
 }

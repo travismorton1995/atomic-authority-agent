@@ -54,7 +54,7 @@ READABILITY RULE:
 
 FORMAT RULES:
 - Target 150–170 words for the post body. Hard max 200 words. Shorter is better — leave the reader wanting slightly more, not fully satisfied.
-- Use short paragraphs (2-3 sentences max)
+- Use short paragraphs — 1-2 sentences max. If a paragraph contains more than one distinct point, give each point its own paragraph. Flow comes from sequence, not from grouping sentences together.
 - Never use em dashes (—). Use a comma, period, or rewrite the sentence instead.
 - No bullet points unless they genuinely add clarity
 - End the post body with either a direct statement or a single, genuine question — not a call-to-action cliché

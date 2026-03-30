@@ -6,12 +6,15 @@ import { verifyPost } from './verify.js';
 import { addPendingPost, getSourceHistory, PendingPost } from '../hitl/queue.js';
 import { notifyTelegram } from '../hitl/telegram.js';
 import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
-import { rankItems } from './rank.js';
+import { rankItems, ScoreBreakdown } from './rank.js';
 import { addUnverifiedMentions } from '../poster/mentions.js';
+import { CONTENT_TAGS, ContentTag } from './synthesize.js';
 import Anthropic from '@anthropic-ai/sdk';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 
 const anthropic = new Anthropic();
+
+let pipelineRunning = false;
 
 // Strip [[MENTION:X]] markers from text, returning cleaned text and the marker positions.
 function stripMentionMarkers(text: string): { clean: string; markers: Array<{ name: string; plainName: string }> } {
@@ -44,6 +47,42 @@ function reInjectMentionMarkers(revised: string, markers: Array<{ name: string; 
 export interface PipelineOptions {
   url?: string;
   topic?: string;
+}
+
+const CANDIDATES_FILE = 'candidates.json';
+const CANDIDATES_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface ScoredCandidate {
+  item: FeedItem;
+  postType: PostType;
+  articleScore: number;
+  scoreBreakdown: ScoreBreakdown;
+  balanceMultiplier: number;
+  recencyMultiplier: number;
+  postContentFeedback: number;
+  combinedScore: number;
+  reasoning: string;
+}
+
+interface CandidateStore {
+  generatedAt: string;
+  nextIndex: number;
+  candidates: ScoredCandidate[];
+}
+
+function loadCandidateStore(): CandidateStore | null {
+  if (!existsSync(CANDIDATES_FILE)) return null;
+  try {
+    const store = JSON.parse(readFileSync(CANDIDATES_FILE, 'utf-8')) as CandidateStore;
+    if (Date.now() - new Date(store.generatedAt).getTime() > CANDIDATES_TTL_MS) return null;
+    return store;
+  } catch {
+    return null;
+  }
+}
+
+export function clearCandidateStore(): void {
+  if (existsSync(CANDIDATES_FILE)) unlinkSync(CANDIDATES_FILE);
 }
 
 function getRecentTitles(limit = 10): string[] {
@@ -94,11 +133,73 @@ function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
   for (const [type, weight] of Object.entries(weights)) {
     const targetShare = weight / totalWeight;
     const actualShare = total > 0 ? (counts[type] ?? 0) / total : 0;
-    // Clamp between 0.25 and 2.0 so no type is ever fully suppressed or overwhelms
-    multipliers[type] = Math.min(2.0, Math.max(0.25, targetShare / Math.max(actualShare, 0.01)));
+    // Clamp between 0.8 and 1.2 — article quality should dominate, balance is a light nudge
+    multipliers[type] = Math.min(1.2, Math.max(0.8, targetShare / Math.max(actualShare, 0.01)));
   }
 
   return multipliers as Record<PostType, number>;
+}
+
+// Returns average engagement score per content tag across all posts with metrics.
+function getTagEngagementScores(): Record<string, number> {
+  const scores: Record<string, number[]> = {};
+
+  if (existsSync('posted_history.json')) {
+    try {
+      const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
+      for (const p of history) {
+        const tags: string[] = p.draft?.contentTags ?? [];
+        const m = p.metrics;
+        if (!m || tags.length === 0) continue;
+        const engagement = (m.reactions ?? 0) + (m.comments ?? 0) + (m.reposts ?? 0);
+        for (const tag of tags) {
+          if (!scores[tag]) scores[tag] = [];
+          scores[tag].push(engagement);
+        }
+      }
+    } catch {}
+  }
+
+  const averages: Record<string, number> = {};
+  for (const [tag, vals] of Object.entries(scores)) {
+    averages[tag] = vals.reduce((a, b) => a + b, 0) / vals.length;
+  }
+  return averages;
+}
+
+// Given an article's suggested tags and historical tag scores, returns a
+// 0.8–1.2 post-content feedback multiplier. Articles whose tags historically
+// perform above average score above 1.0; below average score below 1.0.
+// Falls back to 1.0 when there is no data yet.
+function computePostContentFeedback(tags: string[], tagScores: Record<string, number>): number {
+  if (tags.length === 0 || Object.keys(tagScores).length === 0) return 1.0;
+  const globalAvg = Object.values(tagScores).reduce((a, b) => a + b, 0) / Object.values(tagScores).length;
+  if (globalAvg === 0) return 1.0;
+  const matched = tags.filter(t => tagScores[t] !== undefined);
+  if (matched.length === 0) return 1.0;
+  const avgScore = matched.reduce((a, t) => a + tagScores[t], 0) / matched.length;
+  return Math.min(1.2, Math.max(1.0, avgScore / globalAvg));
+}
+
+
+async function generateContentTags(content: string): Promise<ContentTag[]> {
+  try {
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 100,
+      messages: [{
+        role: 'user',
+        content: `Tag this LinkedIn post with 3–5 labels from the list below. Return ONLY a valid JSON array of strings using exact values from the list — no other text.\n\nAllowed tags: ${CONTENT_TAGS.join(', ')}\n\nPost:\n${content}`,
+      }],
+    });
+    const raw = response.content[0].type === 'text' ? response.content[0].text : '[]';
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) return [];
+    const tags = JSON.parse(match[0]) as string[];
+    return tags.filter((t): t is ContentTag => (CONTENT_TAGS as readonly string[]).includes(t));
+  } catch {
+    return [];
+  }
 }
 
 async function extractAndRegisterMentions(content: string): Promise<void> {
@@ -121,12 +222,13 @@ async function extractAndRegisterMentions(content: string): Promise<void> {
   }
 }
 
-async function finalize(item: FeedItem, postType: PostType, combinedScore?: number): Promise<PendingPost> {
+async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown): Promise<PendingPost> {
   console.log(`Post type: ${postType}`);
 
   console.log('Synthesizing draft...');
   let draft = await synthesizePost(item, postType);
   if (combinedScore !== undefined) draft = { ...draft, combinedScore };
+  if (scoreBreakdown !== undefined) draft = { ...draft, scoreBreakdown };
 
   // Strip [[MENTION:X]] markers before passing to verifier/screener so they
   // see clean prose. Markers are re-injected into any revised output afterward.
@@ -156,6 +258,13 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
     console.log('Auto-revised by screener.');
   }
 
+  // Tag the final content and store on draft before saving
+  const contentTags = await generateContentTags(stripMentionMarkers(draft.content).clean);
+  if (contentTags.length > 0) {
+    draft = { ...draft, contentTags };
+    console.log(`Content tags: ${contentTags.join(', ')}`);
+  }
+
   const post = addPendingPost(draft, screening);
   console.log(`Draft saved as ID: ${post.id}`);
 
@@ -168,7 +277,42 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
   return post;
 }
 
+async function fetchAndFinalize(candidate: ScoredCandidate): Promise<PendingPost> {
+  console.log(`Selected: "${candidate.item.title}" (${candidate.item.source})`);
+  const bd = candidate.scoreBreakdown;
+  console.log(`Score: ${candidate.articleScore}/10 (I:${bd.intersection} N:${bd.novelty} G:${bd.geography} NPX:${bd.npx}) — ${candidate.reasoning}`);
+  console.log(`Balance: ${candidate.balanceMultiplier.toFixed(2)}x | Recency: ${candidate.recencyMultiplier.toFixed(2)}x | Post-content feedback: ${candidate.postContentFeedback.toFixed(2)}x | Combined: ${candidate.combinedScore.toFixed(2)}`);
+
+  if (candidate.item.link && (!candidate.item.fullText || !candidate.item.imageUrl)) {
+    try {
+      console.log('Fetching full article text...');
+      const fetched = await fetchArticle(candidate.item.link);
+      if (fetched.fullText) candidate.item.fullText = fetched.fullText;
+      if (fetched.imageUrl) {
+        candidate.item.imageUrl = fetched.imageUrl;
+        console.log(`Image found: ${fetched.imageUrl}`);
+      }
+    } catch {
+      console.warn('Could not fetch full article text — will use RSS summary only.');
+    }
+  }
+
+  return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown);
+}
+
 export async function runPipeline(options: PipelineOptions = {}): Promise<PendingPost> {
+  if (pipelineRunning) {
+    throw new Error('Pipeline already in progress — concurrent calls are not allowed.');
+  }
+  pipelineRunning = true;
+  try {
+  return await _runPipeline(options);
+  } finally {
+    pipelineRunning = false;
+  }
+}
+
+async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost> {
   const lastPostType = getLastPostType();
 
   if (options.url) {
@@ -190,6 +334,31 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
     return finalize(item, pickPostType(lastPostType));
   }
 
+  // --- Use cached candidates if available and fresh ---
+  const store = loadCandidateStore();
+  if (store && store.nextIndex < store.candidates.length) {
+    const { excludedUrls, excludedTitles } = getSourceHistory();
+    let chosen: ScoredCandidate | null = null;
+    let nextIndex = store.nextIndex;
+
+    while (nextIndex < store.candidates.length) {
+      const c = store.candidates[nextIndex++];
+      if (c.item.link && excludedUrls.includes(c.item.link)) continue;
+      if (excludedTitles.some(t => t.toLowerCase() === c.item.title.toLowerCase())) continue;
+      chosen = c;
+      break;
+    }
+
+    if (chosen) {
+      writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex }, null, 2));
+      console.log(`Using cached candidate ${nextIndex} of ${store.candidates.length} (ranked ${new Date(store.generatedAt).toLocaleTimeString()})`);
+      return fetchAndFinalize(chosen);
+    }
+
+    console.log('All cached candidates exhausted or excluded — fetching fresh articles...');
+  }
+
+  // --- Fresh fetch + rank + score ---
   console.log('Fetching RSS feeds...');
   const items = await fetchLatestItems(5);
 
@@ -207,58 +376,44 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   if (ranked.length === 0) throw new Error('No eligible articles after filtering pending/approved sources.');
 
   const balanceMultipliers = getTypeBalanceMultipliers();
+  const tagScores = getTagEngagementScores();
 
-  // Score each article+type combo: article score × balance multiplier × recency multiplier
-  // Exclude the last post type to enforce rotation
   const now = Date.now();
-  const candidates = ranked
+  const scored: ScoredCandidate[] = ranked
     .filter(r => r.score > 0)
     .map(r => {
       const suggested = r.suggestedPostType as PostType;
       const postType = (suggested && suggested !== lastPostType)
         ? suggested
         : pickPostType(lastPostType);
-      const multiplier = balanceMultipliers[postType] ?? 1.0;
+      const balanceMultiplier = balanceMultipliers[postType] ?? 1.0;
+      const postContentFeedback = computePostContentFeedback(r.suggestedTags, tagScores);
 
-      const ageDays = r.item.pubDate
-        ? Math.floor((now - new Date(r.item.pubDate).getTime()) / (1000 * 60 * 60 * 24))
-        : null;
+      const parsedMs = r.item.pubDate ? new Date(r.item.pubDate).getTime() : NaN;
+      const ageDays = isNaN(parsedMs) ? null : Math.floor((now - parsedMs) / (1000 * 60 * 60 * 24));
       const recencyMultiplier =
         ageDays === null ? 1.0
-        : ageDays <= 1   ? 1.5
+        : ageDays <= 1   ? 1.3
         : ageDays <= 3   ? 1.0
         : ageDays <= 7   ? 0.8
         : ageDays <= 14  ? 0.6
         :                  0.4;
 
-      const combinedScore = r.score * multiplier * recencyMultiplier;
-      return { item: r.item, postType, articleScore: r.score, combinedScore, recencyMultiplier, reasoning: r.reasoning };
+      const combinedScore = r.score * balanceMultiplier * recencyMultiplier * postContentFeedback;
+      return { item: r.item, postType, articleScore: r.score, scoreBreakdown: r.breakdown, combinedScore, balanceMultiplier, recencyMultiplier, postContentFeedback, reasoning: r.reasoning };
     });
 
-  candidates.sort((a, b) => b.combinedScore - a.combinedScore);
+  scored.sort((a, b) => b.combinedScore - a.combinedScore);
 
-  if (candidates.length === 0) throw new Error('No candidates after scoring. All articles may have scored 0.');
+  if (scored.length === 0) throw new Error('No candidates after scoring. All articles may have scored 0.');
 
-  const top = candidates[0];
+  // Save full ranked list — next call will start at index 1
+  writeFileSync(CANDIDATES_FILE, JSON.stringify({
+    generatedAt: new Date().toISOString(),
+    nextIndex: 1,
+    candidates: scored,
+  } satisfies CandidateStore, null, 2));
 
-  console.log(`Selected: "${top.item.title}" (${top.item.source})`);
-  console.log(`Score: ${top.articleScore}/10 — ${top.reasoning}`);
-  console.log(`Balance multiplier: ${balanceMultipliers[top.postType].toFixed(2)}x | Recency multiplier: ${top.recencyMultiplier.toFixed(2)}x | Combined score: ${top.combinedScore.toFixed(2)}`);
-
-  // Fetch full article body and og:image in one request
-  if (top.item.link && (!top.item.fullText || !top.item.imageUrl)) {
-    try {
-      console.log('Fetching full article text...');
-      const fetched = await fetchArticle(top.item.link);
-      if (fetched.fullText) top.item.fullText = fetched.fullText;
-      if (fetched.imageUrl) {
-        top.item.imageUrl = fetched.imageUrl;
-        console.log(`Image found: ${fetched.imageUrl}`);
-      }
-    } catch {
-      console.warn('Could not fetch full article text — will use RSS summary only.');
-    }
-  }
-
-  return finalize(top.item, top.postType, top.combinedScore);
+  return fetchAndFinalize(scored[0]);
 }
+

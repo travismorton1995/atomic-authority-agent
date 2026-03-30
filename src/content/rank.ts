@@ -1,59 +1,79 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { FeedItem } from './rss.js';
+import { CONTENT_TAGS, ContentTag } from './synthesize.js';
 
 const client = new Anthropic();
 
-export interface RankedItem {
-  item: FeedItem;
-  score: number;
-  reasoning: string;
-  suggestedPostType: string;
+export interface ScoreBreakdown {
+  intersection: number; // 0–4
+  novelty: number;      // 0–3
+  geography: number;    // 0–2
+  npx: number;          // 0–1
 }
 
-const RANKER_SYSTEM = `You are an editorial strategist for a LinkedIn content account at the intersection of AI and nuclear energy.
+export interface RankedItem {
+  item: FeedItem;
+  score: number;        // computed: intersection + novelty + geography + npx
+  breakdown: ScoreBreakdown;
+  reasoning: string;
+  suggestedPostType: string;
+  suggestedTags: ContentTag[];
+}
+
+const RANKER_SYSTEM = `You are an editorial ranker for a LinkedIn content account at the intersection of AI and nuclear energy.
 
 The account persona is Travis Morton — a professional AI developer working in the nuclear sector. His audiences rotate between:
 - Nuclear professionals (regulatory, operations, engineering)
 - AI developers curious about regulated industries
 - Executives and decision-makers in energy
 
-His post types: bridge, contrarian, change-management, explainer, myth-busting, prediction, hot-take.
+Score each article using this EXACT rubric. Sub-scores must be integers within the stated range.
 
-Your job is to rank candidate news articles by their potential to generate a strong, authentic LinkedIn post for this persona, and suggest the best post type for each article based on its characteristics.
+NUCLEAR/AI INTERSECTION (0–4):
+4 = Both nuclear AND AI explicitly and specifically intersected (e.g. AI tool deployed for nuclear licensing, ML applied to reactor inspection data, LLM-based document automation for safety cases)
+3 = One domain primary, the other clearly implied but not the article's focus (e.g. NRC approves digital I&C framework — AI implication is obvious; AI safety framework for critical infrastructure — nuclear is the clearest application)
+2 = One domain primary, weak or tangential connection to the other (e.g. nuclear construction milestone — AI angle requires a stretch; general AI product news — nuclear application requires a significant leap)
+1 = Single domain only, no meaningful cross-domain angle (pure nuclear operations news, pure AI product release)
+0 = Neither domain meaningfully present (geopolitical, administrative, off-topic)
 
-SCORE HIGH (7–10) if the article:
-- Directly touches the nuclear/AI intersection
-- Has a Canadian or North American angle (CNSC, NRC, Ontario, Bruce Power, CNL, SMRs in Canada)
-- Involves regulation, safety culture, or major industry decisions with AI implications
-- Has a clear contrarian or surprising angle
-- Is 0–3 days old (breaking or very fresh news)
-- Mentions NPX or Nuclear Promise X — treat these as automatic high-priority candidates
+NOVELTY / SURPRISE (0–3):
+3 = First-of-kind event, regulatory milestone, surprising statistic, counterintuitive finding
+2 = Notable development or meaningful industry progress
+1 = Incremental update or routine news
+0 = Press release fluff, generic op-ed, conference announcement
 
-SCORE LOW (1–4) if the article:
-- Is purely operational with no AI angle and no broader insight potential
-- Is too generic or international with no relevance to the persona's niche
-- Covers a topic already recently posted about (check the recent history provided)
-- Is 14+ days old unless the topic is evergreen or uniquely relevant
+GEOGRAPHIC RELEVANCE (0–2):
+2 = Canadian angle: CNSC, Bruce Power, CNL, OPG, NB Power, Ontario, or Canadian companies/policy
+1 = US or North American angle: NRC, US utilities, US nuclear policy, or American companies
+0 = International or no geographic specificity (IAEA, UK, France, Ukraine, etc.)
 
-FRESHNESS GUIDANCE: Each article includes its age in days. Prefer articles under 7 days old. An article 0–1 days old that is moderately relevant should outscore a 10-day-old article that is highly relevant. Timeliness matters for LinkedIn engagement.
+NPX MENTION (0–1):
+1 = "NPX" or "Nuclear Promise X" appears anywhere in the article title or summary
+0 = Not mentioned
 
 POST TYPE MATCHING — assign the best type based on these signals:
 - bridge: regulatory approval, partnership announcement, new build milestone, technology deployment — something happened that connects nuclear and AI concretely
 - contrarian: article reflects mainstream AI culture (speed, iteration, disruption) that conflicts with nuclear's engineering discipline
 - change-management: workforce adoption friction, trust gaps, org culture, training, or human factors in AI deployment
 - explainer: complex nuclear or AI concept that the other audience wouldn't know — licensing, reactor physics, model validation, safety cases
-- myth-busting: article touches a widespread misconception about nuclear or AI — public fear, overhype, or a common misunderstanding the article either reinforces or corrects
+- myth-busting: article touches a widespread misconception about nuclear or AI — public fear, overhype, or a common misunderstanding
 - prediction: major industry shift, policy direction, or technology trajectory with clear 12-24 month implications
-- hot-take: surprising statistic, frustrating decision, or a strong opinion the article clearly warrants — something that would make a practitioner say "finally" or "seriously?"
+- hot-take: surprising statistic, frustrating decision, or a strong opinion the article clearly warrants
 
-Respond ONLY with a valid JSON array — no markdown, no summary, no extra text before or after. One entry per article, in the same order as input:
+Respond ONLY with a valid JSON array — no markdown, no extra text before or after. One entry per article, in the same order as input:
 [
   {
-    "score": <number 1-10>,
-    "reasoning": "<one sentence>",
-    "suggestedPostType": "<bridge|contrarian|change-management|explainer|myth-busting|prediction|hot-take>"
+    "intersection": <0-4>,
+    "novelty": <0-3>,
+    "geography": <0-2>,
+    "npx": <0-1>,
+    "reasoning": "<one sentence explaining the intersection score>",
+    "suggestedPostType": "<bridge|contrarian|change-management|explainer|myth-busting|prediction|hot-take>",
+    "suggestedTags": ["<tag1>", "<tag2>"]
   }
-]`;
+]
+
+For suggestedTags, pick 3–5 from this exact list only: regulatory, safety-case, licensing, cnsc, nrc, iaea, smr, candu, reactor-design, decommissioning, new-build, fusion, llm, machine-learning, digital-twin, anomaly-detection, document-automation, explainability, change-management, workforce, trust, adoption, canada, usa, uk, cybersecurity, public-opinion`;
 
 export interface RankContext {
   recentTitles: string[];
@@ -77,9 +97,8 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
 
   const now = Date.now();
   const articleList = eligible.map((item, i) => {
-    const ageDays = item.pubDate
-      ? Math.floor((now - new Date(item.pubDate).getTime()) / (1000 * 60 * 60 * 24))
-      : null;
+    const parsedMs = item.pubDate ? new Date(item.pubDate).getTime() : NaN;
+    const ageDays = isNaN(parsedMs) ? null : Math.floor((now - parsedMs) / (1000 * 60 * 60 * 24));
     const ageLabel = ageDays === null ? 'age unknown' : ageDays === 0 ? 'today' : `${ageDays}d old`;
     return `${i + 1}. [${item.source}] [${ageLabel}] ${item.title}\n   ${item.summary?.slice(0, 200) ?? ''}`.trim();
   }).join('\n\n');
@@ -89,7 +108,7 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
     : '';
 
   const rejectedNote = context.rejectedSources.length > 0
-    ? `\nPREVIOUSLY REJECTED (source was used but post was rejected — if this article appears, suggest a DIFFERENT post type than the one listed):\n${context.rejectedSources.map(s => `- "${s.title}" (was tried as: ${s.usedPostType})`).join('\n')}`
+    ? `\nPREVIOUSLY REJECTED (source was used but post was rejected — suggest a DIFFERENT post type):\n${context.rejectedSources.map(s => `- "${s.title}" (was tried as: ${s.usedPostType})`).join('\n')}`
     : '';
 
   const message = await client.messages.create({
@@ -98,12 +117,11 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
     system: RANKER_SYSTEM,
     messages: [{
       role: 'user',
-      content: `Rank these ${eligible.length} articles:${historyNote}${rejectedNote}\n\nARTICLES:\n${articleList}`,
+      content: `Score these ${eligible.length} articles:${historyNote}${rejectedNote}\n\nARTICLES:\n${articleList}`,
     }],
   });
 
   const rawText = message.content[0].type === 'text' ? message.content[0].text.trim() : '[]';
-  // Extract just the JSON array — ignore any markdown, summaries, or extra text the model appends
   const arrayMatch = rawText.match(/\[[\s\S]*\]/);
   if (!arrayMatch) {
     console.warn('Ranker response contained no JSON array. Raw response:', rawText.slice(0, 500));
@@ -111,21 +129,47 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
   const raw = arrayMatch ? arrayMatch[0].trim() : '[]';
 
   try {
-    const scores = JSON.parse(raw) as Array<{ score: number; reasoning: string; suggestedPostType: string }>;
+    const scores = JSON.parse(raw) as Array<{
+      intersection: number;
+      novelty: number;
+      geography: number;
+      npx: number;
+      reasoning: string;
+      suggestedPostType: string;
+      suggestedTags?: string[];
+    }>;
 
     if (scores.length < eligible.length) {
       console.warn(`Ranker returned ${scores.length} scores for ${eligible.length} articles — missing entries will default to score 1.`);
     }
 
-    return eligible.map((item, i) => ({
-      item,
-      score: scores[i]?.score ?? 1,
-      reasoning: scores[i]?.reasoning ?? 'No reasoning provided',
-      suggestedPostType: scores[i]?.suggestedPostType ?? 'bridge',
-    }));
+    return eligible.map((item, i) => {
+      const s = scores[i];
+      const breakdown: ScoreBreakdown = {
+        intersection: s?.intersection ?? 0,
+        novelty:      s?.novelty      ?? 0,
+        geography:    s?.geography    ?? 0,
+        npx:          s?.npx          ?? 0,
+      };
+      const score = breakdown.intersection + breakdown.novelty + breakdown.geography + breakdown.npx;
+      return {
+        item,
+        score: s ? score : 1,
+        breakdown,
+        reasoning: s?.reasoning ?? 'No reasoning provided',
+        suggestedPostType: s?.suggestedPostType ?? 'bridge',
+        suggestedTags: (s?.suggestedTags ?? []).filter((t): t is ContentTag => (CONTENT_TAGS as readonly string[]).includes(t)),
+      };
+    });
   } catch {
     console.error('Ranker returned non-JSON response:', raw);
-    // Fall back to score 1 so the pipeline can still pick an article
-    return eligible.map(item => ({ item, score: 1, reasoning: 'Ranker error — fallback score', suggestedPostType: 'bridge' }));
+    return eligible.map(item => ({
+      item,
+      score: 1,
+      breakdown: { intersection: 0, novelty: 0, geography: 0, npx: 0 },
+      reasoning: 'Ranker error — fallback score',
+      suggestedPostType: 'bridge',
+      suggestedTags: [],
+    }));
   }
 }

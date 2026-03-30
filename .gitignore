@@ -5,3 +5,4 @@ user_data/
 *.js.map
 scheduler.log
 post-failure-debug.png
+candidates.json

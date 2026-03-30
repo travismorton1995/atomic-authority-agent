@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { DraftPost } from '../content/synthesize.js';
 import { ScreeningResult } from '../content/screen.js';
+import { clearCandidateStore } from '../content/pipeline.js';
 
 const PENDING_FILE = 'pending_posts.json';
 const HISTORY_FILE = 'posted_history.json';
@@ -16,6 +17,7 @@ export interface PendingPost {
   actedAt?: string;
   scheduledFor?: string;  // ISO timestamp — when the scheduler will post this
   publishedAt?: string;   // ISO timestamp — set after successful LinkedIn post
+  linkedInPostUrl?: string; // permalink to the live LinkedIn post (for metrics)
   publishFailures?: number; // consecutive publish attempt failures
 }
 
@@ -95,8 +97,8 @@ export function getSourceHistory(): SourceHistory {
 
   const rejected = readFile<PendingPost[]>(REJECTED_FILE, []);
 
-  // Temporarily hard-exclude articles rejected in the last 24 hours
-  const cooldownCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  // Temporarily hard-exclude articles rejected in the last 3 hours
+  const cooldownCutoff = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
   for (const p of rejected) {
     if (p.actedAt && p.actedAt < cooldownCutoff) continue;
     if (p.draft.sourceUrl && !excludedUrls.includes(p.draft.sourceUrl)) excludedUrls.push(p.draft.sourceUrl);
@@ -121,6 +123,9 @@ export function approvePost(id: string, scheduledFor: string): PendingPost | nul
   post.scheduledFor = scheduledFor;
   writeFile(PENDING_FILE, posts);
 
+  // Candidate batch is committed — clear so next generate starts fresh
+  clearCandidateStore();
+
   return post;
 }
 
@@ -131,7 +136,7 @@ export function getPostsDueForPublishing(): PendingPost[] {
   );
 }
 
-export function markPublished(id: string): PendingPost | null {
+export function markPublished(id: string, linkedInPostUrl?: string | null): PendingPost | null {
   const publishedAt = new Date().toISOString();
 
   const posts = readFile<PendingPost[]>(PENDING_FILE, []);
@@ -140,6 +145,7 @@ export function markPublished(id: string): PendingPost | null {
 
   post.status = 'published';
   post.publishedAt = publishedAt;
+  if (linkedInPostUrl) post.linkedInPostUrl = linkedInPostUrl;
 
   // Remove from pending and archive to history
   writeFile(PENDING_FILE, posts.filter(p => p.id !== id));

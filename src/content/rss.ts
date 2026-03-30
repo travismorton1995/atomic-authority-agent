@@ -25,6 +25,30 @@ const FEEDS = [
 
 const parser = new Parser();
 
+// Normalizes pubDate strings to ISO format.
+// Handles standard RFC 2822/ISO dates as well as non-standard formats
+// like the IAEA feed's "YY-MM-DD  HH:MM" (with leading/trailing whitespace).
+function normalizeDate(raw: string | undefined): string {
+  if (!raw) return '';
+  const trimmed = raw.trim();
+  if (!trimmed) return '';
+
+  // Try standard parse first
+  const standard = new Date(trimmed);
+  if (!isNaN(standard.getTime())) return standard.toISOString();
+
+  // Fallback: YY-MM-DD HH:MM (IAEA feed format)
+  const yymmdd = trimmed.match(/^(\d{2})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})$/);
+  if (yymmdd) {
+    const [, yy, mm, dd, hh, min] = yymmdd;
+    const fullYear = 2000 + parseInt(yy, 10);
+    const d = new Date(Date.UTC(fullYear, parseInt(mm, 10) - 1, parseInt(dd, 10), parseInt(hh, 10), parseInt(min, 10)));
+    if (!isNaN(d.getTime())) return d.toISOString();
+  }
+
+  return '';
+}
+
 export async function fetchLatestItems(maxPerFeed = 5): Promise<FeedItem[]> {
   const items: FeedItem[] = [];
 
@@ -38,7 +62,7 @@ export async function fetchLatestItems(maxPerFeed = 5): Promise<FeedItem[]> {
           link: (item.link ?? '').replace(/([^:])\/\/+/g, '$1/'),
           summary: item.contentSnippet ?? item.content ?? '',
           source: feed.source,
-          pubDate: item.pubDate ?? '',
+          pubDate: normalizeDate(item.pubDate),
         });
       }
     } catch (err) {

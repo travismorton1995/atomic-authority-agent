@@ -5,6 +5,21 @@ import { verifiedMentions } from '../poster/mentions.js';
 
 const client = new Anthropic();
 
+export const CONTENT_TAGS = [
+  // Regulatory / safety
+  'regulatory', 'safety-case', 'licensing', 'cnsc', 'nrc', 'iaea',
+  // Reactor / technology
+  'smr', 'candu', 'reactor-design', 'decommissioning', 'new-build', 'fusion',
+  // AI angle
+  'llm', 'machine-learning', 'digital-twin', 'anomaly-detection', 'document-automation', 'explainability',
+  // Organizational
+  'change-management', 'workforce', 'trust', 'adoption',
+  // Geography / other
+  'canada', 'usa', 'uk', 'cybersecurity', 'public-opinion',
+] as const;
+
+export type ContentTag = typeof CONTENT_TAGS[number];
+
 export interface DraftPost {
   content: string;
   firstComment: string;
@@ -14,6 +29,8 @@ export interface DraftPost {
   sourceDate: string;
   sourceFeed: string;       // RSS feed name (e.g. "ANS Newswire", "Bruce Power")
   combinedScore?: number;   // article score after all multipliers
+  scoreBreakdown?: { intersection: number; novelty: number; geography: number; npx: number };
+  contentTags?: ContentTag[]; // topic tags for engagement learning
   generatedAt: string;
   imageUrl?: string;
 }
@@ -25,7 +42,8 @@ const MAX_HOOK_ROUNDS = 2;
 function articleAgeDays(pubDate: string): number | null {
   if (!pubDate) return null;
   const ms = Date.now() - new Date(pubDate).getTime();
-  return Math.floor(ms / (1000 * 60 * 60 * 24));
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  return isNaN(days) ? null : days;
 }
 
 function ageLanguageRule(ageDays: number | null): string {
@@ -160,6 +178,11 @@ Write the LinkedIn post now. You have the full article text above — use specif
 
   let rawContent = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
 
+  // Fix a/an agreement (e.g. "A April" → "An April", "an project" → "a project")
+  rawContent = rawContent
+    .replace(/\bA ([AEIOUaeiou])/g, 'An $1')
+    .replace(/\ban ([^AEIOUaeiouAEIOUaeiou\s])/g, 'a $1');
+
   // Word count enforcement: revise if < 80 or > 250 words
   const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
   if (wordCount < 80 || wordCount > 250) {
@@ -177,19 +200,31 @@ Write the LinkedIn post now. You have the full article text above — use specif
 
   const content = injectMentionMarkers(rawContent);
 
-  // Generate first comment: follow-up thought + engagement question + source URL
+  // Generate first comment text only — URL is appended in code to avoid truncation
   const commentMessage = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 200,
+    max_tokens: 80,
     messages: [{
       role: 'user',
-      content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Maximum 2 short sentences total — no preamble, no sign-off. Either one sentence that adds a specific angle AND invites a reply, or two very short sentences where the second is a direct question to practitioners (not "What do you think?" — make it specific). Then the source URL on its own line.
+      content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Output the comment text only — do not include the URL.
 
-${item.link}`,
+Format: Via [Source Name]. [One direct question.]
+
+Rules:
+- "Via [Source Name]" uses the publication name (e.g. "Via World Nuclear News", "Via Bruce Power", "Via IAEA")
+- Use a period after the source name, not a dash
+- The question must be directly tied to the specific argument or claim made in the post above — not a general question about the topic
+- The question must be specific enough that a nuclear engineer or AI developer would have a concrete, opinionated answer
+- One sentence only
+- No em dashes
+- No preamble, no sign-off, no URL
+
+Source name: ${item.source}`,
     }],
   });
 
-  const firstComment = commentMessage.content[0].type === 'text' ? commentMessage.content[0].text.trim() : item.link;
+  const commentText = commentMessage.content[0].type === 'text' ? commentMessage.content[0].text.trim() : '';
+  const firstComment = item.link ? `${commentText}\n\n${item.link}` : commentText;
 
   return {
     content,

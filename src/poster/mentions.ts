@@ -77,31 +77,16 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'IAEA':                                  { searchTerm: 'International Atomic Energy',     verified: true },
   'ANS':                                   { searchTerm: 'American Nuclear Society',        verified: true },
   // Auto-detected — run npm run test-mentions to verify
-
-  // Auto-detected — run npm run test-mentions to verify
   'Framatome':                                 { searchTerm: 'Framatome',                  verified: true },
   'SCK CEN':                                   { searchTerm: 'SCK CEN',                    verified: true },
-
-  // Auto-detected — run npm run test-mentions to verify
-  'National Innovation Centre for Cyber Security': { searchTerm: 'National Innovation Centre for Cyber Security', verified: false },
-  'Nuclearelectrica':                          { searchTerm: 'Nuclearelectrica',           verified: false },
+  'Nuclearelectrica':                          { searchTerm: 'Nuclearelectrica',           verified: true },
   'Cernavodă Nuclear Power Plant':             { searchTerm: 'Cernavodă Nuclear Power Plant', verified: true },
-
-  // Auto-detected — run npm run test-mentions to verify
-  'Hunterston B':                              { searchTerm: 'Hunterston B',               verified: false },
-  'NRS':                                       { searchTerm: 'NRS',                        verified: false },
-
-  // Auto-detected — run npm run test-mentions to verify
-  'BR2':                                       { searchTerm: 'BR2',                        verified: false },
-
-  // Auto-detected — run npm run test-mentions to verify
   'S&P Global':                                { searchTerm: 'S&P Global',                 verified: true },
-  'Crane Energy Center':                       { searchTerm: 'Crane Energy Center',        verified: false },
-
-  // Auto-detected — run npm run test-mentions to verify
-  'U.S.':                                      { searchTerm: 'U.S.',                       verified: false },
-  'PROMETHEUS':                                { searchTerm: 'PROMETHEUS',                 verified: false },
-  'Senate':                                    { searchTerm: 'Senate',                     verified: false },
+  'Fermi America':                             { searchTerm: 'Fermi America',              verified: true },
+  'GE Vernova Hitachi':                        { searchTerm: 'GE Vernova Hitachi',         verified: true },
+  'Global Laser Enrichment':                   { searchTerm: 'Global Laser Enrichment',    verified: true },
+  'UNC Charlotte':                             { searchTerm: 'UNC Charlotte',              verified: true },
+  'GE Vernova':                                { searchTerm: 'GE Vernova',                 verified: true },
 
 };
 
@@ -123,6 +108,13 @@ export function addUnverifiedMentions(names: string[]): void {
   let src = readFileSync(MENTIONS_FILE, 'utf8').replace(/\r\n/g, '\n');
   const insertPoint = src.lastIndexOf('\n};\n');
   if (insertPoint === -1) { console.warn('mentions.ts: could not find insertion point'); return; }
+
+  // Ensure the last real entry before }; has a trailing comma
+  const before = src.slice(0, insertPoint);
+  const lastBrace = before.lastIndexOf('}');
+  if (lastBrace !== -1 && before.slice(lastBrace + 1).trim() === '') {
+    src = src.slice(0, lastBrace + 1) + ',' + src.slice(lastBrace + 1);
+  }
 
   let newLines = '\n  // Auto-detected — run npm run test-mentions to verify\n';
   for (const name of toAdd) {

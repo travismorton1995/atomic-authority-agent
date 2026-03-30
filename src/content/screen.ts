@@ -37,15 +37,20 @@ HOOK QUALITY (evaluate the opening line specifically):
 - If the hook is weak, the cringe score should reflect it (bump by at least 2 points) and the revised version must open with a stronger line.
 - Strong hook patterns: a counterintuitive fact, a specific number or date that signals something changed, a short declarative that creates tension, or dropping the reader directly into the implication of the news.
 
-Also review the FIRST COMMENT separately. Apply the same cringe standards — it should sound like a natural follow-up thought from a real person, not a polished add-on. Always preserve the URL at the end unchanged.
+Also review the FIRST COMMENT separately. Always preserve the URL on its own line at the end unchanged.
 
 FORMATTING RULE (applies to both post and comment): Never use em dashes (—). Replace with a comma, period, or rewrite the sentence.
 
 HASHTAG RULE: Count all hashtags in the post. If there are more than 5, the revised version must trim to the 3–5 most relevant. Fewer is better — 3–4 is ideal. A post with 6+ hashtags should have its score bumped by at least 1 point.
 
-PARAGRAPH LENGTH: LinkedIn rewards short paragraphs. Each paragraph should be 1–3 sentences maximum. If any paragraph is 4 or more sentences, treat it as a wall of text — bump the cringe score and reformat it in the revised version by splitting into shorter paragraphs. The revision must break up any such paragraphs without losing substance.
+PARAGRAPH LENGTH: Each paragraph must be 1–2 sentences maximum. If any paragraph is 3 or more sentences, treat it as a wall of text — bump the cringe score and reformat it in the revised version. Split at natural subject boundaries: if a paragraph contains more than one distinct point, each point gets its own paragraph. Do not lose any substance — every sentence must survive the split, just reorganized.
 
-FIRST COMMENT ENGAGEMENT QUALITY: The first comment must end with a question that is specific enough that a practitioner in nuclear or AI would have a clear, opinionated answer. These are generic and do NOT meet the bar: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "Have you seen this in your work?", "What's your take?". The question must name a specific tension, tradeoff, decision, or scenario that professionals would actually debate — something a senior engineer or regulator could answer with conviction. If the question is generic, revise the first comment to replace it with a specific one. Always preserve the URL on its own line at the end.
+FIRST COMMENT FORMAT AND QUALITY: The first comment must follow this exact structure: "Via [Source Name]. [One direct question.]" on a single short line, then the URL on its own line. Rules:
+- Use a period after the source name, never an em dash or any dash
+- The entire comment before the URL must be one sentence only. If it is longer, trim it.
+- The question must be directly tied to the specific argument or claim made in the post — not a general question about the broader topic
+- Generic questions do not meet the bar: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "What's your take?"
+- If the format is wrong, uses a dash, is longer than one sentence, or the question isn't grounded in the post's specific argument, provide a revised version in revisedFirstComment.
 
 Respond ONLY in this exact JSON format:
 {
