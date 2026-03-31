@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { screenReply } from '../content/reply.js';
 
 const client = new Anthropic();
 
@@ -104,12 +105,21 @@ Return ONLY valid JSON:
     ? [parsed.options[0], parsed.options[1]]
     : [parsed.options[1], parsed.options[0]];
 
+  // Screen each option for AIisms
+  const screened = await Promise.all(
+    ordered.map(async (opt) => {
+      const text = await screenReply(opt.text);
+      if (text !== opt.text) console.log(`    [screen] revised AIisms in "${opt.label}" option`);
+      return { label: opt.label, text };
+    }),
+  );
+
   return {
     reasoning: parsed.reasoning ?? '',
     recommendationReason: parsed.recommendationReason ?? '',
     options: [
-      { label: ordered[0].label, text: ordered[0].text },
-      { label: ordered[1].label, text: ordered[1].text },
+      { label: screened[0].label, text: screened[0].text },
+      { label: screened[1].label, text: screened[1].text },
     ],
   };
 }

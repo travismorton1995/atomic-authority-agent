@@ -105,7 +105,7 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
           ageHours: parseAgeHours(p.timeText),
         };
       })
-      .filter(p => p.url && (p.ageHours === null || p.ageHours <= 48));
+      .filter(p => p.url && (p.ageHours === null || p.ageHours <= 12));
   } finally {
     await context.close();
   }

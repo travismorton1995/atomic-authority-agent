@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { scrapeProfilePosts } from '../outbound/scrape-feed.js';
+import { scrapeProfilePosts, type ScrapedPost } from '../outbound/scrape-feed.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
 import {
   getActiveProfiles,
@@ -10,11 +10,12 @@ import {
   incrementDailyCount,
   recordOutboundPoll,
   updateProfileName,
+  type OutboundProfile,
   type PendingComment,
 } from '../outbound/outbound-queue.js';
 import { notifyOutboundComment } from './telegram.js';
 
-const DAILY_MAX = 3;
+const DAILY_MAX = 2;
 
 export async function runOutboundPoll(): Promise<void> {
   const profiles = getActiveProfiles();
@@ -23,75 +24,89 @@ export async function runOutboundPoll(): Promise<void> {
     return;
   }
 
-  const remaining = DAILY_MAX - getDailyCount();
-  if (remaining <= 0) {
+  if (getDailyCount() >= DAILY_MAX) {
     console.log(`Outbound poll: daily limit reached (${DAILY_MAX}/day).`);
     return;
   }
 
-  console.log(`Outbound poll: ${profiles.length} profile(s), ${remaining} slot(s) remaining today...`);
+  console.log(`Outbound poll: checking ${profiles.length} profile(s) for posts < 12h old...`);
 
-  let queued = 0;
+  // Collect all fresh unseen posts across every profile
+  const candidates: Array<ScrapedPost & { profile: OutboundProfile }> = [];
 
   for (const profile of profiles) {
-    if (queued >= remaining) break;
-
     let posts;
     try {
       posts = await scrapeProfilePosts(profile.url);
     } catch (err) {
-      console.warn(`  Failed to scrape ${profile.name || profile.url}: ${(err as Error).message}`);
+      console.warn(`  Failed to scrape ${profile.name}: ${(err as Error).message}`);
       continue;
     }
 
-    // Update stored name if we got a real one from the scrape
     if (posts.length > 0 && posts[0].authorName && posts[0].authorName !== profile.name) {
       updateProfileName(profile.url, posts[0].authorName);
     }
 
     const newPosts = posts.filter(p => !isPostSeen(p.id));
-    console.log(`  ${profile.name} — ${posts.length} post(s) in last 48h, ${newPosts.length} new`);
+    const ageNote = newPosts.map(p => p.ageHours !== null ? `${p.ageHours.toFixed(1)}h` : '?h').join(', ');
+    console.log(`  ${profile.name} — ${posts.length} post(s) < 12h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
 
-    for (const post of newPosts) {
-      if (queued >= remaining) break;
+    candidates.push(...newPosts.map(p => ({ ...p, profile })));
+  }
 
-      markPostSeen(post.id);
+  if (candidates.length === 0) {
+    console.log('No new posts found. Nothing queued.');
+    recordOutboundPoll();
+    return;
+  }
 
-      let generated;
-      try {
-        generated = await generateOutboundComment(post, { insider: profile.insider ?? false });
-        console.log(`  [${post.authorName}] ${generated.options.map(o => o.label).join(', ')}`);
-      } catch (err) {
-        console.warn(`  Failed to generate comment for ${post.url}: ${(err as Error).message}`);
-        continue;
-      }
+  // Sort by recency: posts < 2h (golden window) first, then older posts, unknown age last
+  candidates.sort((a, b) => {
+    const ah = a.ageHours ?? Infinity;
+    const bh = b.ageHours ?? Infinity;
+    return ah - bh;
+  });
 
-      const comment: PendingComment = {
-        id: `oc_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
-        profileUrl: profile.url,
-        profileName: profile.name,
-        postUrl: post.url,
-        postSnippet: post.text.split('\n')[0].slice(0, 100),
-        commentOptions: [generated.options[0].text, generated.options[1].text],
-        commentLabels: [generated.options[0].label, generated.options[1].label],
-        recommendationReason: generated.recommendationReason,
-        reasoning: generated.reasoning,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-      };
+  const best = candidates[0];
+  const ageLabel = best.ageHours !== null ? `${best.ageHours.toFixed(1)}h old` : 'unknown age';
+  const inGoldenWindow = best.ageHours !== null && best.ageHours < 2;
+  console.log(`  Picked: [${best.profile.name}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''}`);
 
-      addPendingComment(comment);
-      incrementDailyCount();
-      queued++;
+  markPostSeen(best.id);
 
-      try {
-        await notifyOutboundComment(comment);
-      } catch (err) {
-        console.warn(`  Failed to send Telegram notification: ${(err as Error).message}`);
-      }
-    }
+  let generated;
+  try {
+    generated = await generateOutboundComment(best, { insider: best.profile.insider ?? false });
+    console.log(`  Options: ${generated.options.map(o => o.label).join(', ')}`);
+  } catch (err) {
+    console.warn(`  Failed to generate comment: ${(err as Error).message}`);
+    recordOutboundPoll();
+    return;
+  }
+
+  const comment: PendingComment = {
+    id: `oc_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
+    profileUrl: best.profile.url,
+    profileName: best.profile.name,
+    postUrl: best.url,
+    postSnippet: best.text.split('\n')[0].slice(0, 100),
+    commentOptions: [generated.options[0].text, generated.options[1].text],
+    commentLabels: [generated.options[0].label, generated.options[1].label],
+    recommendationReason: generated.recommendationReason,
+    reasoning: generated.reasoning,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  };
+
+  addPendingComment(comment);
+  incrementDailyCount();
+
+  try {
+    await notifyOutboundComment(comment);
+  } catch (err) {
+    console.warn(`  Failed to send Telegram notification: ${(err as Error).message}`);
   }
 
   recordOutboundPoll();
-  console.log(`Outbound poll complete. ${queued} comment(s) queued.`);
+  console.log('Outbound poll complete. 1 comment queued.');
 }

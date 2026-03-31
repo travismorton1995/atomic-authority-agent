@@ -47,7 +47,7 @@ For "recommended" — pick the index (0, 1, or 2) of the best option using these
 5. Stay professional — never sharp or dismissive unless the comment is obtuse or bad-faith
 `.trim();
 
-async function screenReply(text: string): Promise<string> {
+export async function screenReply(text: string): Promise<string> {
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 200,
