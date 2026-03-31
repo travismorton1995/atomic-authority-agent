@@ -59,7 +59,7 @@ export async function runOutboundPoll(): Promise<void> {
 
       let generated;
       try {
-        generated = await generateOutboundComment(post);
+        generated = await generateOutboundComment(post, { insider: profile.insider ?? false });
         console.log(`  [${post.authorName}] ${generated.options.map(o => o.label).join(', ')}`);
       } catch (err) {
         console.warn(`  Failed to generate comment for ${post.url}: ${(err as Error).message}`);

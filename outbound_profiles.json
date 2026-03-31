@@ -1,1 +1,26 @@
-{ "profiles": [] }
+{
+  "profiles": [
+    {
+      "id": "591fe94c-551b-4356-b758-d037a35461d0",
+      "url": "https://www.linkedin.com/company/npxinnovation/",
+      "name": "Nuclear Promise X",
+      "addedAt": "2026-03-31T02:27:03.463Z",
+      "active": true,
+      "insider": true
+    },
+    {
+      "id": "0f9753d6-9935-4847-9523-9f2f58f57827",
+      "url": "https://www.linkedin.com/in/josh-bell/",
+      "name": "josh-bell",
+      "addedAt": "2026-03-31T02:28:39.888Z",
+      "active": true
+    },
+    {
+      "id": "20740197-b914-40fb-991c-a7d2c13d66e4",
+      "url": "https://www.linkedin.com/company/vector-institute/",
+      "name": "Vector Institute",
+      "addedAt": "2026-03-31T02:32:56.450Z",
+      "active": true
+    }
+  ]
+}

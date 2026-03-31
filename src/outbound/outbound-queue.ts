@@ -10,6 +10,7 @@ export interface OutboundProfile {
   name: string;       // display name — populated on first scrape if not provided
   addedAt: string;
   active: boolean;
+  insider?: boolean;  // true if you work/are affiliated with this org
 }
 
 export interface PendingComment {

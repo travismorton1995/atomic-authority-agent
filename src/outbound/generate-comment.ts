@@ -35,20 +35,27 @@ Hard constraints — any violation is a rewrite trigger:
 
 export async function generateOutboundComment(
   post: { text: string; authorName: string; url: string },
+  options: { insider?: boolean } = {},
 ): Promise<GeneratedComment> {
+  const insiderContext = options.insider
+    ? `You work at ${post.authorName}. Comment as an insider — you can speak with direct knowledge of the work, acknowledge being part of the team, and add context that only someone internal would know. Still add genuine value; don't just cheer.`
+    : `You are commenting as an external peer — a knowledgeable outsider adding perspective, not an employee.`;
+
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 400,
     messages: [{
       role: 'user',
-      content: `You are Travis Morton, MEng — an AI developer working at the intersection of AI and the nuclear industry. You are adding a comment to someone else's LinkedIn post as a knowledgeable peer.
+      content: `You are Travis Morton, MEng — an AI developer working at the intersection of AI and the nuclear industry. You are adding a comment to a LinkedIn post.
+
+${insiderContext}
 
 ${post.authorName} posted:
 "${post.text.slice(0, 800)}"
 
 Do three things and return a single JSON object:
 
-1. REASON in 1-2 sentences: What is the core claim or question in this post? What angle can you add as a nuclear/AI practitioner that would be genuinely useful to the author and their readers?
+1. REASON in 1-2 sentences: What is the core claim or question in this post? What angle can you add that would be genuinely useful to the author and their readers?
 
 2. GENERATE 2 comment options using different approaches from:
 ${OUTBOUND_APPROACHES}
@@ -56,7 +63,6 @@ ${OUTBOUND_APPROACHES}
 Each comment must:
 - Be exactly 1 sentence. No exceptions.
 - Add genuine value — a specific fact, a pointed question, or a concrete counter-argument
-- Sound like a thoughtful industry peer joining the conversation, not the post author
 - Write for a general professional audience — assume the reader is smart but not a specialist. Plain words over technical ones. If a concept needs jargon to express, find the plain-English version instead.
 - Competence comes through the sharpness of the insight, not the vocabulary
 
