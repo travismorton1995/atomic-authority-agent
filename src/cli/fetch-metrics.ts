@@ -190,6 +190,36 @@ export async function runWeeklyReport(): Promise<void> {
     .map(([feed, { total, count }]) => ({ feed, avg: total / count, count }))
     .sort((a, b) => b.avg - a.avg);
 
+  // Rank by day of week (ET)
+  const dayMap = new Map<string, { total: number; count: number }>();
+  for (const { p, eng } of withEng) {
+    const day = new Date(p.publishedAt).toLocaleString('en-US', { timeZone: 'America/Toronto', weekday: 'short' });
+    const prev = dayMap.get(day) ?? { total: 0, count: 0 };
+    dayMap.set(day, { total: prev.total + eng, count: prev.count + 1 });
+  }
+  const dayRanked = [...dayMap.entries()]
+    .map(([day, { total, count }]) => ({ day, avg: total / count, count }))
+    .sort((a, b) => b.avg - a.avg);
+
+  // Rank by time window (ET)
+  function getTimeWindow(iso: string): string {
+    const d = new Date(iso);
+    const hour = parseInt(d.toLocaleString('en-US', { timeZone: 'America/Toronto', hour: 'numeric', hour12: false }), 10);
+    if (hour >= 7 && hour < 9)   return 'Morning (7–9am)';
+    if (hour >= 12 && hour < 13) return 'Noon (12–1pm)';
+    if (hour >= 17 && hour < 19) return 'Evening (5–7pm)';
+    return 'Other';
+  }
+  const windowMap = new Map<string, { total: number; count: number }>();
+  for (const { p, eng } of withEng) {
+    const w = getTimeWindow(p.publishedAt);
+    const prev = windowMap.get(w) ?? { total: 0, count: 0 };
+    windowMap.set(w, { total: prev.total + eng, count: prev.count + 1 });
+  }
+  const windowRanked = [...windowMap.entries()]
+    .map(([window, { total, count }]) => ({ window, avg: total / count, count }))
+    .sort((a, b) => b.avg - a.avg);
+
   // Best individual post
   const best = [...withEng].sort((a, b) => b.eng - a.eng)[0];
   const bestSnippet = best.p.finalContent?.split('\n')[0]?.slice(0, 80) ?? '';
@@ -213,6 +243,14 @@ export async function runWeeklyReport(): Promise<void> {
     `${medals[i] ?? '  •'} ${f.feed} — avg ${fmt(f.avg)} eng`
   ).join('\n');
 
+  const dayLines = dayRanked.map((d, i) =>
+    `${medals[i] ?? '  •'} ${d.day} — avg ${fmt(d.avg)} eng (${d.count} post${d.count !== 1 ? 's' : ''})`
+  ).join('\n');
+
+  const windowLines = windowRanked.map((w, i) =>
+    `${medals[i] ?? '  •'} ${w.window} — avg ${fmt(w.avg)} eng (${w.count} post${w.count !== 1 ? 's' : ''})`
+  ).join('\n');
+
   const message =
 `📊 *Monthly Report* (${dateStart}–${dateEnd})
 
@@ -229,6 +267,12 @@ ${tagLines}
 *By source feed:*
 ${feedLines}
 
+*By day of week:*
+${dayLines}
+
+*By time window (ET):*
+${windowLines}
+
 *Best post:* [${bestType}] ${bestSnippet}…
 _${best.eng} total engagement_`;
 
@@ -237,4 +281,6 @@ _${best.eng} total engagement_`;
   console.log('Weekly report sent.');
 }
 
-runMetricsFetch().catch(console.error);
+// Only run when executed directly, not when imported by the scheduler
+const isMain = process.argv[1]?.endsWith('fetch-metrics.ts') || process.argv[1]?.endsWith('fetch-metrics.js');
+if (isMain) runMetricsFetch().catch(console.error);
