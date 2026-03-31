@@ -12,21 +12,27 @@ function rotate() {
 }
 
 function timestamp(): string {
-  return new Date().toLocaleString('en-US', {
-    timeZone: 'America/Toronto',
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false,
-  });
+  // Manual ET formatting — avoids toLocaleString quirks on Windows
+  const now = new Date();
+  const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${et.getFullYear()}-${pad(et.getMonth() + 1)}-${pad(et.getDate())} ${pad(et.getHours())}:${pad(et.getMinutes())}:${pad(et.getSeconds())}`;
+}
+
+function sanitise(args: unknown[]): string {
+  // Replace non-ASCII chars with ASCII equivalents to avoid encoding corruption
+  return args.map(a => typeof a === 'string' ? a : JSON.stringify(a))
+    .join(' ')
+    .replace(/\u2014/g, '--')   // em dash
+    .replace(/\u2013/g, '-')    // en dash
+    .replace(/[^\x00-\x7F]/g, '?');
 }
 
 function writeLine(level: string, args: unknown[]) {
-  const line = `[${timestamp()}] [${level}] ${args.map(a =>
-    typeof a === 'string' ? a : JSON.stringify(a)
-  ).join(' ')}\n`;
+  const line = `[${timestamp()}] [${level}] ${sanitise(args)}\n`;
   try {
     rotate();
-    appendFileSync(LOG_FILE, line, 'utf-8');
+    appendFileSync(LOG_FILE, line, 'ascii');
   } catch {
     // Never throw from logger
   }
