@@ -1,6 +1,6 @@
 import { readFileSync, existsSync } from 'fs';
 import { scrapeComments } from '../poster/comments.js';
-import { generateReplies, classifyComment } from '../content/reply.js';
+import { generateReplies } from '../content/reply.js';
 import {
   isCommentSeen,
   markCommentSeen,
@@ -12,21 +12,43 @@ import { notifyCommentReply } from './telegram.js';
 
 const HISTORY_FILE = 'posted_history.json';
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-const MY_NAME = (process.env.LINKEDIN_DISPLAY_NAME ?? '').toLowerCase();
 
-export async function runCommentPoll(): Promise<void> {
+export async function runCommentPoll(targetUrl?: string): Promise<void> {
   if (!existsSync(HISTORY_FILE)) return;
 
-  const history: any[] = JSON.parse(readFileSync(HISTORY_FILE, 'utf-8'));
-  const cutoff = Date.now() - WEEK_MS;
+  const myName = (process.env.LINKEDIN_DISPLAY_NAME ?? '').toLowerCase();
+  if (!myName) console.warn('LINKEDIN_DISPLAY_NAME not set — own comments will not be filtered.');
 
-  const recentPosts = history.filter(
-    p =>
-      p.status === 'published' &&
-      p.linkedInPostUrl &&
-      p.publishedAt &&
-      new Date(p.publishedAt).getTime() >= cutoff,
-  );
+  const history: any[] = JSON.parse(readFileSync(HISTORY_FILE, 'utf-8'));
+
+  let recentPosts: any[];
+
+  if (targetUrl) {
+    // Extract the 19-digit activity ID present in both URL formats:
+    //   /posts/...-activity-7440740463885746176-PKeC/
+    //   /feed/update/urn:li:activity:7440740463885746176/
+    const activityIdMatch = targetUrl.match(/(\d{15,})/);
+    const activityId = activityIdMatch?.[1];
+    const match = activityId && history.find((p: any) =>
+      p.linkedInPostUrl && p.linkedInPostUrl.includes(activityId)
+    );
+    if (!match) {
+      console.log(`No post found in history for activity ID: ${activityId ?? targetUrl}`);
+      console.log('Falling back to URL directly...');
+      recentPosts = [{ linkedInPostUrl: targetUrl.split('?')[0], finalContent: '', draft: { postType: 'unknown' } }];
+    } else {
+      recentPosts = [match];
+    }
+  } else {
+    const cutoff = Date.now() - WEEK_MS;
+    recentPosts = history.filter(
+      p =>
+        p.status === 'published' &&
+        p.linkedInPostUrl &&
+        p.publishedAt &&
+        new Date(p.publishedAt).getTime() >= cutoff,
+    );
+  }
 
   if (recentPosts.length === 0) return;
 
@@ -43,8 +65,7 @@ export async function runCommentPoll(): Promise<void> {
 
     const newComments = comments.filter(c => {
       if (isCommentSeen(c.id)) return false;
-      // Skip own comments
-      if (MY_NAME && c.author.toLowerCase().includes(MY_NAME)) return false;
+      if (myName && c.author.toLowerCase().includes(myName)) return false;
       return true;
     });
 
@@ -54,12 +75,24 @@ export async function runCommentPoll(): Promise<void> {
       // Mark seen immediately so a crash mid-loop doesn't re-notify
       markCommentSeen(comment.id);
 
-      let options: [string, string, string];
+      // Build thread context: other comments in the thread, excluding own
+      const thread = comments
+        .filter(c => c.id !== comment.id && !(myName && c.author.toLowerCase().includes(myName)))
+        .map(c => ({ author: c.author, text: c.text }));
+
+      let generated;
       try {
-        options = await generateReplies(
-          { content: post.finalContent, postType: post.draft?.postType ?? 'unknown' },
+        generated = await generateReplies(
+          {
+            content: post.finalContent,
+            postType: post.draft?.postType ?? 'unknown',
+            articleTitle: post.draft?.sourceTitle,
+          },
           { author: comment.author, text: comment.text },
+          thread,
         );
+        console.log(`  [${comment.author}] type=${generated.commentType} | ${generated.options.map(o => o.label).join(', ')}`);
+        console.log(`  reasoning: ${generated.reasoning.slice(0, 120)}...`);
       } catch (err) {
         console.warn(`  Failed to generate replies for comment by ${comment.author}: ${(err as Error).message}`);
         continue;
@@ -73,9 +106,12 @@ export async function runCommentPoll(): Promise<void> {
         commentId: comment.id,
         commentAuthor: comment.author,
         commentText: comment.text,
-        commentType: classifyComment(comment.text),
+        commentType: generated.commentType,
         isReply: comment.isReply,
-        replyOptions: options,
+        replyOptions: [generated.options[0].text, generated.options[1].text, generated.options[2].text],
+        replyLabels: [generated.options[0].label, generated.options[1].label, generated.options[2].label],
+        recommendationReason: generated.recommendationReason,
+        reasoning: generated.reasoning,
         status: 'pending',
         createdAt: new Date().toISOString(),
       };

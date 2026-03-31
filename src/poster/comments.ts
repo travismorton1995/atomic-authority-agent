@@ -14,7 +14,7 @@ export interface ScrapedComment {
 export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]> {
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
-    headless: true,
+    headless: process.env.LINKEDIN_HEADLESS === 'true',
     locale: 'en-US',
   });
 
@@ -23,9 +23,16 @@ export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]>
     await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
 
-    // Expand top-level "load more comments" buttons
+    // Expand the comments section (click the comment count button)
+    const expandBtn = page.locator('button[aria-label*="comment on"]').first();
+    if (await expandBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await expandBtn.click();
+      await page.waitForTimeout(2000);
+    }
+
+    // Load more top-level comments if paginated
     for (let i = 0; i < 10; i++) {
-      const btn = page.locator('button[aria-label*="Load more comments"], button[aria-label*="more comment"]').first();
+      const btn = page.locator('button[aria-label*="Load more comments"]').first();
       if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
         await btn.click();
         await page.waitForTimeout(1000);
@@ -34,8 +41,8 @@ export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]>
       }
     }
 
-    // Expand all reply threads
-    const replyExpandBtns = page.locator('button[aria-label*="Load previous replies"], button[aria-label*="more repl"]');
+    // Expand reply threads
+    const replyExpandBtns = page.locator('button[aria-label*="replies"]');
     const expandCount = await replyExpandBtns.count();
     for (let i = 0; i < expandCount; i++) {
       await replyExpandBtns.nth(i).click().catch(() => {});
@@ -43,18 +50,21 @@ export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]>
     }
 
     const rawComments = await page.evaluate(() => {
-      const items = document.querySelectorAll<HTMLElement>('.comments-comment-item');
+      // LinkedIn comment articles carry a data-id with the comment URN
+      const items = document.querySelectorAll<HTMLElement>('article[data-id^="urn:li:comment:"]');
       return Array.from(items).map(item => {
         const dataId = item.getAttribute('data-id') ?? '';
-        const isReply = !!item.closest('.comments-comment-item__nested-items');
+        // Top-level: urn:li:comment:(activity:xxx,yyy)
+        // Reply:     urn:li:comment:(comment:xxx,yyy)
+        const isReply = dataId.includes('urn:li:comment:(comment:');
         const author = (
-          item.querySelector('.comments-post-meta__name-text')?.textContent ??
-          item.querySelector('[data-test-app-aware-link]')?.textContent ??
+          item.querySelector('.comments-comment-meta__description-title')?.textContent ??
+          item.querySelector('.comments-comment-meta__data')?.textContent ??
           'Unknown'
         ).trim();
         const text = (
           item.querySelector('.comments-comment-item__main-content')?.textContent ??
-          item.querySelector('.update-components-text')?.textContent ??
+          item.querySelector('.comments-comment-entity__content')?.textContent ??
           ''
         ).trim();
         return { dataId, author, text, isReply };
@@ -79,7 +89,7 @@ export async function postCommentReply(
 ): Promise<void> {
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
-    headless: true,
+    headless: process.env.LINKEDIN_HEADLESS === 'true',
     locale: 'en-US',
   });
 
@@ -88,7 +98,14 @@ export async function postCommentReply(
     await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
 
-    // Expand comments so the target comment is in the DOM
+    // Expand comments section first
+    const expandBtn = page.locator('button[aria-label*="comment on"]').first();
+    if (await expandBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await expandBtn.click();
+      await page.waitForTimeout(2000);
+    }
+
+    // Load more comments if paginated
     for (let i = 0; i < 10; i++) {
       const btn = page.locator('button[aria-label*="Load more comments"]').first();
       if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
@@ -99,15 +116,16 @@ export async function postCommentReply(
       }
     }
 
-    const replyExpandBtns = page.locator('button[aria-label*="Load previous replies"]');
+    // Expand reply threads
+    const replyExpandBtns = page.locator('button[aria-label*="replies"]');
     const expandCount = await replyExpandBtns.count();
     for (let i = 0; i < expandCount; i++) {
       await replyExpandBtns.nth(i).click().catch(() => {});
       await page.waitForTimeout(500);
     }
 
-    // Locate the comment element by its data-id (LinkedIn URN)
-    const commentEl = page.locator(`[data-id="${commentId}"]`).first();
+    // Locate the comment article by its LinkedIn URN data-id
+    const commentEl = page.locator(`article[data-id="${commentId}"]`).first();
     if (!await commentEl.isVisible({ timeout: 3000 }).catch(() => false)) {
       throw new Error(`Comment not found on page (id: ${commentId})`);
     }
@@ -116,18 +134,20 @@ export async function postCommentReply(
     await page.waitForTimeout(500);
 
     // Click the Reply button inside this comment
-    const replyBtn = commentEl.locator('button[aria-label*="Reply"]').first();
+    const replyBtn = commentEl.locator('button[aria-label*="Reply to"]').first();
     await replyBtn.waitFor({ state: 'visible', timeout: 5000 });
     await replyBtn.click();
     await page.waitForTimeout(2000);
 
-    // Type into the reply composer (last active .ql-editor on page)
+    // Type into the reply composer — use keyboard.type() to preserve the @mention
+    // that LinkedIn pre-fills when the reply box opens (fill() would wipe it)
     const composer = page.locator(
       '.comments-comment-texteditor .ql-editor, .comments-comment-box__form .ql-editor'
     ).last();
     await composer.waitFor({ state: 'visible', timeout: 5000 });
     await composer.click();
-    await composer.fill(replyText);
+    await page.keyboard.press('Control+End');
+    await page.keyboard.type(replyText, { delay: 40 });
     await page.waitForTimeout(500);
 
     // Submit

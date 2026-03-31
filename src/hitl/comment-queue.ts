@@ -12,7 +12,10 @@ export interface PendingReply {
   commentText: string;
   commentType: string;
   isReply: boolean;          // true if this is a reply-to-reply
-  replyOptions: [string, string, string];
+  replyOptions: [string, string, string];   // text only — what gets posted; index 0 is recommended
+  replyLabels: [string, string, string];    // approach labels — display only
+  recommendationReason: string;             // 1-liner why option 0 is suggested
+  reasoning: string;
   status: 'pending' | 'replied' | 'skipped';
   selectedOption?: 1 | 2 | 3;
   createdAt: string;

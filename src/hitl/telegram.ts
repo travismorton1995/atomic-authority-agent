@@ -122,9 +122,10 @@ export function startBot(): void {
         const reply = getPendingReply(replyId);
         if (!reply) { await ctx.answerCbQuery('Reply not found.'); return; }
         const selectedText = reply.replyOptions[optionIdx - 1];
+        const selectedLabel = reply.replyLabels?.[optionIdx - 1] ?? `option ${optionIdx}`;
         await ctx.answerCbQuery();
         await ctx.editMessageText(
-          `💬 *Reply preview* | ${reply.postType}\n\n"${selectedText}"`,
+          `💬 *Reply preview* | ${reply.postType} | _${selectedLabel}_\n\n"${selectedText}"`,
           {
             parse_mode: 'Markdown',
             reply_markup: {
@@ -144,16 +145,17 @@ export function startBot(): void {
         const reply = getPendingReply(replyId);
         if (!reply) { await ctx.answerCbQuery('Reply not found.'); return; }
         await ctx.answerCbQuery('Posting reply…');
+        let postErr: Error | null = null;
         try {
           await postCommentReply(reply.postUrl, reply.commentId, reply.replyOptions[optionIdx - 1]);
           updateReplyStatus(replyId, { status: 'replied', selectedOption: optionIdx, repliedAt: new Date().toISOString() });
+        } catch (err: any) {
+          postErr = err;
+          console.error('[cr_confirm] postCommentReply failed:', err);
+        }
+        if (postErr) {
           await ctx.editMessageText(
-            `✅ *Reply posted* | ${reply.postType}\n\nReplied to ${reply.commentAuthor}.`,
-            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [] } },
-          );
-        } catch (postErr: any) {
-          await ctx.editMessageText(
-            `❌ *Failed to post reply*\n\n${postErr?.message ?? String(postErr)}\n\nYou can try again or skip.`,
+            `❌ *Failed to post reply*\n\n${postErr.message}\n\nYou can try again or skip.`,
             {
               parse_mode: 'Markdown',
               reply_markup: {
@@ -163,6 +165,11 @@ export function startBot(): void {
                 ]],
               },
             },
+          );
+        } else {
+          await ctx.editMessageText(
+            `✅ *Reply posted* | ${reply.postType}\n\nReplied to ${reply.commentAuthor}.\n\n${reply.postUrl}`,
+            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [] } },
           );
         }
       }
@@ -361,18 +368,22 @@ function buildCommentKeyboard(reply: PendingReply) {
 
 function formatCommentMessage(reply: PendingReply): string {
   const threadLabel = reply.isReply ? 'reply-to-reply' : 'comment';
+  const reasoningSection = reply.reasoning
+    ? `\n*AI reasoning:* _${reply.reasoning}_\n`
+    : '';
+
   return `💬 *New ${threadLabel}* | ${reply.postType}
 _"${reply.postSnippet}…"_
 
 *From:* ${reply.commentAuthor} _(${reply.commentType})_
 "${reply.commentText}"
-
+${reasoningSection}
 *Reply options:*
-1\\. ${reply.replyOptions[0]}
+1. ⭐ _${reply.replyLabels?.[0] ?? 'option 1'}:_ ${reply.replyOptions[0]}${reply.recommendationReason ? `\n   _↳ ${reply.recommendationReason}_` : ''}
 
-2\\. ${reply.replyOptions[1]}
+2. _${reply.replyLabels?.[1] ?? 'option 2'}:_ ${reply.replyOptions[1]}
 
-3\\. ${reply.replyOptions[2]}`;
+3. _${reply.replyLabels?.[2] ?? 'option 3'}:_ ${reply.replyOptions[2]}`;
 }
 
 export async function notifyCommentReply(reply: PendingReply): Promise<void> {
@@ -384,7 +395,7 @@ export async function notifyCommentReply(reply: PendingReply): Promise<void> {
   }
   const sender = new Telegraf(token);
   await sender.telegram.sendMessage(chatId, formatCommentMessage(reply), {
-    parse_mode: 'MarkdownV2',
+    parse_mode: 'Markdown',
     reply_markup: buildCommentKeyboard(reply),
   });
 }
