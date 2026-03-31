@@ -14,10 +14,10 @@ function alreadyPostedToday(): boolean {
   }
 }
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
-import { startBot, sendAlert, setOnRejectHandler } from '../hitl/telegram.js';
+import { startBot, sendAlert, sendMessage, setOnRejectHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
 import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
-import { runCommentPoll } from '../hitl/comment-poll.js';
+import { runCommentPoll, type CommentPollOptions } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
 import { runOutboundPoll } from '../hitl/outbound-poll.js';
 
@@ -81,6 +81,8 @@ async function publishDuePosts() {
       });
       markPublished(post.id, linkedInPostUrl);
       console.log(`Post ${post.id} marked as published.`);
+      const urlLine = linkedInPostUrl ? `\n${linkedInPostUrl}` : '';
+      await sendMessage(`✅ *Published* | ${post.draft.postType}\n_${post.draft.sourceTitle}_${urlLine}`).catch(() => {});
     } catch (err) {
       if (err instanceof LinkedInSessionExpiredError) {
         console.error(err.message);
@@ -159,11 +161,11 @@ function getMostRecentPostAge(): number | null {
 
 let commentPollRunning = false;
 
-async function runCommentPollGuarded() {
+async function runCommentPollGuarded(opts?: CommentPollOptions) {
   if (commentPollRunning) return;
   commentPollRunning = true;
   try {
-    await runCommentPoll();
+    await runCommentPoll(undefined, opts);
   } catch (err) {
     console.error('Comment poll failed (non-fatal):', err);
   } finally {
@@ -179,12 +181,16 @@ cron.schedule('*/10 * * * 1-5', async () => {
   const lastPoll = getLastPollAt();
   const hoursSincePoll = lastPoll ? (Date.now() - lastPoll.getTime()) / 3_600_000 : Infinity;
 
-  if (withinActiveWindow || hoursSincePoll >= 3) {
+  if (withinActiveWindow) {
+    // Active window: only check the most recent post
+    await runCommentPollGuarded({ recentOnly: true });
+  } else if (hoursSincePoll >= 3) {
+    // Quiet period: full sweep of all posts in the 14-day window
     await runCommentPollGuarded();
   }
 }, { timezone: 'America/Toronto' });
 
-// Weekends: 8am and 8pm ET only
+// Weekends: 8am and 8pm ET only — full sweep
 cron.schedule('0 8,20 * * 6,0', async () => {
   await runCommentPollGuarded();
 }, { timezone: 'America/Toronto' });

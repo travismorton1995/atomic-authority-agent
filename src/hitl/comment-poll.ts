@@ -11,9 +11,13 @@ import {
 import { notifyCommentReply } from './telegram.js';
 
 const HISTORY_FILE = 'posted_history.json';
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const WINDOW_MS = 14 * 24 * 60 * 60 * 1000;
 
-export async function runCommentPoll(targetUrl?: string): Promise<void> {
+export interface CommentPollOptions {
+  recentOnly?: boolean; // only check the most recently published post
+}
+
+export async function runCommentPoll(targetUrl?: string, opts: CommentPollOptions = {}): Promise<void> {
   if (!existsSync(HISTORY_FILE)) return;
 
   const myName = (process.env.LINKEDIN_DISPLAY_NAME ?? '').toLowerCase();
@@ -39,8 +43,12 @@ export async function runCommentPoll(targetUrl?: string): Promise<void> {
     } else {
       recentPosts = [match];
     }
+  } else if (opts.recentOnly) {
+    const published = history.filter(p => p.status === 'published' && p.linkedInPostUrl && p.publishedAt);
+    published.sort((a: any, b: any) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    recentPosts = published.slice(0, 1);
   } else {
-    const cutoff = Date.now() - WEEK_MS;
+    const cutoff = Date.now() - WINDOW_MS;
     recentPosts = history.filter(
       p =>
         p.status === 'published' &&
@@ -52,7 +60,8 @@ export async function runCommentPoll(targetUrl?: string): Promise<void> {
 
   if (recentPosts.length === 0) return;
 
-  console.log(`Comment poll: checking ${recentPosts.length} post(s) from the last 7 days...`);
+  const scope = opts.recentOnly ? 'most recent post' : 'last 14 days';
+  console.log(`Comment poll: checking ${recentPosts.length} post(s) (${scope})...`);
 
   for (const post of recentPosts) {
     let comments;

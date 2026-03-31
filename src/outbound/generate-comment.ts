@@ -9,6 +9,7 @@ export interface CommentOption {
 }
 
 export interface GeneratedComment {
+  postSummary: string;
   reasoning: string;
   recommendationReason: string;
   options: [CommentOption, CommentOption];   // index 0 is always recommended
@@ -36,11 +37,15 @@ Hard constraints — any violation is a rewrite trigger:
 
 export async function generateOutboundComment(
   post: { text: string; authorName: string; url: string },
-  options: { insider?: boolean } = {},
+  options: { insider?: boolean; colleague?: boolean } = {},
 ): Promise<GeneratedComment> {
   const insiderContext = options.insider
     ? `You work at ${post.authorName}. Comment as an insider — you can speak with direct knowledge of the work, acknowledge being part of the team, and add context that only someone internal would know. Still add genuine value; don't just cheer.`
     : `You are commenting as an external peer — a knowledgeable outsider adding perspective, not an employee.`;
+
+  const colleagueContext = options.colleague
+    ? `This person is a direct colleague. Do not use contrarian, counterpoint, or push-back approaches. Stick to add-context, ask-question, or affirm-extend only.`
+    : '';
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -49,16 +54,18 @@ export async function generateOutboundComment(
       role: 'user',
       content: `You are Travis Morton, MEng — an AI developer working at the intersection of AI and the nuclear industry. You are adding a comment to a LinkedIn post.
 
-${insiderContext}
+${insiderContext}${colleagueContext ? `\n${colleagueContext}` : ''}
 
 ${post.authorName} posted:
 "${post.text.slice(0, 800)}"
 
-Do three things and return a single JSON object:
+Do four things and return a single JSON object:
 
-1. REASON in 1-2 sentences: What is the core claim or question in this post? What angle can you add that would be genuinely useful to the author and their readers?
+1. SUMMARIZE the post in exactly 1 plain-English sentence — what is it actually saying? No jargon.
 
-2. GENERATE 2 comment options using different approaches from:
+2. REASON in exactly 1 sentence: What specific angle can you add that would be genuinely useful?
+
+3. GENERATE 2 comment options using different approaches from:
 ${OUTBOUND_APPROACHES}
 
 Each comment must:
@@ -69,11 +76,12 @@ Each comment must:
 
 ${ANTI_AI_RULES}
 
-3. RECOMMEND one option (0 or 1) that best invites engagement back from the author or their audience, and give a 1-sentence reason.
+4. RECOMMEND one option (0 or 1) that best invites engagement back from the author or their audience, and give a 1-sentence reason.
 
 Return ONLY valid JSON:
 {
-  "reasoning": "<1-2 sentence analysis>",
+  "postSummary": "<1 sentence plain English summary>",
+  "reasoning": "<1 sentence angle>",
   "recommended": <0|1>,
   "recommendationReason": "<one sentence why>",
   "options": [
@@ -89,6 +97,7 @@ Return ONLY valid JSON:
   if (!objMatch) throw new Error('Comment generator returned no JSON');
 
   const parsed = JSON.parse(objMatch[0]) as {
+    postSummary?: string;
     reasoning: string;
     recommended?: number;
     recommendationReason?: string;
@@ -115,6 +124,7 @@ Return ONLY valid JSON:
   );
 
   return {
+    postSummary: parsed.postSummary ?? '',
     reasoning: parsed.reasoning ?? '',
     recommendationReason: parsed.recommendationReason ?? '',
     options: [

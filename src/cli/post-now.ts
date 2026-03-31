@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { readFileSync, existsSync } from 'fs';
 import { markPublished, PendingPost } from '../hitl/queue.js';
 import { postToLinkedIn, LinkedInSessionExpiredError } from '../poster/index.js';
+import { sendMessage } from '../hitl/telegram.js';
 
 function getAllPosts(): PendingPost[] {
   if (!existsSync('pending_posts.json')) return [];
@@ -48,13 +49,15 @@ async function main() {
   console.log('Opening browser...\n');
 
   try {
-    await postToLinkedIn(post.finalContent, {
+    const linkedInPostUrl = await postToLinkedIn(post.finalContent, {
       forceHeaded: true,
       firstComment: post.draft.firstComment,
       imageUrl: post.draft.imageUrl,
     });
-    markPublished(post.id);
+    markPublished(post.id, linkedInPostUrl);
     console.log(`Done. Post ${post.id} marked as published.`);
+    const urlLine = linkedInPostUrl ? `\n${linkedInPostUrl}` : '';
+    await sendMessage(`✅ *Published* | ${post.draft.postType}\n_${post.draft.sourceTitle}_${urlLine}`).catch(() => {});
   } catch (err) {
     if (err instanceof LinkedInSessionExpiredError) {
       console.error(err.message);

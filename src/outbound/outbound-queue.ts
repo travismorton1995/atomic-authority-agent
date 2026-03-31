@@ -11,6 +11,7 @@ export interface OutboundProfile {
   addedAt: string;
   active: boolean;
   insider?: boolean;  // true if you work/are affiliated with this org
+  colleague?: boolean; // true if this person is a direct colleague — avoid contrarian approaches
 }
 
 export interface PendingComment {
@@ -19,6 +20,8 @@ export interface PendingComment {
   profileName: string;
   postUrl: string;
   postSnippet: string;
+  postSummary: string;
+  postAgeHours: number | null;
   commentOptions: [string, string];
   commentLabels: [string, string];
   recommendationReason: string;
@@ -29,11 +32,24 @@ export interface PendingComment {
   postedAt?: string;
 }
 
+export interface CandidatePost {
+  id: string;
+  url: string;
+  text: string;
+  authorName: string;
+  ageHours: number | null;
+  profileUrl: string;
+  profileName: string;
+  insider: boolean;
+  colleague: boolean;
+}
+
 interface OutboundState {
   seenPostIds: string[];
   pendingComments: PendingComment[];
   lastPollAt: string | null;
   dailyCount: { date: string; count: number };
+  fallbackCandidate: CandidatePost | null;
 }
 
 interface ProfilesStore {
@@ -42,9 +58,11 @@ interface ProfilesStore {
 
 function loadState(): OutboundState {
   if (!existsSync(STATE_FILE)) {
-    return { seenPostIds: [], pendingComments: [], lastPollAt: null, dailyCount: { date: '', count: 0 } };
+    return { seenPostIds: [], pendingComments: [], lastPollAt: null, dailyCount: { date: '', count: 0 }, fallbackCandidate: null };
   }
-  return JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
+  const state = JSON.parse(readFileSync(STATE_FILE, 'utf-8'));
+  if (!('fallbackCandidate' in state)) state.fallbackCandidate = null;
+  return state;
 }
 
 function saveState(state: OutboundState): void {
@@ -154,4 +172,18 @@ export function recordOutboundPoll(): void {
   const state = loadState();
   state.lastPollAt = new Date().toISOString();
   saveState(state);
+}
+
+export function storeFallbackCandidate(candidate: CandidatePost | null): void {
+  const state = loadState();
+  state.fallbackCandidate = candidate;
+  saveState(state);
+}
+
+export function popFallbackCandidate(): CandidatePost | null {
+  const state = loadState();
+  const candidate = state.fallbackCandidate ?? null;
+  state.fallbackCandidate = null;
+  saveState(state);
+  return candidate;
 }

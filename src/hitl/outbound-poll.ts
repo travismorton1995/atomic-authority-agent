@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { scrapeProfilePosts, type ScrapedPost } from '../outbound/scrape-feed.js';
+import { openScrapeContext, scrapeProfilePostsWithPage, type ScrapedPost } from '../outbound/scrape-feed.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
 import {
   getActiveProfiles,
@@ -10,6 +10,7 @@ import {
   incrementDailyCount,
   recordOutboundPoll,
   updateProfileName,
+  storeFallbackCandidate,
   type OutboundProfile,
   type PendingComment,
 } from '../outbound/outbound-queue.js';
@@ -31,27 +32,45 @@ export async function runOutboundPoll(): Promise<void> {
 
   console.log(`Outbound poll: checking ${profiles.length} profile(s) for posts < 12h old...`);
 
-  // Collect all fresh unseen posts across every profile
+  // Collect all fresh unseen posts across every profile — one browser context for all scrapes
   const candidates: Array<ScrapedPost & { profile: OutboundProfile }> = [];
 
+  const { context, page } = await openScrapeContext();
+  try {
   for (const profile of profiles) {
     let posts;
     try {
-      posts = await scrapeProfilePosts(profile.url);
+      posts = await scrapeProfilePostsWithPage(profile.url, page);
     } catch (err) {
       console.warn(`  Failed to scrape ${profile.name}: ${(err as Error).message}`);
       continue;
     }
 
-    if (posts.length > 0 && posts[0].authorName && posts[0].authorName !== profile.name) {
-      updateProfileName(profile.url, posts[0].authorName);
+    // Determine the profile owner's display name — use first post's authorName if profile
+    // name still looks like a URL slug (no spaces), then persist it for future runs.
+    const ownerName = (posts.length > 0 && posts[0].authorName)
+      ? posts[0].authorName
+      : profile.name;
+    if (ownerName && ownerName !== profile.name) {
+      updateProfileName(profile.url, ownerName);
     }
 
-    const newPosts = posts.filter(p => !isPostSeen(p.id));
+    // Filter out reposts: on a profile page, any post whose author doesn't match
+    // the profile owner is a reshare of someone else's content.
+    const ownPosts = posts.filter(p =>
+      !p.authorName || p.authorName.toLowerCase() === ownerName.toLowerCase()
+    );
+    const repostCount = posts.length - ownPosts.length;
+    if (repostCount > 0) console.log(`  ${ownerName} — skipped ${repostCount} repost(s)`);
+
+    const newPosts = ownPosts.filter(p => !isPostSeen(p.id));
     const ageNote = newPosts.map(p => p.ageHours !== null ? `${p.ageHours.toFixed(1)}h` : '?h').join(', ');
-    console.log(`  ${profile.name} — ${posts.length} post(s) < 12h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
+    console.log(`  ${ownerName} — ${ownPosts.length} original post(s) < 12h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
 
     candidates.push(...newPosts.map(p => ({ ...p, profile })));
+  }
+  } finally {
+    await context.close();
   }
 
   if (candidates.length === 0) {
@@ -72,11 +91,25 @@ export async function runOutboundPoll(): Promise<void> {
   const inGoldenWindow = best.ageHours !== null && best.ageHours < 2;
   console.log(`  Picked: [${best.profile.name}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''}`);
 
+  // Store the 2nd candidate as a skip fallback (cleared after it's used or a new poll runs)
+  const fallback = candidates[1] ?? null;
+  storeFallbackCandidate(fallback ? {
+    id: fallback.id,
+    url: fallback.url,
+    text: fallback.text,
+    authorName: fallback.authorName,
+    ageHours: fallback.ageHours,
+    profileUrl: fallback.profile.url,
+    profileName: fallback.profile.name,
+    insider: fallback.profile.insider ?? false,
+    colleague: fallback.profile.colleague ?? false,
+  } : null);
+
   markPostSeen(best.id);
 
   let generated;
   try {
-    generated = await generateOutboundComment(best, { insider: best.profile.insider ?? false });
+    generated = await generateOutboundComment(best, { insider: best.profile.insider ?? false, colleague: best.profile.colleague ?? false });
     console.log(`  Options: ${generated.options.map(o => o.label).join(', ')}`);
   } catch (err) {
     console.warn(`  Failed to generate comment: ${(err as Error).message}`);
@@ -90,6 +123,8 @@ export async function runOutboundPoll(): Promise<void> {
     profileName: best.profile.name,
     postUrl: best.url,
     postSnippet: best.text.split('\n')[0].slice(0, 100),
+    postSummary: generated.postSummary,
+    postAgeHours: best.ageHours,
     commentOptions: [generated.options[0].text, generated.options[1].text],
     commentLabels: [generated.options[0].label, generated.options[1].label],
     recommendationReason: generated.recommendationReason,

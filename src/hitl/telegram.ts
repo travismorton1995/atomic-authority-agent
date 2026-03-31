@@ -5,7 +5,8 @@ import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
 import { postCommentReply, postOutboundComment } from '../poster/comments.js';
-import { getPendingComment, updateCommentStatus, addProfile, incrementDailyCount, type PendingComment } from '../outbound/outbound-queue.js';
+import { getPendingComment, updateCommentStatus, addProfile, incrementDailyCount, popFallbackCandidate, addPendingComment, type PendingComment } from '../outbound/outbound-queue.js';
+import { generateOutboundComment } from '../outbound/generate-comment.js';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -145,7 +146,9 @@ export function startBot(): void {
         const optionIdx = parseInt(payload.slice(lastColon + 1)) as 1 | 2 | 3;
         const reply = getPendingReply(replyId);
         if (!reply) { await ctx.answerCbQuery('Reply not found.'); return; }
+        if (reply.status === 'replied') { await ctx.answerCbQuery('Already posted.'); return; }
         await ctx.answerCbQuery('Posting reply…');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
         let postErr: Error | null = null;
         try {
           await postCommentReply(reply.postUrl, reply.commentId, reply.replyOptions[optionIdx - 1]);
@@ -222,7 +225,10 @@ export function startBot(): void {
         const optionIdx = parseInt(payload.slice(lastColon + 1)) as 1 | 2;
         const comment = getPendingComment(commentId);
         if (!comment) { await ctx.answerCbQuery('Comment not found.'); return; }
+        if (comment.status === 'posted') { await ctx.answerCbQuery('Already posted.'); return; }
         await ctx.answerCbQuery('Posting comment…');
+        // Remove buttons immediately so the user can't double-tap while the browser runs
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
         let postErr: Error | null = null;
         try {
           await postOutboundComment(comment.postUrl, comment.commentOptions[optionIdx - 1]);
@@ -267,6 +273,41 @@ export function startBot(): void {
         updateCommentStatus(payload, { status: 'skipped' });
         await ctx.answerCbQuery('Skipped.');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+
+        const next = popFallbackCandidate();
+        if (!next) {
+          await ctx.reply('No more posts to show.');
+          return;
+        }
+
+        let nextGenerated;
+        try {
+          nextGenerated = await generateOutboundComment(
+            { text: next.text, authorName: next.authorName, url: next.url },
+            { insider: next.insider, colleague: next.colleague },
+          );
+        } catch (err: any) {
+          await ctx.reply(`Could not generate comment for next post: ${err.message}`);
+          return;
+        }
+
+        const nextComment: PendingComment = {
+          id: `oc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          profileUrl: next.profileUrl,
+          profileName: next.profileName,
+          postUrl: next.url,
+          postSnippet: next.text.split('\n')[0].slice(0, 100),
+          postSummary: nextGenerated.postSummary,
+          postAgeHours: next.ageHours,
+          commentOptions: [nextGenerated.options[0].text, nextGenerated.options[1].text],
+          commentLabels: [nextGenerated.options[0].label, nextGenerated.options[1].label],
+          recommendationReason: nextGenerated.recommendationReason,
+          reasoning: nextGenerated.reasoning,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+        addPendingComment(nextComment);
+        await notifyOutboundComment(nextComment);
       }
 
     } catch (err: any) {
@@ -493,13 +534,16 @@ function buildOutboundKeyboard(comment: PendingComment) {
 }
 
 function formatOutboundMessage(comment: PendingComment): string {
-  const reasoningSection = comment.reasoning
-    ? `\n*Why engage:* _${comment.reasoning}_\n`
-    : '';
+  const ageLabel = comment.postAgeHours !== null && comment.postAgeHours !== undefined
+    ? `${comment.postAgeHours.toFixed(1)}h ago`
+    : 'unknown age';
+  const goldenWindow = comment.postAgeHours !== null && comment.postAgeHours !== undefined && comment.postAgeHours < 2;
+  const summarySection = comment.postSummary ? `\n*Post:* _${comment.postSummary}_\n` : '';
+  const whySection = comment.reasoning ? `\n*Why:* _${comment.reasoning}_\n` : '';
 
-  return `📤 *Outbound comment* | ${comment.profileName}
+  return `📤 *Outbound comment* | ${comment.profileName} | _${ageLabel}${goldenWindow ? ' ⚡' : ''}_
 _"${comment.postSnippet}…"_
-${reasoningSection}
+${summarySection}${whySection}
 *Comment options:*
 1. ⭐ _${comment.commentLabels[0]}:_ ${comment.commentOptions[0]}${comment.recommendationReason ? `\n   _↳ ${comment.recommendationReason}_` : ''}
 
