@@ -179,6 +179,20 @@ export async function runWeeklyReport(): Promise<void> {
     .sort((a, b) => b.avg - a.avg)
     .slice(0, 5);
 
+  // Rank hashtags by avg engagement
+  const hashtagMap = new Map<string, { total: number; count: number }>();
+  for (const { p, eng } of withEng) {
+    const hashtags = (p.finalContent?.match(/#\w+/g) ?? []).map((t: string) => t.toLowerCase());
+    for (const tag of hashtags) {
+      const prev = hashtagMap.get(tag) ?? { total: 0, count: 0 };
+      hashtagMap.set(tag, { total: prev.total + eng, count: prev.count + 1 });
+    }
+  }
+  const hashtagRanked = [...hashtagMap.entries()]
+    .map(([tag, { total, count }]) => ({ tag, avg: total / count, count }))
+    .sort((a, b) => b.avg - a.avg)
+    .slice(0, 5);
+
   // Rank source feeds by avg engagement
   const feedMap = new Map<string, { total: number; count: number }>();
   for (const { p, eng } of withEng) {
@@ -243,6 +257,10 @@ export async function runWeeklyReport(): Promise<void> {
     `${medals[i] ?? '  •'} ${f.feed} — avg ${fmt(f.avg)} eng`
   ).join('\n');
 
+  const hashtagLines = hashtagRanked.length > 0
+    ? hashtagRanked.map((t, i) => `  ${i + 1}\\. \`${t.tag}\` — avg ${fmt(t.avg)} eng (${t.count} post${t.count !== 1 ? 's' : ''})`).join('\n')
+    : '  _(no hashtags found)_';
+
   const dayLines = dayRanked.map((d, i) =>
     `${medals[i] ?? '  •'} ${d.day} — avg ${fmt(d.avg)} eng (${d.count} post${d.count !== 1 ? 's' : ''})`
   ).join('\n');
@@ -263,6 +281,9 @@ ${typeLines}
 
 *Top content tags:*
 ${tagLines}
+
+*Top hashtags:*
+${hashtagLines}
 
 *By source feed:*
 ${feedLines}
