@@ -30,9 +30,10 @@ function parseAgeHours(timeText: string): number | null {
 }
 
 export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPost[]> {
-  // LinkedIn's activity feed for a person: /in/username/recent-activity/shares/
-  // For companies: /company/org/posts/ — both work with the same selectors
-  const activityUrl = profileUrl.replace(/\/$/, '') + '/recent-activity/shares/';
+  // Personal profiles: /in/username/recent-activity/shares/
+  // Company pages:     /company/org/posts/
+  const isCompany = profileUrl.includes('/company/');
+  const activityUrl = profileUrl.replace(/\/$/, '') + (isCompany ? '/posts/' : '/recent-activity/shares/');
 
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
