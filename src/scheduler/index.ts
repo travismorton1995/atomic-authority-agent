@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import { initLogger } from '../utils/logger.js';
+initLogger();
 import cron from 'node-cron';
 import { getPostsDueForPublishing, markPublished, incrementPublishFailures, cleanupRejectedPosts } from '../hitl/queue.js';
 import { readFileSync, existsSync } from 'fs';

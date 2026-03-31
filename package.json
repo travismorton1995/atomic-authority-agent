@@ -19,7 +19,8 @@
     "help": "tsx src/cli/help.ts",
     "status": "powershell -Command \"if (Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*scheduler/index.ts*' }) { Write-Host 'Scheduler is RUNNING' } else { Write-Host 'Scheduler is NOT running' }\"",
     "stop-scheduler": "powershell -Command \"$procs = Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'node.exe' -and $_.CommandLine -like '*scheduler/index.ts*' }; if ($procs) { $procs | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue; Write-Host 'Stopped PID' $_.ProcessId }; Write-Host 'Scheduler stopped.' } else { Write-Host 'Scheduler is not running.' }\"",
-    "restart-scheduler": "wscript C:\\dev\\atomic-authority-agent\\run-hidden.vbs"
+    "restart-scheduler": "wscript C:\\dev\\atomic-authority-agent\\run-hidden.vbs",
+    "logs": "powershell -Command \"Get-Content scheduler.log -Wait -Tail 50\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
