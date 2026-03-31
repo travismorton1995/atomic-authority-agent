@@ -57,7 +57,8 @@ Each comment must:
 - Be exactly 1 sentence. No exceptions.
 - Add genuine value — a specific fact, a pointed question, or a concrete counter-argument
 - Sound like a thoughtful industry peer joining the conversation, not the post author
-- Draw on nuclear/AI domain knowledge where relevant
+- Write for a general professional audience — assume the reader is smart but not a specialist. Plain words over technical ones. If a concept needs jargon to express, find the plain-English version instead.
+- Competence comes through the sharpness of the insight, not the vocabulary
 
 ${ANTI_AI_RULES}
 
