@@ -12,6 +12,8 @@ A self-hosted, Human-in-the-Loop LinkedIn content engine for the Nuclear/AI nich
 
 ## How it works
 
+### Content pipeline
+
 ```
 RSS Feeds → Rank & score articles → Pick best → Fetch full article text
   → Generate hook → Synthesize draft → Verify facts → Screen for cringe
@@ -30,6 +32,37 @@ RSS Feeds → Rank & score articles → Pick best → Fetch full article text
 10. **Notify** — Telegram bot sends the draft with source, feed name, combined score, and inline approve/reject buttons.
 11. **Approve** — human reviews in Telegram; a posting time is automatically picked from optimal LinkedIn windows with random variance.
 12. **Post** — the scheduler publishes to LinkedIn via Playwright at the scheduled time, resolving `[[MENTION:X]]` markers into real LinkedIn @mentions.
+
+### Comment reply pipeline
+
+```
+Poll recent posts → Scrape new comments → Classify & generate 3 reply options
+  → Screen for AI-isms → Telegram notification → Human selects & confirms → Post reply
+```
+
+1. **Poll** — checks all LinkedIn posts published within the last 7 days for new comments. Weekday schedule: every 10 min if the post is <2h old, every 3h otherwise. Weekend schedule: 8am and 8pm ET only.
+2. **Filter** — skips comments already seen and any comment from your own account (`LINKEDIN_DISPLAY_NAME`).
+3. **Classify** — Claude Haiku classifies each comment (question / agreement / pushback / adds-context / generic) and reasons about the commenter's intent.
+4. **Generate** — produces 3 reply options with distinct approaches (agree, push-back, add-context, question, concede, reframe, direct), drawn from post content, article title, and thread context.
+5. **Screen** — all 3 options are screened for AI-isms and banned phrases.
+6. **Notify** — Telegram message shows the comment, AI reasoning, and 3 labeled options. The recommended option appears first with a 1-line justification (⭐).
+7. **Approve** — two-step: select an option → preview text → confirm or go back. Skip is always available.
+8. **Post** — Playwright opens the post, clicks Reply on the specific comment, preserves LinkedIn's @mention pre-fill, and types the reply at a natural speed.
+
+### Analytics & reporting
+
+- Metrics (reactions, comments, reposts) are scraped for all posts in the last 90 days via Playwright.
+- Every Monday after the metrics fetch, a monthly report is sent to Telegram covering:
+  - Total and avg engagement across the 30-day window
+  - Post types ranked by avg engagement
+  - Top 5 content tags by avg engagement
+  - Top 5 hashtags by avg engagement
+  - Source feeds ranked by avg engagement
+  - Day of week ranked by avg engagement
+  - Time window ranked by avg engagement (Morning / Noon / Evening / Other, ET)
+  - Best individual post of the period
+
+---
 
 ## Setup
 
@@ -223,6 +256,25 @@ Controls:
 
 New company/org names are automatically detected after each `generate` run and appended as unverified. Run `test-mentions` periodically to process the queue.
 
+### Poll for comments manually
+
+```bash
+# Poll all posts from the last 7 days
+npm run poll-comments
+
+# Poll a specific post URL
+npm run poll-comments -- https://www.linkedin.com/posts/...
+```
+
+### Fetch metrics and run monthly report
+
+```bash
+# Scrape metrics for all posts in the last 90 days and save to posted_history.json
+npm run fetch-metrics
+```
+
+The monthly report is sent to Telegram automatically every Monday. To trigger it manually, run `npm run fetch-metrics` — the scheduler will fire the report after the fetch completes.
+
 ### Other commands
 
 ```bash
@@ -240,14 +292,16 @@ npm run help
 
 ```
 src/
-  content/        # RSS fetcher, ranker, hook generator, synthesizer, verifier, screener
-  hitl/           # queue manager, Telegram notifier
-  scheduler/      # cron logic, time window picker
-  poster/         # LinkedIn browser automation (Playwright), @mentions dictionary
-  cli/            # generate / approve / reject / post-now / test-mentions CLI commands
+  content/        # RSS fetcher, ranker, hook generator, synthesizer, verifier, screener, reply generator
+  hitl/           # post queue, comment queue, Telegram bot and notifications
+  scheduler/      # cron logic, time window picker, comment poll scheduling
+  poster/         # LinkedIn browser automation (post, reply, @mentions)
+  cli/            # generate / approve / reject / post-now / poll-comments / fetch-metrics CLI commands
 pending_posts.json      # active queue (pending and approved posts)
 rejected_posts.json     # rejected posts (24-hour cooldown before re-selection)
-posted_history.json     # archive of published posts
+posted_history.json     # archive of published posts with metrics
+comment_state.json      # seen comment IDs, pending replies, last poll time (gitignored)
+candidates.json         # ranked article candidate store
 user_data/              # LinkedIn session persistence (gitignored)
 .env                    # API keys and config (gitignored)
 ```
@@ -317,3 +371,4 @@ Rejected posts are moved to `rejected_posts.json`. The pipeline applies two laye
 | `TELEGRAM_BOT_TOKEN` | Yes | Telegram bot token for HITL notifications and approval flow |
 | `TELEGRAM_CHAT_ID` | Yes | Telegram chat ID to receive notifications |
 | `LINKEDIN_HEADLESS` | No | Set to `true` for headless Playwright (default: `false`) |
+| `LINKEDIN_DISPLAY_NAME` | No | Your LinkedIn display name — used to filter your own comments from reply polling |
