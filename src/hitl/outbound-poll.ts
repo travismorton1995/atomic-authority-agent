@@ -15,7 +15,7 @@ import {
 } from '../outbound/outbound-queue.js';
 import { notifyOutboundComment } from './telegram.js';
 
-const DAILY_MAX = 2;
+const DAILY_MAX = 3;
 
 export async function runOutboundPoll(): Promise<void> {
   const profiles = getActiveProfiles();
@@ -99,7 +99,6 @@ export async function runOutboundPoll(): Promise<void> {
   };
 
   addPendingComment(comment);
-  incrementDailyCount();
 
   try {
     await notifyOutboundComment(comment);

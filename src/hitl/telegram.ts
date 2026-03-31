@@ -5,7 +5,7 @@ import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
 import { postCommentReply, postOutboundComment } from '../poster/comments.js';
-import { getPendingComment, updateCommentStatus, addProfile, type PendingComment } from '../outbound/outbound-queue.js';
+import { getPendingComment, updateCommentStatus, addProfile, incrementDailyCount, type PendingComment } from '../outbound/outbound-queue.js';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -227,6 +227,7 @@ export function startBot(): void {
         try {
           await postOutboundComment(comment.postUrl, comment.commentOptions[optionIdx - 1]);
           updateCommentStatus(commentId, { status: 'posted', selectedOption: optionIdx, postedAt: new Date().toISOString() });
+          incrementDailyCount();
         } catch (err: any) {
           postErr = err;
           console.error('[oc_confirm] postOutboundComment failed:', err);
