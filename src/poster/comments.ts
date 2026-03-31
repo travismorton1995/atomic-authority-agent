@@ -161,3 +161,46 @@ export async function postCommentReply(
     await context.close();
   }
 }
+
+export async function postOutboundComment(
+  postUrl: string,
+  commentText: string,
+): Promise<void> {
+  const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: 'chrome',
+    headless: process.env.LINKEDIN_HEADLESS === 'true',
+    locale: 'en-US',
+  });
+
+  const page = context.pages()[0] ?? await context.newPage();
+  try {
+    await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(3000);
+
+    // Expand the comments section so the composer becomes active
+    const expandBtn = page.locator('button[aria-label*="comment on"]').first();
+    if (await expandBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await expandBtn.click();
+      await page.waitForTimeout(1500);
+    }
+
+    // Click the main comment composer
+    const composer = page.locator(
+      '.comments-comment-texteditor .ql-editor, .comments-comment-box__form .ql-editor'
+    ).first();
+    await composer.waitFor({ state: 'visible', timeout: 5000 });
+    await composer.click();
+    await page.keyboard.press('Control+End');
+    await page.keyboard.type(commentText, { delay: 40 });
+    await page.waitForTimeout(500);
+
+    const submitBtn = page.locator(
+      'button[aria-label*="Post comment"], button.comments-comment-box__submit-button--cr, button.comments-comment-box__submit-button'
+    ).last();
+    await submitBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await submitBtn.click();
+    await page.waitForTimeout(2000);
+  } finally {
+    await context.close();
+  }
+}

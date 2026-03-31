@@ -4,7 +4,8 @@ import { approvePost, rejectPost, clearPostImage } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
-import { postCommentReply } from '../poster/comments.js';
+import { postCommentReply, postOutboundComment } from '../poster/comments.js';
+import { getPendingComment, updateCommentStatus, addProfile, type PendingComment } from '../outbound/outbound-queue.js';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -190,6 +191,83 @@ export function startBot(): void {
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
       }
 
+      // --- Outbound comment flow ---
+
+      if (action === 'oc_select') {
+        const lastColon = payload.lastIndexOf(':');
+        const commentId = payload.slice(0, lastColon);
+        const optionIdx = parseInt(payload.slice(lastColon + 1)) as 1 | 2;
+        const comment = getPendingComment(commentId);
+        if (!comment) { await ctx.answerCbQuery('Comment not found.'); return; }
+        const selectedText = comment.commentOptions[optionIdx - 1];
+        const selectedLabel = comment.commentLabels[optionIdx - 1] ?? `option ${optionIdx}`;
+        await ctx.answerCbQuery();
+        await ctx.editMessageText(
+          `📤 *Outbound preview* | _${selectedLabel}_\n\n"${selectedText}"`,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '✅ Post', callback_data: `oc_confirm:${commentId}:${optionIdx}` },
+                { text: '↩ Back', callback_data: `oc_back:${commentId}` },
+              ]],
+            },
+          },
+        );
+      }
+
+      if (action === 'oc_confirm') {
+        const lastColon = payload.lastIndexOf(':');
+        const commentId = payload.slice(0, lastColon);
+        const optionIdx = parseInt(payload.slice(lastColon + 1)) as 1 | 2;
+        const comment = getPendingComment(commentId);
+        if (!comment) { await ctx.answerCbQuery('Comment not found.'); return; }
+        await ctx.answerCbQuery('Posting comment…');
+        let postErr: Error | null = null;
+        try {
+          await postOutboundComment(comment.postUrl, comment.commentOptions[optionIdx - 1]);
+          updateCommentStatus(commentId, { status: 'posted', selectedOption: optionIdx, postedAt: new Date().toISOString() });
+        } catch (err: any) {
+          postErr = err;
+          console.error('[oc_confirm] postOutboundComment failed:', err);
+        }
+        if (postErr) {
+          await ctx.editMessageText(
+            `❌ *Failed to post comment*\n\n${postErr.message}\n\nYou can try again or skip.`,
+            {
+              parse_mode: 'Markdown',
+              reply_markup: {
+                inline_keyboard: [[
+                  { text: '↩ Try again', callback_data: `oc_back:${commentId}` },
+                  { text: '⏭ Skip', callback_data: `oc_skip:${commentId}` },
+                ]],
+              },
+            },
+          );
+        } else {
+          await ctx.editMessageText(
+            `✅ *Comment posted* | ${comment.profileName}\n\n${comment.postUrl}`,
+            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [] } },
+          );
+        }
+      }
+
+      if (action === 'oc_back') {
+        const comment = getPendingComment(payload);
+        if (!comment) { await ctx.answerCbQuery('Comment not found.'); return; }
+        await ctx.answerCbQuery();
+        await ctx.editMessageText(
+          formatOutboundMessage(comment),
+          { parse_mode: 'Markdown', reply_markup: buildOutboundKeyboard(comment) },
+        );
+      }
+
+      if (action === 'oc_skip') {
+        updateCommentStatus(payload, { status: 'skipped' });
+        await ctx.answerCbQuery('Skipped.');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+      }
+
     } catch (err: any) {
       if (err?.response?.error_code === 400) {
         // Callback query expired — safe to ignore, happens when a new session
@@ -220,6 +298,21 @@ export function startBot(): void {
     }
   })();
   console.log('Telegram bot started.');
+
+  // LinkedIn profile URL listener — send a profile URL to the bot to add it to the outbound list
+  bot.on('message', async (ctx) => {
+    const text = (ctx.message as any).text as string | undefined;
+    if (!text) return;
+    const urlMatch = text.match(/https:\/\/www\.linkedin\.com\/(in|company)\/[^\s?#]+/);
+    if (!urlMatch) return;
+    const url = urlMatch[0];
+    const { profile, existed } = addProfile(url);
+    if (existed) {
+      await ctx.reply(`Already tracking: ${profile.name} (${profile.url})`);
+    } else {
+      await ctx.reply(`✅ Added to outbound list: ${profile.name}\n${profile.url}`);
+    }
+  });
 
   process.once('SIGINT', () => bot?.stop('SIGINT'));
   process.once('SIGTERM', () => bot?.stop('SIGTERM'));
@@ -384,6 +477,46 @@ ${reasoningSection}
 2. _${reply.replyLabels?.[1] ?? 'option 2'}:_ ${reply.replyOptions[1]}
 
 3. _${reply.replyLabels?.[2] ?? 'option 3'}:_ ${reply.replyOptions[2]}`;
+}
+
+// --- Outbound comment notification ---
+
+function buildOutboundKeyboard(comment: PendingComment) {
+  return {
+    inline_keyboard: [[
+      { text: '1️⃣', callback_data: `oc_select:${comment.id}:1` },
+      { text: '2️⃣', callback_data: `oc_select:${comment.id}:2` },
+      { text: '⏭ Skip', callback_data: `oc_skip:${comment.id}` },
+    ]],
+  };
+}
+
+function formatOutboundMessage(comment: PendingComment): string {
+  const reasoningSection = comment.reasoning
+    ? `\n*Why engage:* _${comment.reasoning}_\n`
+    : '';
+
+  return `📤 *Outbound comment* | ${comment.profileName}
+_"${comment.postSnippet}…"_
+${reasoningSection}
+*Comment options:*
+1. ⭐ _${comment.commentLabels[0]}:_ ${comment.commentOptions[0]}${comment.recommendationReason ? `\n   _↳ ${comment.recommendationReason}_` : ''}
+
+2. _${comment.commentLabels[1]}:_ ${comment.commentOptions[1]}`;
+}
+
+export async function notifyOutboundComment(comment: PendingComment): Promise<void> {
+  if (!token || !chatId) {
+    console.log('\n--- OUTBOUND COMMENT (not configured) ---');
+    console.log(formatOutboundMessage(comment));
+    console.log('-----------------------------------------\n');
+    return;
+  }
+  const sender = new Telegraf(token);
+  await sender.telegram.sendMessage(chatId, formatOutboundMessage(comment), {
+    parse_mode: 'Markdown',
+    reply_markup: buildOutboundKeyboard(comment),
+  });
 }
 
 export async function notifyCommentReply(reply: PendingReply): Promise<void> {

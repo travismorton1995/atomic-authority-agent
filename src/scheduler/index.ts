@@ -19,6 +19,7 @@ import { runPipeline } from '../content/pipeline.js';
 import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
 import { runCommentPoll } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
+import { runOutboundPoll } from '../hitl/outbound-poll.js';
 
 const GENERATE_RETRY_DELAY_MS = 10 * 60 * 1000; // 10 minutes
 const GENERATE_NETWORK_RETRY_DELAY_MS = 60 * 1000; // 1 minute
@@ -186,4 +187,21 @@ cron.schedule('*/10 * * * 1-5', async () => {
 // Weekends: 8am and 8pm ET only
 cron.schedule('0 8,20 * * 6,0', async () => {
   await runCommentPollGuarded();
+}, { timezone: 'America/Toronto' });
+
+// --- Outbound engagement polling ---
+
+let outboundPollRunning = false;
+
+// Weekdays at 10am and 2pm ET — finds fresh posts on curated profiles and queues comment options
+cron.schedule('0 10,14 * * 1-5', async () => {
+  if (outboundPollRunning) return;
+  outboundPollRunning = true;
+  try {
+    await runOutboundPoll();
+  } catch (err) {
+    console.error('Outbound poll failed (non-fatal):', err);
+  } finally {
+    outboundPollRunning = false;
+  }
 }, { timezone: 'America/Toronto' });
