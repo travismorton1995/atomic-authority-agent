@@ -6,3 +6,4 @@ user_data/
 scheduler.log
 post-failure-debug.png
 candidates.json
+comment_state.json

@@ -3,6 +3,8 @@ import { readFileSync, existsSync } from 'fs';
 import { approvePost, rejectPost, clearPostImage } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
+import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
+import { postCommentReply } from '../poster/comments.js';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
@@ -37,12 +39,14 @@ export function startBot(): void {
     const data = (ctx.callbackQuery as any).data as string;
     if (!data) return;
 
-    const [action, id] = data.split(':');
+    const firstColon = data.indexOf(':');
+    const action = data.slice(0, firstColon);
+    const payload = data.slice(firstColon + 1);
 
     try {
       if (action === 'approve') {
         const scheduledFor = pickScheduledTime();
-        const post = approvePost(id, scheduledFor);
+        const post = approvePost(payload, scheduledFor);
         if (!post) {
           await ctx.answerCbQuery('Post not found or already actioned.');
           return;
@@ -59,14 +63,14 @@ export function startBot(): void {
         await ctx.answerCbQuery('Approved!');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
         await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
-        pendingResolutions.get(id)?.('approved');
-        pendingResolutions.delete(id);
+        pendingResolutions.get(payload)?.('approved');
+        pendingResolutions.delete(payload);
       }
 
       if (action === 'approve_no_image') {
-        clearPostImage(id);
+        clearPostImage(payload);
         const scheduledFor = pickScheduledTime();
-        const post = approvePost(id, scheduledFor);
+        const post = approvePost(payload, scheduledFor);
         if (!post) {
           await ctx.answerCbQuery('Post not found or already actioned.');
           return;
@@ -83,20 +87,20 @@ export function startBot(): void {
         await ctx.answerCbQuery('Approved (no image)!');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
         await ctx.reply(`Post approved (text only). Scheduled for ${scheduledStr}.`);
-        pendingResolutions.get(id)?.('approved');
-        pendingResolutions.delete(id);
+        pendingResolutions.get(payload)?.('approved');
+        pendingResolutions.delete(payload);
       }
 
       if (action === 'reject') {
-        const post = rejectPost(id);
+        const post = rejectPost(payload);
         if (!post) {
           await ctx.answerCbQuery('Post not found or already actioned.');
           return;
         }
         await ctx.answerCbQuery('Rejected.');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-        pendingResolutions.get(id)?.('rejected');
-        pendingResolutions.delete(id);
+        pendingResolutions.get(payload)?.('rejected');
+        pendingResolutions.delete(payload);
 
         if (onRejectHandler) {
           await ctx.reply('Post rejected. Generating a replacement...');
@@ -108,6 +112,77 @@ export function startBot(): void {
           await ctx.reply('Post rejected.');
         }
       }
+
+      // --- Comment reply flow ---
+
+      if (action === 'cr_select') {
+        const lastColon = payload.lastIndexOf(':');
+        const replyId = payload.slice(0, lastColon);
+        const optionIdx = parseInt(payload.slice(lastColon + 1)) as 1 | 2 | 3;
+        const reply = getPendingReply(replyId);
+        if (!reply) { await ctx.answerCbQuery('Reply not found.'); return; }
+        const selectedText = reply.replyOptions[optionIdx - 1];
+        await ctx.answerCbQuery();
+        await ctx.editMessageText(
+          `💬 *Reply preview* | ${reply.postType}\n\n"${selectedText}"`,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: {
+              inline_keyboard: [[
+                { text: '✅ Send', callback_data: `cr_confirm:${replyId}:${optionIdx}` },
+                { text: '↩ Back', callback_data: `cr_back:${replyId}` },
+              ]],
+            },
+          },
+        );
+      }
+
+      if (action === 'cr_confirm') {
+        const lastColon = payload.lastIndexOf(':');
+        const replyId = payload.slice(0, lastColon);
+        const optionIdx = parseInt(payload.slice(lastColon + 1)) as 1 | 2 | 3;
+        const reply = getPendingReply(replyId);
+        if (!reply) { await ctx.answerCbQuery('Reply not found.'); return; }
+        await ctx.answerCbQuery('Posting reply…');
+        try {
+          await postCommentReply(reply.postUrl, reply.commentId, reply.replyOptions[optionIdx - 1]);
+          updateReplyStatus(replyId, { status: 'replied', selectedOption: optionIdx, repliedAt: new Date().toISOString() });
+          await ctx.editMessageText(
+            `✅ *Reply posted* | ${reply.postType}\n\nReplied to ${reply.commentAuthor}.`,
+            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [] } },
+          );
+        } catch (postErr: any) {
+          await ctx.editMessageText(
+            `❌ *Failed to post reply*\n\n${postErr?.message ?? String(postErr)}\n\nYou can try again or skip.`,
+            {
+              parse_mode: 'Markdown',
+              reply_markup: {
+                inline_keyboard: [[
+                  { text: '↩ Try again', callback_data: `cr_back:${replyId}` },
+                  { text: '⏭ Skip', callback_data: `cr_skip:${replyId}` },
+                ]],
+              },
+            },
+          );
+        }
+      }
+
+      if (action === 'cr_back') {
+        const reply = getPendingReply(payload);
+        if (!reply) { await ctx.answerCbQuery('Reply not found.'); return; }
+        await ctx.answerCbQuery();
+        await ctx.editMessageText(
+          formatCommentMessage(reply),
+          { parse_mode: 'Markdown', reply_markup: buildCommentKeyboard(reply) },
+        );
+      }
+
+      if (action === 'cr_skip') {
+        updateReplyStatus(payload, { status: 'skipped' });
+        await ctx.answerCbQuery('Skipped.');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+      }
+
     } catch (err: any) {
       if (err?.response?.error_code === 400) {
         // Callback query expired — safe to ignore, happens when a new session
@@ -267,4 +342,49 @@ function formatMessage(post: PendingPost): string {
 ${sourceNote}${metaLine ? `\n${metaLine}` : ''}
 
 ${displayContent}${commentSection}${getNextCandidatesSummary()}`;
+}
+
+// --- Comment reply notification ---
+
+function buildCommentKeyboard(reply: PendingReply) {
+  return {
+    inline_keyboard: [
+      [
+        { text: '1️⃣', callback_data: `cr_select:${reply.id}:1` },
+        { text: '2️⃣', callback_data: `cr_select:${reply.id}:2` },
+        { text: '3️⃣', callback_data: `cr_select:${reply.id}:3` },
+        { text: '⏭ Skip', callback_data: `cr_skip:${reply.id}` },
+      ],
+    ],
+  };
+}
+
+function formatCommentMessage(reply: PendingReply): string {
+  const threadLabel = reply.isReply ? 'reply-to-reply' : 'comment';
+  return `💬 *New ${threadLabel}* | ${reply.postType}
+_"${reply.postSnippet}…"_
+
+*From:* ${reply.commentAuthor} _(${reply.commentType})_
+"${reply.commentText}"
+
+*Reply options:*
+1\\. ${reply.replyOptions[0]}
+
+2\\. ${reply.replyOptions[1]}
+
+3\\. ${reply.replyOptions[2]}`;
+}
+
+export async function notifyCommentReply(reply: PendingReply): Promise<void> {
+  if (!token || !chatId) {
+    console.log('\n--- COMMENT REPLY (not configured) ---');
+    console.log(formatCommentMessage(reply));
+    console.log('--------------------------------------\n');
+    return;
+  }
+  const sender = new Telegraf(token);
+  await sender.telegram.sendMessage(chatId, formatCommentMessage(reply), {
+    parse_mode: 'MarkdownV2',
+    reply_markup: buildCommentKeyboard(reply),
+  });
 }

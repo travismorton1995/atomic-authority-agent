@@ -17,6 +17,8 @@ import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../pos
 import { startBot, sendAlert, setOnRejectHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
 import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
+import { runCommentPoll } from '../hitl/comment-poll.js';
+import { getLastPollAt } from '../hitl/comment-queue.js';
 
 const GENERATE_RETRY_DELAY_MS = 10 * 60 * 1000; // 10 minutes
 const GENERATE_NETWORK_RETRY_DELAY_MS = 60 * 1000; // 1 minute
@@ -135,4 +137,53 @@ cron.schedule('0 8 * * *', async () => {
 
     console.log('Daily maintenance complete.');
   }
+}, { timezone: 'America/Toronto' });
+
+// --- Comment reply polling ---
+
+function getMostRecentPostAge(): number | null {
+  if (!existsSync('posted_history.json')) return null;
+  try {
+    const history: any[] = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
+    const published = history
+      .filter(p => p.status === 'published' && p.publishedAt)
+      .map(p => new Date(p.publishedAt).getTime())
+      .filter(t => !isNaN(t));
+    if (published.length === 0) return null;
+    return Date.now() - Math.max(...published);
+  } catch {
+    return null;
+  }
+}
+
+let commentPollRunning = false;
+
+async function runCommentPollGuarded() {
+  if (commentPollRunning) return;
+  commentPollRunning = true;
+  try {
+    await runCommentPoll();
+  } catch (err) {
+    console.error('Comment poll failed (non-fatal):', err);
+  } finally {
+    commentPollRunning = false;
+  }
+}
+
+// Weekdays: every 10 minutes — run immediately if a post is <2h old,
+// otherwise only if 3+ hours have passed since the last poll.
+cron.schedule('*/10 * * * 1-5', async () => {
+  const ageMs = getMostRecentPostAge();
+  const withinActiveWindow = ageMs !== null && ageMs < 2 * 60 * 60 * 1000;
+  const lastPoll = getLastPollAt();
+  const hoursSincePoll = lastPoll ? (Date.now() - lastPoll.getTime()) / 3_600_000 : Infinity;
+
+  if (withinActiveWindow || hoursSincePoll >= 3) {
+    await runCommentPollGuarded();
+  }
+}, { timezone: 'America/Toronto' });
+
+// Weekends: 8am and 8pm ET only
+cron.schedule('0 8,20 * * 6,0', async () => {
+  await runCommentPollGuarded();
 }, { timezone: 'America/Toronto' });
