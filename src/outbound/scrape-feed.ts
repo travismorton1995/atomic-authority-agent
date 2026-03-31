@@ -63,22 +63,25 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
         if (!urn.includes('urn:li:activity:')) return;
 
         const textEl = el.querySelector(
+          '.update-components-text, ' +
           '.feed-shared-update-v2__description .feed-shared-inline-show-more-text, ' +
-          '.update-components-text .update-components-text__text-view, ' +
           '.feed-shared-text'
         );
         const text = textEl?.textContent?.trim() ?? '';
         if (!text) return;
 
         const authorEl = el.querySelector(
+          '.update-components-actor__title span[aria-hidden="true"], ' +
           '.update-components-actor__name span[aria-hidden="true"], ' +
+          '.update-components-actor__name, ' +
           '.feed-shared-actor__name'
         );
         const authorName = authorEl?.textContent?.trim() ?? '';
 
         const timeEl = el.querySelector(
           '.update-components-actor__sub-description span[aria-hidden="true"], ' +
-          '.feed-shared-actor__sub-description'
+          '.feed-shared-actor__sub-description, ' +
+          'time'
         );
         const timeText = timeEl?.textContent?.trim() ?? '';
 
