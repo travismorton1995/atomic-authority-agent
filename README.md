@@ -40,7 +40,7 @@ Poll recent posts → Scrape new comments → Classify & generate 3 reply option
   → Screen for AI-isms → Telegram notification → Human selects & confirms → Post reply
 ```
 
-1. **Poll** — checks all LinkedIn posts published within the last 7 days for new comments. Weekday schedule: every 10 min if the post is <2h old, every 3h otherwise. Weekend schedule: 8am and 8pm ET only.
+1. **Poll** — checks LinkedIn posts published within the last 14 days for new comments. Weekday schedule: every 10 min (most recent post only) if a post is <2h old; full 14-day sweep every 3h otherwise. Weekend schedule: 8am and 8pm ET only.
 2. **Filter** — skips comments already seen and any comment from your own account (`LINKEDIN_DISPLAY_NAME`).
 3. **Classify** — Claude Haiku classifies each comment (question / agreement / pushback / adds-context / generic) and reasons about the commenter's intent.
 4. **Generate** — produces 3 reply options with distinct approaches (agree, push-back, add-context, question, concede, reframe, direct), drawn from post content, article title, and thread context.
@@ -48,6 +48,27 @@ Poll recent posts → Scrape new comments → Classify & generate 3 reply option
 6. **Notify** — Telegram message shows the comment, AI reasoning, and 3 labeled options. The recommended option appears first with a 1-line justification (⭐).
 7. **Approve** — two-step: select an option → preview text → confirm or go back. Skip is always available.
 8. **Post** — Playwright opens the post, clicks Reply on the specific comment, preserves LinkedIn's @mention pre-fill, and types the reply at a natural speed.
+
+### Outbound engagement pipeline
+
+```
+Poll curated profiles → Scrape original posts (<12h) → Rank by recency
+  → Generate 2 comment options → Screen for AI-isms → Telegram notification
+  → Human selects & confirms → Post comment
+```
+
+1. **Profiles** — a curated list of LinkedIn profiles and company pages in `outbound_profiles.json`. Add a profile by sending its LinkedIn URL to the Telegram bot.
+2. **Poll** — runs at 10am and 2pm ET on weekdays (max 3 comments/day). Opens one shared browser context and visits each profile in sequence to minimise overhead.
+3. **Scrape** — fetches posts ≤12h old from each profile's activity feed. Reposts are filtered out by comparing the post author against the known profile name.
+4. **Rank** — all fresh unseen posts across all profiles are sorted by age ascending. Posts <2h old are flagged as ⚡ golden window.
+5. **Generate** — Claude Haiku generates a 1-sentence plain-English post summary, a 1-sentence engagement rationale, and 2 comment options with distinct approaches (add-context, ask-question, counterpoint, affirm-extend).
+6. **Persona** — profile flags adjust the comment voice:
+   - `insider: true` — comments as a team member with internal knowledge (used for affiliated orgs)
+   - `colleague: true` — suppresses contrarian/counterpoint approaches for direct colleagues
+7. **Screen** — both comment options are screened for AI-isms.
+8. **Notify** — Telegram message shows the profile name, post age (with ⚡ if <2h), post snippet, plain-English summary, 1-sentence reason to engage, and 2 labeled options. Recommended option appears first (⭐).
+9. **Skip** — skipping serves the next most-recent candidate post. Skipping that ends the session.
+10. **Post** — Playwright navigates to the post, clicks the comment box, and types at a natural speed.
 
 ### Analytics & reporting
 
@@ -259,12 +280,20 @@ New company/org names are automatically detected after each `generate` run and a
 ### Poll for comments manually
 
 ```bash
-# Poll all posts from the last 7 days
+# Poll all posts from the last 14 days
 npm run poll-comments
 
 # Poll a specific post URL
 npm run poll-comments -- https://www.linkedin.com/posts/...
 ```
+
+### Trigger outbound engagement manually
+
+```bash
+npm run poll-outbound
+```
+
+Scrapes all profiles in `outbound_profiles.json`, finds the most recent original post <12h old, generates comment options, and sends a Telegram notification. Respects the daily limit (max 3/day).
 
 ### Fetch metrics and run monthly report
 
@@ -293,14 +322,17 @@ npm run help
 ```
 src/
   content/        # RSS fetcher, ranker, hook generator, synthesizer, verifier, screener, reply generator
-  hitl/           # post queue, comment queue, Telegram bot and notifications
-  scheduler/      # cron logic, time window picker, comment poll scheduling
-  poster/         # LinkedIn browser automation (post, reply, @mentions)
-  cli/            # generate / approve / reject / post-now / poll-comments / fetch-metrics CLI commands
+  hitl/           # post queue, comment queue, outbound poll, Telegram bot and notifications
+  scheduler/      # cron logic, time window picker, comment poll and outbound scheduling
+  poster/         # LinkedIn browser automation (post, reply, outbound comment, @mentions)
+  outbound/       # profile scraper, comment generator, outbound queue state
+  cli/            # generate / approve / reject / post-now / poll-comments / poll-outbound / fetch-metrics CLI commands
 pending_posts.json      # active queue (pending and approved posts)
 rejected_posts.json     # rejected posts (24-hour cooldown before re-selection)
 posted_history.json     # archive of published posts with metrics
 comment_state.json      # seen comment IDs, pending replies, last poll time (gitignored)
+outbound_state.json     # seen post IDs, pending outbound comments, daily count (gitignored)
+outbound_profiles.json  # curated list of profiles to monitor for outbound engagement
 candidates.json         # ranked article candidate store
 user_data/              # LinkedIn session persistence (gitignored)
 .env                    # API keys and config (gitignored)
