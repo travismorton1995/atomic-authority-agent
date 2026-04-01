@@ -17,7 +17,14 @@ export interface CommentPollOptions {
   recentOnly?: boolean; // only check the most recently published post
 }
 
-export async function runCommentPoll(targetUrl?: string, opts: CommentPollOptions = {}): Promise<void> {
+export interface CommentPollStats {
+  postsChecked: number;
+  totalComments: number;
+  newComments: number;
+  error?: string;
+}
+
+export async function runCommentPoll(targetUrl?: string, opts: CommentPollOptions = {}): Promise<CommentPollStats> {
   if (!existsSync(HISTORY_FILE)) return;
 
   const myName = (process.env.LINKEDIN_DISPLAY_NAME ?? '').toLowerCase();
@@ -58,10 +65,13 @@ export async function runCommentPoll(targetUrl?: string, opts: CommentPollOption
     );
   }
 
-  if (recentPosts.length === 0) return;
+  if (recentPosts.length === 0) return { postsChecked: 0, totalComments: 0, newComments: 0 };
 
   const scope = opts.recentOnly ? 'most recent post' : 'last 14 days';
   console.log(`Comment poll: checking ${recentPosts.length} post(s) (${scope})...`);
+
+  let totalComments = 0;
+  let totalNew = 0;
 
   for (const post of recentPosts) {
     let comments;
@@ -78,6 +88,8 @@ export async function runCommentPoll(targetUrl?: string, opts: CommentPollOption
       return true;
     });
 
+    totalComments += comments.length;
+    totalNew += newComments.length;
     console.log(`  ${post.draft?.postType} — ${comments.length} comment(s), ${newComments.length} new`);
 
     for (const comment of newComments) {
@@ -137,4 +149,5 @@ export async function runCommentPoll(targetUrl?: string, opts: CommentPollOption
 
   recordPoll();
   console.log('Comment poll complete.');
+  return { postsChecked: recentPosts.length, totalComments, newComments: totalNew };
 }

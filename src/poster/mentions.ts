@@ -88,6 +88,27 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'UNC Charlotte':                             { searchTerm: 'UNC Charlotte',              verified: true },
   'GE Vernova':                                { searchTerm: 'GE Vernova',                 verified: true },
 
+  // Auto-detected — run npm run test-mentions to verify
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Nordion':                                   { searchTerm: 'Nordion',                    verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Blue Ribbon Commission':                    { searchTerm: 'Blue Ribbon Commission',     verified: true },
+  'Idaho National Lab':                        { searchTerm: 'Idaho National Lab',         verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Utility Dive':                              { searchTerm: 'Utility Dive',               verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'DOE':                                       { searchTerm: 'DOE',                        verified: false },
+  'NQA-1':                                     { searchTerm: 'NQA-1',                      verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'TerraFlow Energy':                          { searchTerm: 'TerraFlow Energy',           verified: false },
+
 };
 
 // Returns only verified entries — used during posting

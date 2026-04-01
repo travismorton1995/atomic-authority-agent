@@ -37,15 +37,15 @@ NUCLEAR/AI INTERSECTION (0–4):
 0 = Neither domain meaningfully present (geopolitical, administrative, off-topic)
 
 NOVELTY / SURPRISE (0–3):
-3 = First-of-kind event, regulatory milestone, surprising statistic, counterintuitive finding
-2 = Notable development or meaningful industry progress
-1 = Incremental update or routine news
-0 = Press release fluff, generic op-ed, conference announcement
+3 = First-of-kind event, regulatory milestone, surprising statistic, or counterintuitive finding (e.g. first SMR license issued, unexpected cost data, a reversal of prior policy)
+2 = Meaningful but expected progress: a new partnership with specific commitments, a technology demonstration, a funding announcement with real numbers, a notable hire or org change
+1 = Incremental update or routine news: a project hitting a previously announced milestone, a scheduled report or review, a restatement of known policy
+0 = Press release fluff, generic op-ed, conference announcement, or award
 
 GEOGRAPHIC RELEVANCE (0–2):
 2 = Canadian angle: CNSC, Bruce Power, CNL, OPG, NB Power, Ontario, or Canadian companies/policy
-1 = US or North American angle: NRC, US utilities, US nuclear policy, or American companies
-0 = International or no geographic specificity (IAEA, UK, France, Ukraine, etc.)
+1 = US or North American angle, OR no specific geography mentioned (article is industry-wide or technology-focused without naming a country)
+0 = Explicitly international focus only: IAEA, UK, France, Ukraine, Asia — no meaningful North American relevance
 
 NPX MENTION (0–1):
 1 = "NPX" or "Nuclear Promise X" appears anywhere in the article title or summary

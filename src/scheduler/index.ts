@@ -3,7 +3,44 @@ import { initLogger } from '../utils/logger.js';
 initLogger();
 import cron from 'node-cron';
 import { getPostsDueForPublishing, markPublished, incrementPublishFailures, cleanupRejectedPosts } from '../hitl/queue.js';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
+import path from 'path';
+
+// --- Single-instance lockfile guard ---
+const LOCK_FILE = path.resolve('scheduler.lock');
+
+function acquireLock(): void {
+  const myPid = process.pid;
+
+  if (existsSync(LOCK_FILE)) {
+    const raw = readFileSync(LOCK_FILE, 'utf-8').trim();
+    const existingPid = parseInt(raw, 10);
+    if (!isNaN(existingPid)) {
+      try {
+        process.kill(existingPid, 0); // probe — throws if process doesn't exist
+        console.error(`Another scheduler is already running (PID ${existingPid}). Exiting.`);
+        process.exit(1);
+      } catch {
+        // Stale lockfile — previous process is dead
+        console.warn(`Removing stale lockfile (PID ${existingPid} is gone).`);
+      }
+    }
+  }
+
+  writeFileSync(LOCK_FILE, String(myPid), 'utf-8');
+}
+
+function releaseLock(): void {
+  try {
+    const raw = readFileSync(LOCK_FILE, 'utf-8').trim();
+    if (parseInt(raw, 10) === process.pid) unlinkSync(LOCK_FILE);
+  } catch {}
+}
+
+acquireLock();
+process.on('exit', releaseLock);
+process.on('SIGINT', () => { releaseLock(); process.exit(0); });
+process.on('SIGTERM', () => { releaseLock(); process.exit(0); });
 
 function alreadyPostedToday(): boolean {
   if (!existsSync('posted_history.json')) return false;
@@ -16,10 +53,10 @@ function alreadyPostedToday(): boolean {
   }
 }
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
-import { startBot, sendAlert, sendMessage, setOnRejectHandler } from '../hitl/telegram.js';
+import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler } from '../hitl/telegram.js';
 import { runPipeline } from '../content/pipeline.js';
 import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
-import { runCommentPoll, type CommentPollOptions } from '../hitl/comment-poll.js';
+import { runCommentPoll, type CommentPollOptions, type CommentPollStats } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
 import { runOutboundPoll } from '../hitl/outbound-poll.js';
 
@@ -29,10 +66,10 @@ const GENERATE_MAX_RETRIES = 3;
 
 let isGenerating = false;
 
-async function runGenerate() {
+async function runGenerate(): Promise<'started' | 'already_running'> {
   if (isGenerating) {
     console.log('Pipeline already running — ignoring duplicate trigger.');
-    return;
+    return 'already_running';
   }
   isGenerating = true;
   console.log('Scheduler triggered — running pipeline...');
@@ -40,7 +77,7 @@ async function runGenerate() {
     for (let attempt = 1; attempt <= GENERATE_MAX_RETRIES; attempt++) {
       try {
         await runPipeline();
-        return;
+        return 'started';
       } catch (err: any) {
         const isOverloaded = err?.status === 529 || err?.error?.error?.type === 'overloaded_error';
         const isNetworkError = err?.code === 'ECONNRESET' || err?.code === 'ECONNREFUSED' || err?.code === 'ETIMEDOUT' || err?.type === 'system';
@@ -57,13 +94,14 @@ async function runGenerate() {
             `Error: ${err?.message ?? String(err)}\n\n` +
             `Run \`npm run generate\` manually to retry.`
           );
-          return;
+          return 'started';
         }
       }
     }
   } finally {
     isGenerating = false;
   }
+  return 'started';
 }
 
 async function publishDuePosts() {
@@ -106,6 +144,20 @@ async function publishDuePosts() {
 console.log('Atomic Authority scheduler starting...');
 startBot();
 setOnRejectHandler(runGenerate);
+setOnGenerateHandler(runGenerate);
+setOnPollHandler(() => runCommentPollGuarded());
+setOnOutboundHandler(async () => {
+  if (outboundPollRunning) throw new Error('Outbound poll already running — try again shortly.');
+  outboundPollRunning = true;
+  try {
+    await runOutboundPoll();
+  } catch (err) {
+    console.error('Outbound poll failed:', err);
+    throw err;
+  } finally {
+    outboundPollRunning = false;
+  }
+});
 
 // Generate a draft at 7pm Mon/Tue/Wed ET — approve that evening, posts next morning (Tue/Wed/Thu)
 cron.schedule('0 19 * * 1,2,3', async () => {
@@ -119,29 +171,55 @@ cron.schedule('* * * * *', async () => {
 
 // Daily maintenance at 8am ET: session check, metrics fetch, rejected post cleanup
 cron.schedule('0 8 * * *', async () => {
-  console.log('Running daily maintenance...');
-  cleanupRejectedPosts(90);
+  console.log('[maintenance] Starting daily maintenance...');
 
-  const valid = await pingSession();
-  if (!valid) {
-    console.warn('LinkedIn session expired — sending Telegram alert.');
+  console.log('[maintenance] Cleaning up rejected posts older than 90 days...');
+  try {
+    cleanupRejectedPosts(90);
+    console.log('[maintenance] Rejected post cleanup complete.');
+  } catch (err) {
+    console.error('[maintenance] Rejected post cleanup failed:', err);
+  }
+
+  console.log('[maintenance] Checking LinkedIn session...');
+  let sessionValid = false;
+  try {
+    sessionValid = await pingSession();
+  } catch (err) {
+    console.error('[maintenance] Session check failed:', err);
+  }
+
+  if (!sessionValid) {
+    console.warn('[maintenance] LinkedIn session expired — sending Telegram alert.');
     await sendAlert(
       'LinkedIn session has expired and needs to be renewed.\n\n' +
-      'Run the following in your terminal to re-authenticate:\n' +
+      'Send /login to this bot to open the browser directly, or run:\n' +
       '`LINKEDIN_HEADLESS=false npm run scheduler`'
     );
   } else {
-    console.log('LinkedIn session OK.');
-    console.log('Fetching engagement metrics...');
-    await runMetricsFetch().catch(err => console.error('Metrics fetch failed (non-fatal):', err));
+    console.log('[maintenance] LinkedIn session OK.');
+
+    console.log('[maintenance] Fetching engagement metrics...');
+    try {
+      await runMetricsFetch();
+      console.log('[maintenance] Metrics fetch complete.');
+    } catch (err) {
+      console.error('[maintenance] Metrics fetch failed (non-fatal):', err);
+    }
 
     // Send weekly report on Mondays
     if (new Date().getDay() === 1) {
-      await runWeeklyReport().catch(err => console.error('Weekly report failed (non-fatal):', err));
+      console.log('[maintenance] Sending weekly report...');
+      try {
+        await runWeeklyReport();
+        console.log('[maintenance] Weekly report sent.');
+      } catch (err) {
+        console.error('[maintenance] Weekly report failed (non-fatal):', err);
+      }
     }
-
-    console.log('Daily maintenance complete.');
   }
+
+  console.log('[maintenance] Daily maintenance complete.');
 }, { timezone: 'America/Toronto' });
 
 // --- Comment reply polling ---
@@ -163,13 +241,14 @@ function getMostRecentPostAge(): number | null {
 
 let commentPollRunning = false;
 
-async function runCommentPollGuarded(opts?: CommentPollOptions) {
-  if (commentPollRunning) return;
+async function runCommentPollGuarded(opts?: CommentPollOptions): Promise<CommentPollStats> {
+  if (commentPollRunning) return { postsChecked: 0, totalComments: 0, newComments: 0, error: 'already running' };
   commentPollRunning = true;
   try {
-    await runCommentPoll(undefined, opts);
-  } catch (err) {
-    console.error('Comment poll failed (non-fatal):', err);
+    return await runCommentPoll(undefined, opts);
+  } catch (err: any) {
+    console.error('Comment poll failed:', err);
+    return { postsChecked: 0, totalComments: 0, newComments: 0, error: err?.message ?? String(err) };
   } finally {
     commentPollRunning = false;
   }

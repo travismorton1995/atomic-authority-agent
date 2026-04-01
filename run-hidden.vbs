@@ -8,5 +8,5 @@ WshShell.Run "powershell -Command ""Get-WmiObject Win32_Process | Where-Object {
 WScript.Sleep 5000
 
 ' Launch the scheduler hidden (windowStyle 0 = hidden, bWaitOnReturn False = async)
-' Output is appended to scheduler.log for diagnostics
-WshShell.Run "cmd /c cd /d C:\dev\atomic-authority-agent && node node_modules/tsx/dist/cli.mjs src/scheduler/index.ts >> scheduler.log 2>&1", 0, False
+' Logging is handled by initLogger() in src/utils/logger.ts — no stdout redirect needed
+WshShell.Run "cmd /c cd /d C:\dev\atomic-authority-agent && node node_modules/tsx/dist/cli.mjs src/scheduler/index.ts", 0, False

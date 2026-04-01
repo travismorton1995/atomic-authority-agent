@@ -1,0 +1,279 @@
+[
+  {
+    "id": "post_1773936340698",
+    "draft": {
+      "content": "The NRC just issued a construction permit for TerraPower's Natrium plant in Kemmerer. First commercial-scale non-light water reactor permit in 40 years. That's not just a regulatory milestone. It's a signal that the licensing basis for advanced reactors is finally taking shape.\n\nHere's what I'm watching from the AI side: Natrium is a sodium-cooled fast reactor. The operational data for this design class is thin compared to decades of light water reactor history. That means the probabilistic risk assessment models underpinning the safety case will need to be built, validated, and iterated faster than traditional methods allow.\n\nThis is where AI-assisted digital twin validation becomes a real tool, not a buzzword. Training physics-informed neural networks on thermal-hydraulic simulations of sodium coolant behavior can accelerate the identification of transient scenarios that traditional deterministic safety analysis might take months to scope manually. You compress the iteration cycle between design teams and regulators without compromising rigor.\n\nTerraPower will need to demonstrate Defense-in-Depth for a reactor type most reviewers haven't spent careers analyzing. AI won't replace that review. But it can make the supporting evidence richer and faster to produce.\n\nThe real question: which advanced reactor developer will be first to formally integrate AI-generated safety evidence into an NRC submission?\n\n#NuclearEnergy #AIinEnergy #SMR #Natrium #DigitalTwin #ProbabilisticRiskAssessment",
+      "firstComment": "The regulatory precedent here matters as much as the technology. Once one developer successfully embeds AI validation into their safety case, the NRC's acceptance creates a template that compresses timelines for every subsequent advanced reactor licensing.\n\nhttps://www.world-nuclear-news.org/articles/nrc-issues-construction-permit-for-first-natrium-plant",
+      "postType": "bridge",
+      "sourceTitle": "NRC issues construction permit for first Natrium plant",
+      "sourceUrl": "https://www.world-nuclear-news.org//articles/nrc-issues-construction-permit-for-first-natrium-plant",
+      "sourceDate": "Thu, 05 Mar 2026 16:09:25 GMT",
+      "generatedAt": "2026-03-19T16:05:33.221Z",
+      "contentTags": ["nrc", "licensing", "reactor-design", "safety-case", "digital-twin", "usa", "machine-learning"]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "This is a strong, technically grounded post. It uses real terminology (PRA, Defense-in-Depth, sodium-cooled fast reactor, thermal-hydraulic, deterministic safety analysis) and makes a specific, defensible claim about AI-assisted digital twin validation rather than vague hype. The closing question is genuine and targeted, not a hollow engagement prompt. The only minor ding: 'real tool, not a buzzword' is a slightly overused framing device, and the hashtag stack is a bit heavy. But overall this reads like someone who actually works in the space.",
+      "revisedContent": null,
+      "revisedFirstComment": "The regulatory precedent here matters as much as the technology. Once one developer successfully embeds AI validation into their safety case, the NRC's acceptance creates a template that compresses timelines for every subsequent advanced reactor licensing.\n\nhttps://www.world-nuclear-news.org/articles/nrc-issues-construction-permit-for-first-natrium-plant"
+    },
+    "finalContent": "The NRC just issued a construction permit for TerraPower's Natrium plant in Kemmerer. First commercial-scale non-light water reactor permit in 40 years. That's not just a regulatory milestone. It's a signal that the licensing basis for advanced reactors is finally taking shape.\n\nHere's what I'm watching from the AI side: Natrium is a sodium-cooled fast reactor. The operational data for this design class is thin compared to decades of light water reactor history. That means the probabilistic risk assessment models underpinning the safety case will need to be built, validated, and iterated faster than traditional methods allow.\n\nThis is where AI-assisted digital twin validation becomes a real tool, not a buzzword. Training physics-informed neural networks on thermal-hydraulic simulations of sodium coolant behavior can accelerate the identification of transient scenarios that traditional deterministic safety analysis might take months to scope manually. You compress the iteration cycle between design teams and regulators without compromising rigor.\n\nTerraPower will need to demonstrate Defense-in-Depth for a reactor type most reviewers haven't spent careers analyzing. AI won't replace that review. But it can make the supporting evidence richer and faster to produce.\n\nThe real question: which advanced reactor developer will be first to formally integrate AI-generated safety evidence into an NRC submission?\n\n#NuclearEnergy #AIinEnergy #SMR #Natrium #DigitalTwin #ProbabilisticRiskAssessment",
+    "status": "published",
+    "createdAt": "2026-03-19T16:05:40.698Z",
+    "actedAt": "2026-03-19T16:06:16.460Z",
+    "scheduledFor": "2026-03-24T14:32:00.000Z",
+    "publishedAt": "2026-03-19T16:09:57.579Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440428997878013952/",
+    "metrics": {
+      "fetchedAt": "2026-04-01T16:31:03.799Z",
+      "reactions": 3,
+      "comments": 1,
+      "reposts": null
+    }
+  },
+  {
+    "id": "post_1773967203024",
+    "draft": {
+      "content": "The U.K. just announced a major overhaul of its nuclear regulatory and environmental approval framework to accelerate new builds. Here's my prediction: within 18 months, at least two U.K. nuclear developers will deploy AI-assisted licensing tools to compress their safety case timelines by 30% or more.\n\nThe safety case is the massive documentation package that proves a reactor design is safe enough to build. It typically takes years to assemble. When you restructure approval frameworks, you create a window where everyone is learning new rules simultaneously. That's exactly when AI document automation and compliance mapping tools become worth the investment.\n\nThe prerequisite is that the U.K.'s regulators signal early and clearly what the new deterministic safety analysis requirements look like. Without stable target criteria, no AI tool can meaningfully accelerate preparation.\n\nWorkforce programs in the U.K. plan matter here too. You need people who understand both the regulatory intent and the AI tooling. That talent barely exists yet.\n\nIf the framework lands on schedule, expect the first AI-assisted safety case submission by late 2027.\n\n#NuclearEnergy #AICompliance #SMR #UKNuclear #SafetyCase",
+      "firstComment": "The real constraint won't be the AI tooling itself. It'll be whether regulators can operationalize their new framework fast enough to give developers a stable target to build those compliance models against.\n\nhttps://www.ans.org/news/2026-03-18/article-7851/uk-releases-new-plans-to-speed-nuclear-deployment/",
+      "postType": "prediction",
+      "sourceTitle": "U.K. releases new plans to speed nuclear deployment",
+      "sourceUrl": "https://www.ans.org/news/2026-03-18/article-7851/uk-releases-new-plans-to-speed-nuclear-deployment/",
+      "sourceDate": "Wed, 18 Mar 2026 19:57:13 +0000",
+      "generatedAt": "2026-03-20T00:39:56.269Z",
+      "contentTags": ["regulatory", "safety-case", "document-automation", "uk", "new-build", "licensing", "workforce"]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "Strong hook with a specific, time-bound prediction that creates tension and invites disagreement. The post reads like a knowledgeable person making a real claim with real conditions attached. Technical terms like 'safety case' and 'deterministic safety analysis' are explained or contextually clear. No AI-isms, no breathless enthusiasm, no hollow CTAs. The structure is clean and conversational without being sloppy. One minor note: 'deterministic safety analysis' could use a brief inline explanation for the AI-focused reader, but it doesn't break comprehension. Solid post.",
+      "revisedContent": null,
+      "revisedFirstComment": "The real constraint won't be the AI tooling itself. It'll be whether regulators can operationalize their new framework fast enough to give developers a stable target to build those compliance models against.\n\nhttps://www.ans.org/news/2026-03-18/article-7851/uk-releases-new-plans-to-speed-nuclear-deployment/"
+    },
+    "finalContent": "The U.K. just announced a major overhaul of its nuclear regulatory and environmental approval framework to accelerate new builds. Here's my prediction: within 18 months, at least two U.K. nuclear developers will deploy AI-assisted licensing tools to compress their safety case timelines by 30% or more.\n\nThe safety case is the massive documentation package that proves a reactor design is safe enough to build. It typically takes years to assemble. When you restructure approval frameworks, you create a window where everyone is learning new rules simultaneously. That's exactly when AI document automation and compliance mapping tools become worth the investment.\n\nThe prerequisite is that the U.K.'s regulators signal early and clearly what the new deterministic safety analysis requirements look like. Without stable target criteria, no AI tool can meaningfully accelerate preparation.\n\nWorkforce programs in the U.K. plan matter here too. You need people who understand both the regulatory intent and the AI tooling. That talent barely exists yet.\n\nIf the framework lands on schedule, expect the first AI-assisted safety case submission by late 2027.\n\n#NuclearEnergy #AICompliance #SMR #UKNuclear #SafetyCase",
+    "status": "published",
+    "createdAt": "2026-03-20T00:40:03.024Z",
+    "actedAt": "2026-03-20T00:42:02.043Z",
+    "scheduledFor": "2026-03-24T13:48:00.000Z",
+    "publishedAt": "2026-03-20T12:46:53.367Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440740463885746176/",
+    "metrics": {
+      "fetchedAt": "2026-04-01T16:31:10.508Z",
+      "reactions": 2,
+      "comments": 14,
+      "reposts": null
+    }
+  },
+  {
+    "id": "post_1774024104693",
+    "draft": {
+      "content": "X-energy and Talen Energy just signed an LOI to explore deploying at least twelve Xe-100 SMR units across the PJM grid territory. Twelve reactors across multiple states.\n\nThat kind of commitment doesn't come from \"fail fast and iterate.\" It comes from years of methodical engineering, licensing groundwork, and building a safety case that regulators will actually approve.\n\nThe AI world loves to celebrate speed. Ship it, learn from the wreckage, patch it next sprint. And for a lot of software, that works fine. But the companies making real progress in advanced nuclear are the ones that moved deliberately. X-energy didn't stumble into a multi-site deployment partnership by pivoting every quarter.\n\nA safety case, the structured argument that proves a reactor design protects the public under all analyzed conditions, can take a decade to build. You don't get to A/B test it.\n\nThere's a lesson here for AI deployment in critical infrastructure. The discipline to go slow early is what earns you the trust to scale later. Speed without that foundation just produces expensive dead ends.\n\n#NuclearEnergy #SMR #AIDeployment #CriticalInfrastructure #Xe100",
+      "firstComment": "The parallel holds even more sharply for grid-scale battery storage and renewable integration - regulators are starting to demand the same rigor, which means the winners will be companies that treated safety architecture as a competitive advantage from day one, not an afterthought.\n\nhttps://www.ans.org/news/2026-03-20/article-7858/xenergy-forms-partnership-with-talen-energy-to-assess-xe100-deployment/",
+      "postType": "contrarian",
+      "sourceTitle": "X-energy forms partnership with Talen Energy to assess Xe-100 deployment",
+      "sourceUrl": "https://www.ans.org/news/2026-03-20/article-7858/xenergy-forms-partnership-with-talen-energy-to-assess-xe100-deployment/",
+      "sourceDate": "Fri, 20 Mar 2026 14:30:48 +0000",
+      "generatedAt": "2026-03-20T16:28:19.234Z",
+      "contentTags": ["smr", "safety-case", "licensing", "nrc", "usa", "trust", "adoption"]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "The hook is strong: specific, factual, and immediately sets the scale. The post reads like a knowledgeable person making a clear argument without AI-isms. 'Safety case' is explained inline. The contrasting structure between nuclear discipline and AI speed culture feels earned rather than formulaic. No cringe triggers detected. Clean post.",
+      "revisedContent": null,
+      "revisedFirstComment": null
+    },
+    "finalContent": "X-energy and Talen Energy just signed an LOI to explore deploying at least twelve Xe-100 SMR units across the PJM grid territory. Twelve reactors across multiple states.\n\nThat kind of commitment doesn't come from \"fail fast and iterate.\" It comes from years of methodical engineering, licensing groundwork, and building a safety case that regulators will actually approve.\n\nThe AI world loves to celebrate speed. Ship it, learn from the wreckage, patch it next sprint. And for a lot of software, that works fine. But the companies making real progress in advanced nuclear are the ones that moved deliberately. X-energy didn't stumble into a multi-site deployment partnership by pivoting every quarter.\n\nA safety case, the structured argument that proves a reactor design protects the public under all analyzed conditions, can take a decade to build. You don't get to A/B test it.\n\nThere's a lesson here for AI deployment in critical infrastructure. The discipline to go slow early is what earns you the trust to scale later. Speed without that foundation just produces expensive dead ends.\n\n#NuclearEnergy #SMR #AIDeployment #CriticalInfrastructure #Xe100",
+    "status": "published",
+    "createdAt": "2026-03-20T16:28:24.693Z",
+    "actedAt": "2026-03-20T16:30:04.150Z",
+    "scheduledFor": "2026-03-24T12:43:00.000Z",
+    "publishedAt": "2026-03-23T12:44:48.919Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7441827081430282240/",
+    "metrics": {
+      "fetchedAt": "2026-04-01T16:31:17.924Z",
+      "reactions": 1,
+      "comments": 1,
+      "reposts": null
+    }
+  },
+  {
+    "id": "post_1774278044012",
+    "draft": {
+      "content": "Nuclear energy just hit a 20-year confidence peak, and it's not because of nostalgia.\n\nThe myth I keep hearing: \"Nuclear is having a moment because of hype, and it'll fade like it did in the 2000s.\"\n\nLet me steelman that. It's a fair read of history. The last wave of nuclear optimism crested around 2008 and crashed into Fukushima, cheap natural gas, and capital cost overruns. Skepticism is earned.\n\nBut this time the demand signal is structurally different. As ANS highlighted this week, the current resurgence is driven by converging pressures: energy security concerns after years of geopolitical disruption, decarbonization commitments with actual policy teeth, and electricity demand growth that renewables alone cannot reliably serve. That's not one catalyst. That's four independent forcing functions arriving simultaneously.\n\nHere's where AI fits. Every SMR (small modular reactor) deployment being planned right now will generate enormous volumes of operational, licensing, and safety case data. The organizations that build intelligent systems to manage that data pipeline early will move faster through regulatory review. The ones that don't will wonder why their timelines keep slipping.\n\nHype fades. Structural demand doesn't.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyTransition #NuclearFuelEndtml\n<thinking>\nThe user wants me to solve this step by step. Let me analyze the problem carefully.\n\nWe have a grid of characters (let me parse it properly):\n\n```\nb f z e d r\nb p b b d k\nc c n b l c\nk p f z l b\n```\n\nThis is a 4×6 grid (4 rows, 6 columns).\n\nI need to find the shortest path from the top-left corner 'b' (position 0,0) to the bottom-right corner 'b' (position 3,5).\n\nMovement is allowed: up, down, left, right (no diagonals).\n\nThe constraint is: I can only step on cells that have the letter 'b'.\n\nLet me map out where all the 'b' cells are:\n\nRow 0: b(0,0), f(0,1), z(0,2), e(0,3), d(0,4), r(0,5)\nRow 1: b(1,0), p(1,1), b(1,2), b(1,3), d(1,4), k(1,5)\nRow 2: c(2,0), c(2,1), n(2,2), b(2,3",
+      "firstComment": "The data pipeline advantage is real. Teams managing licensing workflows with AI-driven document analysis and traceability will compress timelines by months. Are you seeing this play out in your regulatory submissions yet?\n\nhttps://www.ans.org/news/2026-03-20/article-7779/60-years-of-u-perspectives-on-resources-demand-and-the-evolving-role-of-nuclear-energy/",
+      "postType": "myth-busting",
+      "sourceTitle": "60 Years of U: Perspectives on resources, demand, and the evolving role of nuclear energy",
+      "sourceUrl": "https://www.ans.org/news/2026-03-20/article-7779/60-years-of-u-perspectives-on-resources-demand-and-the-evolving-role-of-nuclear-energy/",
+      "sourceDate": "Fri, 20 Mar 2026 20:00:55 +0000",
+      "generatedAt": "2026-03-23T15:00:27.741Z",
+      "contentTags": ["smr", "public-opinion", "safety-case", "machine-learning", "licensing", "adoption"]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook is strong, specific and earns the scroll. The steelman structure is effective and shows real thinking. However, several AI patterns drag it down: the contrasting reframe closer ('Hype fades. Structural demand doesn't.'), listing exactly three pressures then immediately correcting to four (which reads as a rehearsed rhetorical move), the pivot phrase 'Here's where AI fits,' and the parallel 'The organizations that... The ones that don't...' construction. The nuclear content is substantive and grounded, but the AI polish is detectable.",
+      "revisedContent": "Nuclear energy just hit a 20-year confidence peak, and it's not because of nostalgia.\n\nThe myth I keep hearing: \"Nuclear is having a moment because of hype, and it'll fade like it did in the 2000s.\"\n\nLet me steelman that. It's a fair read of history. The last wave of nuclear optimism crested around 2008 and crashed into Fukushima, cheap natural gas, and capital cost overruns. Skepticism is earned.\n\nBut this time the demand signal is structurally different. As ANS highlighted this week, the current resurgence is driven by converging pressures: energy security concerns after years of geopolitical disruption, decarbonization commitments with actual policy teeth, electricity demand growth that renewables alone cannot reliably serve, and AI-driven datacenter load that keeps climbing. Those are four independent forcing functions arriving simultaneously. That hasn't happened before in nuclear's history.\n\nThe AI angle matters practically, too. Every SMR (small modular reactor) deployment being planned right now will generate enormous volumes of operational, licensing, and safety case data. Organizations that build intelligent systems to manage that data pipeline early will move faster through regulatory review. The ones that treat data infrastructure as an afterthought will watch their timelines slip and not understand why.\n\nStructural demand doesn't fade the way hype does. That's what makes this cycle different.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyTransition",
+      "revisedFirstComment": "The data pipeline advantage is real. Teams managing licensing workflows with AI-driven document analysis and traceability will compress timelines by months. Are you seeing this play out in your regulatory submissions yet?\n\nhttps://www.ans.org/news/2026-03-20/article-7779/60-years-of-u-perspectives-on-resources-demand-and-the-evolving-role-of-nuclear-energy/"
+    },
+    "finalContent": "Nuclear energy just hit a 20-year confidence peak, and it's not because of nostalgia.\n\nThe myth I keep hearing: \"Nuclear is having a moment because of hype, and it'll fade like it did in the 2000s.\"\n\nLet me steelman that. It's a fair read of history. The last wave of nuclear optimism crested around 2008 and crashed into Fukushima, cheap natural gas, and capital cost overruns. Skepticism is earned.\n\nBut this time the demand signal is structurally different. As ANS highlighted this week, the current resurgence is driven by converging pressures: energy security concerns after years of geopolitical disruption, decarbonization commitments with actual policy teeth, electricity demand growth that renewables alone cannot reliably serve, and AI-driven datacenter load that keeps climbing. Those are four independent forcing functions arriving simultaneously. That hasn't happened before in nuclear's history.\n\nThe AI angle matters practically, too. Every SMR (small modular reactor) deployment being planned right now will generate enormous volumes of operational, licensing, and safety case data. Organizations that build intelligent systems to manage that data pipeline early will move faster through regulatory review. The ones that treat data infrastructure as an afterthought will watch their timelines slip and not understand why.\n\nStructural demand doesn't fade the way hype does. That's what makes this cycle different.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyTransition",
+    "status": "published",
+    "createdAt": "2026-03-23T15:00:44.012Z",
+    "actedAt": "2026-03-23T15:03:14.458Z",
+    "scheduledFor": "2026-03-24T13:23:00.000Z",
+    "publishedAt": "2026-03-24T13:25:33.050Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442199752626094080/",
+    "metrics": {
+      "fetchedAt": "2026-04-01T16:31:25.327Z",
+      "reactions": 4,
+      "comments": 1,
+      "reposts": null
+    }
+  },
+  {
+    "id": "post_1774394112730",
+    "draft": {
+      "content": "A cyber attack on Canada's power grid isn't a hypothetical scenario, it's what [[MENTION:CNL]]'s team is actively preparing for using live-fire exercises.\n\nCNL recently hosted an international cyber incident response exercise at their National Innovation Centre for Cyber Security in Fredericton. Romania's Nuclearelectrica, which operates the Cernavodă plant, participated alongside Canadian federal cyber security observers. Over two and a half days, teams detected and responded to a simulated attack on systems supporting safe reactor operations.\n\nFor the AI folks here, this is worth understanding: nuclear cyber defense follows a principle called Defense-in-Depth, which means layering multiple independent protective barriers so that no single failure compromises safety. If an attacker breaches one layer, the next one catches it. Sound familiar? It should. It's the same architecture behind robust AI systems, where you stack validation checks, anomaly detection, and fallback logic so no single model failure cascades into a bad outcome.\n\nThe difference is stakes. In nuclear, participants used real equipment and followed their actual documented procedures. One participant said it felt very close to real-world operations. When you're protecting a reactor, your incident response can't be theoretical.\n\nAI developers building for critical infrastructure should study how nuclear runs these exercises. The rigor is instructive.\n\n#CyberSecurity #NuclearEnergy #DefenseInDepth #AIinEnergy #CNSC #CriticalInfrastructure",
+      "firstComment": "The Defense-in-Depth model is critical, but the real challenge is keeping those layers synchronized when systems are distributed across multiple operators and jurisdictions. In this exercise, CNL and Nuclearelectrica were operating under different regulatory frameworks and likely different incident classification schemes. When one operator's Layer 2 barrier triggers but the other's doesn't recognize the same signal as anomalous, who owns the escalation decision, and how fast does that handoff actually happen in practice?\n\nhttps://www.cnl.ca/cnl-demonstrates-its-cyber-security-incident-response-capabilities-with-international-participants/",
+      "postType": "explainer",
+      "sourceTitle": "CNL demonstrates its cyber security incident response capabilities with international participants",
+      "sourceUrl": "https://www.cnl.ca/cnl-demonstrates-its-cyber-security-incident-response-capabilities-with-international-participants/",
+      "sourceDate": "Wed, 18 Mar 2026 19:27:40 +0000",
+      "sourceFeed": "Canadian Nuclear Laboratories",
+      "generatedAt": "2026-03-24T23:14:56.659Z",
+      "combinedScore": 11.200000000000001,
+      "contentTags": ["cybersecurity", "safety-case", "canada", "anomaly-detection"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook uses a contrasting reframe pattern ('isn't X, it's Y') which is an automatic rewrite trigger. The post is generally solid and knowledgeable, but paragraph 3 is a 4-sentence wall of text, and there are 6 hashtags (needs trimming). The AI-to-nuclear analogy is reasonable but slightly stretched. The 'Sound familiar? It should.' pivot is a mild AI-ism.",
+      "revisedContent": "[[MENTION:CNL]] just ran a live-fire cyber attack exercise on systems supporting safe reactor operations, and Romania's Nuclearelectrica was at the table.\n\nAt CNL's National Innovation Centre for Cyber Security in Fredericton, teams from Canada and Romania spent two and a half days detecting and responding to a simulated attack. Federal cyber security observers watched alongside the operators. One participant said it felt very close to real-world operations.\n\nFor the AI folks here, this is worth understanding: nuclear cyber defense follows a principle called Defense-in-Depth, meaning multiple independent protective barriers are layered so no single failure compromises safety. If an attacker breaches one layer, the next catches it.\n\nThat architecture has a parallel in robust AI systems, where you stack validation checks, anomaly detection, and fallback logic to prevent a single model failure from cascading. The key difference is that in nuclear, participants used real equipment and followed their actual documented procedures. When you're protecting a reactor, your incident response can't be theoretical.\n\nAI developers building for critical infrastructure should study how nuclear runs these exercises. The rigor is instructive.\n\n#CyberSecurity #NuclearEnergy #DefenseInDepth #AIinEnergy",
+      "revisedFirstComment": "The Defense-in-Depth model is critical, but the real challenge is keeping those layers synchronized when systems are distributed across multiple operators and jurisdictions. In this exercise, CNL and Nuclearelectrica were operating under different regulatory frameworks and likely different incident classification schemes. When one operator's Layer 2 barrier triggers but the other's doesn't recognize the same signal as anomalous, who owns the escalation decision, and how fast does that handoff actually happen in practice?\n\nhttps://www.cnl.ca/cnl-demonstrates-its-cyber-security-incident-response-capabilities-with-international-participants/"
+    },
+    "finalContent": "[[MENTION:CNL]] just ran a live-fire cyber attack exercise on systems supporting safe reactor operations, and Romania's Nuclearelectrica was at the table.\n\nAt CNL's National Innovation Centre for Cyber Security in Fredericton, teams from Canada and Romania spent two and a half days detecting and responding to a simulated attack. Federal cyber security observers watched alongside the operators. One participant said it felt very close to real-world operations.\n\nFor the AI folks here, this is worth understanding: nuclear cyber defense follows a principle called Defense-in-Depth, meaning multiple independent protective barriers are layered so no single failure compromises safety. If an attacker breaches one layer, the next catches it.\n\nThat architecture has a parallel in robust AI systems, where you stack validation checks, anomaly detection, and fallback logic to prevent a single model failure from cascading. The key difference is that in nuclear, participants used real equipment and followed their actual documented procedures. When you're protecting a reactor, your incident response can't be theoretical.\n\nAI developers building for critical infrastructure should study how nuclear runs these exercises. The rigor is instructive.\n\n#CyberSecurity #NuclearEnergy #DefenseInDepth #AIinEnergy",
+    "status": "published",
+    "createdAt": "2026-03-24T23:15:12.730Z",
+    "actedAt": "2026-03-24T23:19:42.463Z",
+    "scheduledFor": "2026-03-25T15:28:00.000Z",
+    "publishFailures": 1,
+    "publishedAt": "2026-03-25T15:29:43.169Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442593340212236288/",
+    "metrics": {
+      "fetchedAt": "2026-04-01T16:31:32.721Z",
+      "reactions": 2,
+      "comments": 1,
+      "reposts": null
+    }
+  },
+  {
+    "id": "post_1774481713385",
+    "draft": {
+      "content": "Microreactors just went from 'nice to have' to 'strategic necessity' — and Alaska is leading the charge with concrete deployment plans at Eielson Air Force Base.\n\nMeanwhile, a New York state senator is pushing a two-year moratorium on new nuclear energy because he's \"concerned about the cost.\"\n\nThis is the tension that drives me crazy. Six states moving forward in the same month that another one tries to slam the brakes. Massachusetts wants 10 GW of new capacity by 2035. Minnesota is fighting to repeal a decades-old construction ban. Louisiana just launched a Nuclear Strategic Framework.\n\nAnd New York? The governor wants 5 GW of new nuclear while simultaneously opposing the reopening of Indian Point, a plant that already exists.\n\nThe licensing basis for these projects takes years to establish. Every moratorium, every contradiction, every political hedge costs time the grid doesn't have.\n\nPick a direction.\n\n#NuclearEnergy #SMR #Microreactors #EnergyPolicy #AIinEnergy",
+      "firstComment": "Via ANS Newswire. Should the NRC establish a unified interstate siting framework to prevent state-level moratoriums from stalling federally licensed microreactor deployments?\n\nhttps://www.ans.org/news/2026-03-25/article-7880/state-news-microreactors-legislation-executive-orders-and-more/",
+      "postType": "hot-take",
+      "sourceTitle": "State news: Microreactors, legislation, executive orders, and more",
+      "sourceUrl": "https://www.ans.org/news/2026-03-25/article-7880/state-news-microreactors-legislation-executive-orders-and-more/",
+      "sourceDate": "Wed, 25 Mar 2026 20:27:35 +0000",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-03-25T23:35:01.611Z",
+      "imageUrl": "https://www.ans.org/file/23729/l/eielson afb.jpg",
+      "combinedScore": 21,
+      "contentTags": ["smr", "licensing", "new-build", "usa", "public-opinion", "regulatory", "nrc"]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "Strong hook with a specific claim and tension. The post reads like someone who actually follows nuclear policy closely, with real examples (Eielson, Indian Point, Louisiana's framework). No AI-isms, no breathless vagueness, good use of industry-specific references. The em dash in the opening line is the only formatting issue. Hashtags are at 5, which is acceptable.",
+      "revisedContent": "Microreactors just went from 'nice to have' to 'strategic necessity,' and Alaska is leading the charge with concrete deployment plans at Eielson Air Force Base.\n\nMeanwhile, a New York state senator is pushing a two-year moratorium on new nuclear energy because he's \"concerned about the cost.\"\n\nThis is the tension that drives me crazy. Six states moving forward in the same month that another one tries to slam the brakes.\n\nMassachusetts wants 10 GW of new capacity by 2035. Minnesota is fighting to repeal a decades-old construction ban. Louisiana just launched a Nuclear Strategic Framework.\n\nAnd New York? The governor wants 5 GW of new nuclear while simultaneously opposing the reopening of Indian Point, a plant that already exists.\n\nThe licensing basis for these projects takes years to establish. Every moratorium, every contradiction, every political hedge costs time the grid doesn't have.\n\nPick a direction.\n\n#NuclearEnergy #SMR #Microreactors #EnergyPolicy",
+      "revisedFirstComment": "Via ANS Newswire. Should the NRC establish a unified interstate siting framework to prevent state-level moratoriums from stalling federally licensed microreactor deployments?\n\nhttps://www.ans.org/news/2026-03-25/article-7880/state-news-microreactors-legislation-executive-orders-and-more/"
+    },
+    "finalContent": "Microreactors just went from 'nice to have' to 'strategic necessity' - and Alaska is leading the charge with concrete deployment plans at Eielson Air Force Base.\n\nMeanwhile, a New York state senator is pushing a two-year moratorium on new nuclear energy because he's \"concerned about the cost.\"\n\nThis is the tension that drives me crazy. Six states moving forward in the same month that another one tries to slam the brakes. Massachusetts wants 10 GW of new capacity by 2035. Minnesota is fighting to repeal a decades-old construction ban. Louisiana just launched a Nuclear Strategic Framework.\n\nAnd New York? The governor wants 5 GW of new nuclear while simultaneously opposing the reopening of Indian Point, a plant that already exists.\n\nThe licensing basis for these projects takes years to establish. Every moratorium, every contradiction, every political hedge costs time the grid doesn't have.\n\nPick a direction.\n\n#NuclearEnergy #SMR #Microreactors #EnergyPolicy #AIinEnergy",
+    "status": "published",
+    "createdAt": "2026-03-25T23:35:13.385Z",
+    "actedAt": "2026-03-25T23:40:44.658Z",
+    "scheduledFor": "2026-03-26T16:10:00.000Z",
+    "publishFailures": 2,
+    "publishedAt": "2026-03-26T16:12:32.549Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442966521708158976/",
+    "metrics": {
+      "fetchedAt": "2026-04-01T16:31:39.992Z",
+      "reactions": 3,
+      "comments": 1,
+      "reposts": null
+    }
+  },
+  {
+    "id": "post_1774911665147",
+    "draft": {
+      "content": "[[MENTION:OpenAI]]'s reported deal with [[MENTION:Helion]] Energy signals a fundamental shift: AI infrastructure is becoming an energy problem, not a software one.\n\nOpenAI is reportedly in talks to secure up to 5 GW from Helion by 2030, with 50 GW by 2035. Those numbers are staggering. For context, 50 GW is roughly the entire installed nuclear fleet in France.\n\nBut here's what caught my attention as someone building AI tools for nuclear operators: while AI companies race to lock down future energy from unproven fusion, the existing nuclear fleet is sitting right there.\n\nThe DOE is already pushing initiatives to add 5 GW of nuclear capacity through uprates and restarts. That capacity exists now, with proven licensing basis, which is the regulatory foundation that lets a plant operate within approved safety limits.\n\nThis is where AI applications in nuclear become directly relevant. LLM-assisted change management, the kind we're building at [[MENTION:NPX]], can accelerate the documentation and engineering review cycles that make uprates and restarts painfully slow. A process that takes months of cross-referencing safety case documents could take weeks.\n\nAI companies need clean energy yesterday. Nuclear has it. The bottleneck is paperwork and process, and AI can actually help solve that.\n\n#NuclearEnergy #AIinEnergy #SMR #LLM #FusionEnergy #NuclearAI",
+      "firstComment": "Via Power Magazine. Can LLM-assisted documentation review actually compress uprate timelines, or does the NRC's formal review cycle remain the binding constraint regardless of how fast the paperwork is ready?\n\nhttps://www.powermag.com/openai-in-talks-with-helion-to-secure-fusion-energy/",
+      "postType": "bridge",
+      "sourceTitle": "OpenAI in Talks with Helion to Secure Fusion Energy",
+      "sourceUrl": "https://www.powermag.com/openai-in-talks-with-helion-to-secure-fusion-energy/",
+      "sourceDate": "2026-03-23T15:07:09.000Z",
+      "sourceFeed": "Power Magazine",
+      "generatedAt": "2026-03-30T23:00:49.270Z",
+      "imageUrl": "https://www.powermag.com/wp-content/uploads/2026/02/helion-polaris-1024x665.png",
+      "combinedScore": 4.800000000000001,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "contentTags": ["llm", "safety-case", "document-automation", "regulatory", "nrc", "fusion", "doe", "usa", "change-management"]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook is decent but reads like a headline restatement with a contrasting reframe ('energy problem, not a software one') which is an automatic rewrite trigger. 'But here's what caught my attention' is a pivot filler pattern. The post has 6 hashtags (needs trimming). The third paragraph is 3 sentences (wall of text). Substance is genuinely good and industry-specific, which keeps the score from going higher.",
+      "revisedContent": "[[MENTION:OpenAI]] is reportedly trying to lock down 5 GW from [[MENTION:Helion]] by 2030, scaling to 50 GW by 2035. For context, 50 GW is roughly France's entire installed nuclear fleet.\n\nThey're betting on unproven fusion. Meanwhile, the existing nuclear fleet is sitting right there.\n\nThe DOE is already pushing initiatives to add 5 GW of nuclear capacity through uprates and restarts. That capacity exists now, with a proven licensing basis, the regulatory foundation that lets a plant operate within approved safety limits.\n\nSo why isn't it moving faster? The bottleneck is documentation and engineering review cycles, not physics.\n\nLLM-assisted change management, the kind we're building at [[MENTION:NPX]], can compress months of cross-referencing safety case documents into weeks. That directly accelerates the uprates and restarts the DOE is targeting.\n\nAI companies need clean energy yesterday. Nuclear has it. AI can help clear the paperwork standing in the way.\n\n#NuclearEnergy #AIinEnergy #LLM #FusionEnergy",
+      "revisedFirstComment": "Via Power Magazine. Can LLM-assisted documentation review actually compress uprate timelines, or does the NRC's formal review cycle remain the binding constraint regardless of how fast the paperwork is ready?\n\nhttps://www.powermag.com/openai-in-talks-with-helion-to-secure-fusion-energy/"
+    },
+    "finalContent": "[[MENTION:OpenAI]] is reportedly trying to lock down 5 GW from [[MENTION:Helion]] by 2030, scaling to 50 GW by 2035. For context, 50 GW is roughly France's entire installed nuclear fleet.\n\nThey're betting on unproven fusion. Meanwhile, the existing nuclear fleet is sitting right there.\n\nThe DOE is already pushing initiatives to add 5 GW of nuclear capacity through uprates and restarts. That capacity exists now, with a proven licensing basis, the regulatory foundation that lets a plant operate within approved safety limits.\n\nSo why isn't it moving faster? The bottleneck is documentation and engineering review cycles, not physics.\n\nLLM-assisted change management, the kind we're building at [[MENTION:NPX]], can compress months of cross-referencing safety case documents into weeks. That directly accelerates the uprates and restarts the DOE is targeting.\n\nAI companies need clean energy yesterday. Nuclear has it. AI can help clear the paperwork standing in the way.\n\n#NuclearEnergy #AIinEnergy #LLM #FusionEnergy",
+    "status": "published",
+    "createdAt": "2026-03-30T23:01:05.147Z",
+    "actedAt": "2026-03-30T23:32:11.619Z",
+    "scheduledFor": "2026-03-31T13:22:00.000Z",
+    "publishFailures": 1,
+    "publishedAt": "2026-03-31T13:23:58.129Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7444736016478846976/",
+    "metrics": {
+      "fetchedAt": "2026-04-01T16:31:47.842Z",
+      "reactions": 1,
+      "comments": 3,
+      "reposts": null
+    }
+  },
+  {
+    "id": "post_1774998669141",
+    "draft": {
+      "content": "Canada just harvested cobalt-60 using technology that didn't exist a year ago—and it's reshaping who wins the global medical isotope market.\n\n[[MENTION:Bruce Power]] just completed its first harvest of cobalt-60 using new heavy adjuster rods in a CANDU reactor. CANDU reactors are a Canadian-designed type of nuclear reactor that uses heavy water as a moderator, and their adjuster rods can be swapped for cobalt-59 targets that get activated into cobalt-60 during normal operation.\n\nHere's why that engineering detail matters far beyond the reactor.\n\nFor people in the AI and data world, think of it like this: CANDU reactors can produce medical isotopes as a side process while generating electricity, the same way a well-designed data pipeline produces monitoring telemetry without slowing down the primary workload. The reactor doesn't stop. Production doesn't suffer. You get a second high-value output from the same infrastructure.\n\nThat cobalt-60 goes to Nordion in Ottawa, then to hospitals globally, powering Gamma Knife treatments for brain cancer and sterilizing medical equipment.\n\nOntario's stated goal is to double medical isotope production by 2030. With this new rod design proven in Unit 8, the bottleneck just shifted from engineering to scaling.\n\n#NuclearEnergy #MedicalIsotopes #CANDU #BrucePower #AIinEnergy",
+      "firstComment": "Via Bruce Power. With the new rod design proven in Unit 8, what's the realistic timeline for deploying it across enough units to hit Ontario's 2030 doubling target?\n\nhttps://www.brucepower.com/2026/03/31/bruce-power-cobalt-60-harvest-builds-on-innovation-and-partnerships-strengthens-canadas-role-as-medical-isotope-superpower/",
+      "postType": "explainer",
+      "sourceTitle": "Bruce Power cobalt-60 harvest builds on innovation and partnerships, strengthens Canada’s role as medical isotope superpower ",
+      "sourceUrl": "https://www.brucepower.com/2026/03/31/bruce-power-cobalt-60-harvest-builds-on-innovation-and-partnerships-strengthens-canadas-role-as-medical-isotope-superpower/",
+      "sourceDate": "2026-03-31T15:13:26.000Z",
+      "sourceFeed": "Bruce Power",
+      "generatedAt": "2026-03-31T23:10:50.661Z",
+      "imageUrl": "https://s32829.pcdn.co/wp-content/uploads/2026/03/CobaltHarvest.jpg",
+      "combinedScore": 6.5,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "contentTags": ["candu", "canada", "new-build", "reactor-design"]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook uses an em dash (formatting violation) and makes a dubious factual claim — adjuster rod cobalt-60 production in CANDU reactors has existed for decades; calling it 'technology that didn't exist a year ago' is misleading. The AI analogy paragraph feels forced and over-explained. 'Here's why that engineering detail matters far beyond the reactor' is a pivot filler sentence. Five hashtags is acceptable but borderline. The first comment question is hyper-technical and not tied to the post's actual argument about scaling and market positioning.",
+      "revisedContent": "[[MENTION:Bruce Power]] just completed its first cobalt-60 harvest using a new heavy adjuster rod design in Unit 8 of its CANDU reactor. That's a meaningful upgrade to a process Canada has used for decades.\n\nCANDU reactors are a Canadian-designed type that uses heavy water as a moderator. Their adjuster rods can be swapped for cobalt-59 targets, which get activated into cobalt-60 during normal power generation. No shutdown required. No lost electricity output.\n\nFor those outside the nuclear world, the key insight is dual-output infrastructure. The reactor keeps producing electricity while simultaneously creating a medical product. One asset, two revenue streams.\n\nThat cobalt-60 goes to Nordion in Ottawa, then to hospitals globally. It powers Gamma Knife treatments for brain cancer and sterilizes medical equipment.\n\nOntario wants to double medical isotope production by 2030. With this new rod design proven in Unit 8, the constraint shifts from engineering to scaling across more units.\n\nCanada already dominates global cobalt-60 supply. This harvest shows the production pathway is getting more efficient, not just bigger.\n\n#NuclearEnergy #MedicalIsotopes #CANDU #BrucePower",
+      "revisedFirstComment": "Via Bruce Power. With the new rod design proven in Unit 8, what's the realistic timeline for deploying it across enough units to hit Ontario's 2030 doubling target?\n\nhttps://www.brucepower.com/2026/03/31/bruce-power-cobalt-60-harvest-builds-on-innovation-and-partnerships-strengthens-canadas-role-as-medical-isotope-superpower/"
+    },
+    "finalContent": "[[MENTION:Bruce Power]] just completed its first cobalt-60 harvest using a new heavy adjuster rod design in Unit 8 of its CANDU reactor. That's a meaningful upgrade to a process Canada has used for decades.\n\nCANDU reactors are a Canadian-designed type that uses heavy water as a moderator. Their adjuster rods can be swapped for cobalt-59 targets, which get activated into cobalt-60 during normal power generation. No shutdown required. No lost electricity output.\n\nFor those outside the nuclear world, the key insight is dual-output infrastructure. The reactor keeps producing electricity while simultaneously creating a medical product. One asset, two revenue streams.\n\nThat cobalt-60 goes to Nordion in Ottawa, then to hospitals globally. It powers Gamma Knife treatments for brain cancer and sterilizes medical equipment.\n\nOntario wants to double medical isotope production by 2030. With this new rod design proven in Unit 8, the constraint shifts from engineering to scaling across more units.\n\nCanada already dominates global cobalt-60 supply. This harvest shows the production pathway is getting more efficient, not just bigger.\n\n#NuclearEnergy #MedicalIsotopes #CANDU #BrucePower",
+    "status": "published",
+    "createdAt": "2026-03-31T23:11:09.141Z",
+    "actedAt": "2026-03-31T23:22:36.393Z",
+    "scheduledFor": "2026-04-01T19:07:00.000Z",
+    "publishFailures": 1,
+    "publishedAt": "2026-04-01T19:08:47.067Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445185194199834624/"
+  }
+]

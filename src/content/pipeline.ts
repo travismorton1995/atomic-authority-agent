@@ -162,6 +162,7 @@ function getTagEngagementScores(): Record<string, number> {
 
   const averages: Record<string, number> = {};
   for (const [tag, vals] of Object.entries(scores)) {
+    if (vals.length < 2) continue; // require at least 2 posts before a tag is eligible
     averages[tag] = vals.reduce((a, b) => a + b, 0) / vals.length;
   }
   return averages;
@@ -189,7 +190,7 @@ async function generateContentTags(content: string): Promise<ContentTag[]> {
       max_tokens: 100,
       messages: [{
         role: 'user',
-        content: `Tag this LinkedIn post with 3–5 labels from the list below. Return ONLY a valid JSON array of strings using exact values from the list — no other text.\n\nAllowed tags: ${CONTENT_TAGS.join(', ')}\n\nPost:\n${content}`,
+        content: `Tag this LinkedIn post with all relevant labels from the list below. Apply as many as genuinely fit — there is no upper limit, but do not force tags that are only loosely related. Return ONLY a valid JSON array of strings using exact values from the list — no other text.\n\nAllowed tags: ${CONTENT_TAGS.join(', ')}\n\nPost:\n${content}`,
       }],
     });
     const raw = response.content[0].type === 'text' ? response.content[0].text : '[]';
@@ -222,13 +223,14 @@ async function extractAndRegisterMentions(content: string): Promise<void> {
   }
 }
 
-async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown): Promise<PendingPost> {
+async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown, multipliers?: { balance: number; recency: number; postContent: number }): Promise<PendingPost> {
   console.log(`Post type: ${postType}`);
 
   console.log('Synthesizing draft...');
   let draft = await synthesizePost(item, postType);
   if (combinedScore !== undefined) draft = { ...draft, combinedScore };
   if (scoreBreakdown !== undefined) draft = { ...draft, scoreBreakdown };
+  if (multipliers !== undefined) draft = { ...draft, balanceMultiplier: multipliers.balance, recencyMultiplier: multipliers.recency, postContentFeedback: multipliers.postContent };
 
   // Strip [[MENTION:X]] markers before passing to verifier/screener so they
   // see clean prose. Markers are re-injected into any revised output afterward.
@@ -297,7 +299,7 @@ async function fetchAndFinalize(candidate: ScoredCandidate): Promise<PendingPost
     }
   }
 
-  return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown);
+  return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown, { balance: candidate.balanceMultiplier, recency: candidate.recencyMultiplier, postContent: candidate.postContentFeedback });
 }
 
 export async function runPipeline(options: PipelineOptions = {}): Promise<PendingPost> {

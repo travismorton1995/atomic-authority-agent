@@ -95,6 +95,7 @@ export async function postCommentReply(
 
   const page = context.pages()[0] ?? await context.newPage();
   try {
+    console.log(`Comment reply: navigating to post...`);
     await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
 
@@ -147,6 +148,7 @@ export async function postCommentReply(
     await composer.waitFor({ state: 'visible', timeout: 5000 });
     await composer.click();
     await page.keyboard.press('Control+End');
+    console.log(`Comment reply: typing reply...`);
     await page.keyboard.type(replyText, { delay: 40 });
     await page.waitForTimeout(500);
 
@@ -157,6 +159,7 @@ export async function postCommentReply(
     await submitBtn.waitFor({ state: 'visible', timeout: 5000 });
     await submitBtn.click();
     await page.waitForTimeout(2000);
+    console.log(`Comment reply: submitted successfully.`);
   } finally {
     await context.close();
   }
@@ -174,6 +177,7 @@ export async function postOutboundComment(
 
   const page = context.pages()[0] ?? await context.newPage();
   try {
+    console.log(`Outbound comment: navigating to post...`);
     await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.waitForTimeout(3000);
 
@@ -191,6 +195,7 @@ export async function postOutboundComment(
     await composer.waitFor({ state: 'visible', timeout: 5000 });
     await composer.click();
     await page.keyboard.press('Control+End');
+    console.log(`Outbound comment: typing comment...`);
     await page.keyboard.type(commentText, { delay: 40 });
     await page.waitForTimeout(500);
 
@@ -200,6 +205,7 @@ export async function postOutboundComment(
     await submitBtn.waitFor({ state: 'visible', timeout: 5000 });
     await submitBtn.click();
     await page.waitForTimeout(2000);
+    console.log(`Outbound comment: submitted successfully.`);
   } finally {
     await context.close();
   }

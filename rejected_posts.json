@@ -733,5 +733,34 @@
     "status": "rejected",
     "createdAt": "2026-03-30T20:51:50.849Z",
     "actedAt": "2026-03-30T20:54:47.426Z"
+  },
+  {
+    "id": "post_1775049799543",
+    "draft": {
+      "content": "[[MENTION:OpenAI]] just quietly merged with [[MENTION:Westinghouse]] Electric—nuclear-powered data centers are now officially canon.\n\nThe new entity, \"WestinghouseGPT,\" will deploy SMRs (small modular reactors) directly inside data centers. Each GPU cluster gets its own reactor vessel. Cooling is shared.\n\nTheir first product? A foundation model trained exclusively on [[MENTION:CNSC]] regulatory documents. It hallucinated once during testing and accidentally produced a valid safety case. Engineers are still trying to figure out how.\n\nThe licensing application was submitted this morning. All 14,000 pages were generated in 9 minutes. The regulator's AI reviewed it in 6. Approval is expected by lunch.\n\nSam Altman reportedly said, \"We've been moving fast and breaking things for years. Now we move fast and enrich things.\"\n\nMeanwhile, the deterministic safety analysis (the method used to verify reactor safety under worst-case scenarios) found only one failure mode: someone unplugging the reactor to charge their laptop.\n\nI, for one, welcome our new nuclear-powered overlords.\n\nHappy April 1st. Back to real problems tomorrow.\n\n#NuclearEnergy #AIinEnergy #AprilFools #SMR #OpenAI",
+      "firstComment": "Via Manual. If the deterministic safety analysis actually identified laptop charging as the only failure mode, wouldn't that suggest the thermal hydraulic modeling was missing entire categories of credible scenarios?",
+      "postType": "contrarian",
+      "sourceTitle": "Create an April fools joke post relating to the nuclear/AI industry. Ensure it reads like real, but is obviously a joke",
+      "sourceUrl": "",
+      "sourceDate": "2026-04-01T13:22:52.096Z",
+      "sourceFeed": "Manual",
+      "generatedAt": "2026-04-01T13:23:05.395Z",
+      "contentTags": [
+        "smr",
+        "safety-case",
+        "cnsc",
+        "llm"
+      ]
+    },
+    "screening": {
+      "cringeScore": 0,
+      "reasoning": "Screener parse error",
+      "revisedContent": null,
+      "revisedFirstComment": null
+    },
+    "finalContent": "[[MENTION:OpenAI]] just quietly merged with [[MENTION:Westinghouse]] Electric - nuclear-powered data centers are now officially canon.\n\nThe new entity, \"WestinghouseGPT,\" will deploy SMRs (small modular reactors) directly inside data centers. Each GPU cluster gets its own reactor vessel. Cooling is shared.\n\nTheir first product? A foundation model trained exclusively on [[MENTION:CNSC]] regulatory documents. It hallucinated once during testing and accidentally produced a valid safety case. Engineers are still trying to figure out how.\n\nThe licensing application was submitted this morning. All 14,000 pages were generated in 9 minutes. The regulator's AI reviewed it in 6. Approval is expected by lunch.\n\nSam Altman reportedly said, \"We've been moving fast and breaking things for years. Now we move fast and enrich things.\"\n\nMeanwhile, the deterministic safety analysis (the method used to verify reactor safety under worst-case scenarios) found only one failure mode: someone unplugging the reactor to charge their laptop.\n\nI, for one, welcome our new nuclear-powered overlords.\n\nHappy April 1st. Back to real problems tomorrow.\n\n#NuclearEnergy #AIinEnergy #AprilFools #SMR #OpenAI",
+    "status": "rejected",
+    "createdAt": "2026-04-01T13:23:19.543Z",
+    "actedAt": "2026-04-01T13:26:15.413Z"
   }
 ]

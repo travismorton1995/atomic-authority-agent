@@ -16,7 +16,7 @@ export interface GeneratedComment {
 }
 
 const OUTBOUND_APPROACHES = `
-- add-context: Bring in a specific fact, stat, or angle they didn't mention that deepens the picture
+- add-context: Bring in an angle, implication, or connection they didn't mention that deepens the picture
 - ask-question: A single pointed question — genuinely curious or probing, advances the discussion
 - counterpoint: Challenge a specific claim directly with a concrete counter-argument or different framing
 - affirm-extend: Agree with their core point and add one concrete thing they didn't say
@@ -37,7 +37,7 @@ Hard constraints — any violation is a rewrite trigger:
 
 export async function generateOutboundComment(
   post: { text: string; authorName: string; url: string },
-  options: { insider?: boolean; colleague?: boolean } = {},
+  options: { insider?: boolean; colleague?: boolean; stranger?: boolean } = {},
 ): Promise<GeneratedComment> {
   const insiderContext = options.insider
     ? `You work at ${post.authorName}. Comment as an insider — you can speak with direct knowledge of the work, acknowledge being part of the team, and add context that only someone internal would know. Still add genuine value; don't just cheer.`
@@ -47,6 +47,10 @@ export async function generateOutboundComment(
     ? `This person is a direct colleague. Do not use contrarian, counterpoint, or push-back approaches. Stick to add-context, ask-question, or affirm-extend only.`
     : '';
 
+  const strangerContext = options.stranger
+    ? `You do not know this person. This post was found via a hashtag feed. Keep the tone respectful and constructive. Prefer ask-question or add-context approaches over counterpoint. Your goal is to start a genuine conversation, not to challenge a stranger.`
+    : '';
+
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 400,
@@ -54,7 +58,7 @@ export async function generateOutboundComment(
       role: 'user',
       content: `You are Travis Morton, MEng — an AI developer working at the intersection of AI and the nuclear industry. You are adding a comment to a LinkedIn post.
 
-${insiderContext}${colleagueContext ? `\n${colleagueContext}` : ''}
+${insiderContext}${colleagueContext ? `\n${colleagueContext}` : ''}${strangerContext ? `\n${strangerContext}` : ''}
 
 ${post.authorName} posted:
 "${post.text.slice(0, 800)}"
@@ -70,7 +74,8 @@ ${OUTBOUND_APPROACHES}
 
 Each comment must:
 - Be exactly 1 sentence. No exceptions.
-- Add genuine value — a specific fact, a pointed question, or a concrete counter-argument
+- Add genuine value — a pointed question, a concrete counter-argument, or a reframing of something in the post
+- Never cite specific numbers, stats, dates, or named studies unless they appear in the original post. Your knowledge may be wrong. Use reasoning, analogy, or experience-based framing instead.
 - Write for a general professional audience — assume the reader is smart but not a specialist. Plain words over technical ones. If a concept needs jargon to express, find the plain-English version instead.
 - Competence comes through the sharpness of the insight, not the vocabulary
 

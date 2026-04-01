@@ -15,7 +15,11 @@ export const CONTENT_TAGS = [
   // Organizational
   'change-management', 'workforce', 'trust', 'adoption',
   // Geography / other
-  'canada', 'usa', 'uk', 'cybersecurity', 'public-opinion',
+  'canada', 'uk',
+  // US federal & regional
+  'usa', 'doe', 'ferc', 'southeast-us', 'midwest-us', 'northeast-us', 'texas', 'appalachia', 'pacific-northwest',
+  // Other
+  'cybersecurity', 'public-opinion',
 ] as const;
 
 export type ContentTag = typeof CONTENT_TAGS[number];
@@ -30,6 +34,9 @@ export interface DraftPost {
   sourceFeed: string;       // RSS feed name (e.g. "ANS Newswire", "Bruce Power")
   combinedScore?: number;   // article score after all multipliers
   scoreBreakdown?: { intersection: number; novelty: number; geography: number; npx: number };
+  balanceMultiplier?: number;
+  recencyMultiplier?: number;
+  postContentFeedback?: number;
   contentTags?: ContentTag[]; // topic tags for engagement learning
   generatedAt: string;
   imageUrl?: string;
@@ -208,7 +215,7 @@ Write the LinkedIn post now. You have the full article text above — use specif
       role: 'user',
       content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Output the comment text only — do not include the URL.
 
-Format: Via [Source Name]. [One direct question.]
+${item.source && item.source !== 'Manual' ? `Format: Via [Source Name]. [One direct question.]
 
 Rules:
 - "Via [Source Name]" uses the publication name (e.g. "Via World Nuclear News", "Via Bruce Power", "Via IAEA")
@@ -219,7 +226,14 @@ Rules:
 - No em dashes
 - No preamble, no sign-off, no URL
 
-Source name: ${item.source}`,
+Source name: ${item.source}` : `Format: [One direct question.]
+
+Rules:
+- The question must be directly tied to the specific argument or claim made in the post above — not a general question about the topic
+- The question must be specific enough that a nuclear engineer or AI developer would have a concrete, opinionated answer
+- One sentence only
+- No em dashes
+- No preamble, no sign-off, no URL`}`,
     }],
   });
 

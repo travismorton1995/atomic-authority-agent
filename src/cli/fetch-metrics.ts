@@ -119,7 +119,16 @@ export async function runMetricsFetch() {
     }
   }
 
-  writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+  const raw = JSON.stringify(history, null, 2);
+  const collapsed = raw.replace(
+    /\[\n(\s+)"([^"]+)"(,\n\s+"[^"]+")*\n\s+\]/g,
+    (match) => {
+      const items = [...match.matchAll(/"([^"]+)"/g)].map(m => `"${m[1]}"`);
+      const oneLine = `[${items.join(', ')}]`;
+      return oneLine.length <= 120 ? oneLine : match;
+    },
+  );
+  writeFileSync(HISTORY_FILE, collapsed);
   console.log('\nMetrics saved to posted_history.json.');
 }
 
@@ -234,6 +243,12 @@ export async function runWeeklyReport(): Promise<void> {
     .map(([window, { total, count }]) => ({ window, avg: total / count, count }))
     .sort((a, b) => b.avg - a.avg);
 
+  // Photo vs no-photo
+  const withPhoto    = withEng.filter(({ p }) => !!p.draft?.imageUrl);
+  const withoutPhoto = withEng.filter(({ p }) => !p.draft?.imageUrl);
+  const photoAvg    = withPhoto.length    ? withPhoto.reduce((s, { eng }) => s + eng, 0)    / withPhoto.length    : null;
+  const noPhotoAvg  = withoutPhoto.length ? withoutPhoto.reduce((s, { eng }) => s + eng, 0) / withoutPhoto.length : null;
+
   // Best individual post
   const best = [...withEng].sort((a, b) => b.eng - a.eng)[0];
   const bestSnippet = best.p.finalContent?.split('\n')[0]?.slice(0, 80) ?? '';
@@ -269,12 +284,18 @@ export async function runWeeklyReport(): Promise<void> {
     `${medals[i] ?? '  •'} ${w.window} — avg ${fmt(w.avg)} eng (${w.count} post${w.count !== 1 ? 's' : ''})`
   ).join('\n');
 
+  const photoLine = [
+    withPhoto.length    ? `📷 with photo (${withPhoto.length}): avg ${fmt(photoAvg!)} eng`       : null,
+    withoutPhoto.length ? `🚫 no photo (${withoutPhoto.length}): avg ${fmt(noPhotoAvg!)} eng` : null,
+  ].filter(Boolean).join(' | ');
+
   const message =
 `📊 *Monthly Report* (${dateStart}–${dateEnd})
 
 *Posts published:* ${posts.length}
 *Reactions:* ${totalReactions} | *Comments:* ${totalComments} | *Reposts:* ${totalReposts}
 *Avg engagement/post:* ${avgEng}
+${photoLine ? `\n*Photo vs no photo:*\n${photoLine}` : ''}
 
 *Post types:*
 ${typeLines}

@@ -1,11 +1,12 @@
 import { Telegraf } from 'telegraf';
 import { readFileSync, existsSync } from 'fs';
-import { approvePost, rejectPost, clearPostImage } from './queue.js';
+import { approvePost, rejectPost, cancelPost, clearPostImage } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
 import { postCommentReply, postOutboundComment } from '../poster/comments.js';
-import { getPendingComment, updateCommentStatus, addProfile, incrementDailyCount, popFallbackCandidate, addPendingComment, type PendingComment } from '../outbound/outbound-queue.js';
+import { renewSession } from '../poster/index.js';
+import { getPendingComment, updateCommentStatus, addProfile, incrementDailyCount, popFallbackCandidate, addPendingComment, markPostSeen, type PendingComment } from '../outbound/outbound-queue.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -14,9 +15,9 @@ const chatId = process.env.TELEGRAM_CHAT_ID;
 let bot: Telegraf | null = null;
 
 // Resolvers registered by waitForAction — called when a post is approved or rejected
-const pendingResolutions = new Map<string, (action: 'approved' | 'rejected') => void>();
+const pendingResolutions = new Map<string, (action: 'approved' | 'rejected' | 'cancelled') => void>();
 
-export function waitForAction(postId: string): Promise<'approved' | 'rejected'> {
+export function waitForAction(postId: string): Promise<'approved' | 'rejected' | 'cancelled'> {
   return new Promise((resolve) => {
     pendingResolutions.set(postId, resolve);
   });
@@ -24,9 +25,24 @@ export function waitForAction(postId: string): Promise<'approved' | 'rejected'> 
 
 // Optional handler called after a rejection — used by scheduler to auto-regenerate
 let onRejectHandler: (() => Promise<void>) | null = null;
+let onGenerateHandler: (() => Promise<void>) | null = null;
+let onPollHandler: (() => Promise<void>) | null = null;
+let onOutboundHandler: (() => Promise<void>) | null = null;
 
 export function setOnRejectHandler(handler: () => Promise<void>): void {
   onRejectHandler = handler;
+}
+
+export function setOnGenerateHandler(handler: () => Promise<void>): void {
+  onGenerateHandler = handler;
+}
+
+export function setOnPollHandler(handler: () => Promise<void>) : void {
+  onPollHandler = handler;
+}
+
+export function setOnOutboundHandler(handler: () => Promise<void>): void {
+  onOutboundHandler = handler;
 }
 
 export function startBot(): void {
@@ -36,6 +52,88 @@ export function startBot(): void {
   }
 
   bot = new Telegraf(token);
+
+  bot.command('help', async (ctx) => {
+    await ctx.reply(
+      '*Atomic Authority — Bot Commands*\n\n' +
+      '/generate — Run the content pipeline and generate a new draft\n' +
+      '/poll — Run a comment reply poll (checks for new comments on your posts)\n' +
+      '/outbound — Run the outbound engagement poll (finds posts to comment on)\n' +
+      '/login — Open a browser to renew your LinkedIn session\n' +
+      '/help — Show this message\n\n' +
+      '*Other actions:*\n' +
+      '• Send a LinkedIn profile URL to add it to the outbound tracking list',
+      { parse_mode: 'Markdown' },
+    );
+  });
+
+  bot.command('generate', async (ctx) => {
+    if (!onGenerateHandler) { await ctx.reply('Generator not available.'); return; }
+    console.log('Telegram /generate command received');
+    await ctx.reply('Running content pipeline...').catch(err => console.error('[/generate] Failed to send reply:', err));
+    onGenerateHandler()
+      .then((status: any) => {
+        if (status === 'already_running') {
+          ctx.reply('Pipeline is already running — try again shortly.').catch(() => {});
+        }
+        // On success, notifyTelegram fires from within the pipeline with the draft
+        // On failure, sendAlert fires from within runGenerate
+      })
+      .catch(err => {
+        console.error('[/generate] Unexpected error:', err);
+        ctx.reply(`Pipeline failed: ${err.message}`).catch(() => {});
+      });
+  });
+
+  bot.command('poll', async (ctx) => {
+    if (!onPollHandler) { await ctx.reply('Poll not available.'); return; }
+    console.log('Telegram /poll command received');
+    await ctx.reply('Running comment poll...').catch(err => console.error('[/poll] Failed to send reply:', err));
+    onPollHandler()
+      .then((stats: any) => {
+        if (stats?.error === 'already running') {
+          ctx.reply('Comment poll is already running — try again shortly.').catch(() => {});
+        } else if (stats?.error) {
+          ctx.reply(`Comment poll failed: ${stats.error}`).catch(() => {});
+        } else if (stats) {
+          ctx.reply(`Comment poll complete — ${stats.postsChecked} post(s) in last 14 days, ${stats.totalComments} comment(s) found, ${stats.newComments} new.`).catch(() => {});
+        }
+      })
+      .catch(err => {
+        console.error('[/poll] Unexpected error:', err);
+        ctx.reply(`Comment poll failed: ${err.message}`).catch(() => {});
+      });
+  });
+
+  bot.command('outbound', async (ctx) => {
+    if (!onOutboundHandler) { await ctx.reply('Outbound poll not available.'); return; }
+    console.log('Telegram /outbound command received');
+    await ctx.reply('Running outbound poll...').catch(err => console.error('[/outbound] Failed to send reply:', err));
+    onOutboundHandler()
+      .then(() => ctx.reply('Outbound poll complete.').catch(() => {}))
+      .catch(err => {
+        console.error('[/outbound] Poll error:', err);
+        ctx.reply(`Outbound poll failed: ${err.message}`).catch(() => {});
+      });
+  });
+
+  bot.command('login', async (ctx) => {
+    console.log('Telegram /login command received');
+    await ctx.reply('Opening browser for LinkedIn login — check your screen...').catch(err => console.error('[/login] Failed to send reply:', err));
+    try {
+      const success = await renewSession();
+      if (success) {
+        console.log('LinkedIn session renewed successfully via /login');
+        await ctx.reply('✅ LinkedIn session is active.').catch(err => console.error('[/login] Failed to send success reply:', err));
+      } else {
+        console.warn('LinkedIn /login timed out — session not renewed');
+        await ctx.reply('❌ Login timed out. Try again.').catch(err => console.error('[/login] Failed to send timeout reply:', err));
+      }
+    } catch (err: any) {
+      console.error('[/login] renewSession error:', err);
+      await ctx.reply(`❌ Login failed: ${err.message}`).catch(() => {});
+    }
+  });
 
   bot.on('callback_query', async (ctx) => {
     const data = (ctx.callbackQuery as any).data as string;
@@ -115,6 +213,20 @@ export function startBot(): void {
         }
       }
 
+      if (action === 'cancel') {
+        const post = cancelPost(payload);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found or already actioned.');
+          return;
+        }
+        console.log(`Post ${payload} cancelled and removed.`);
+        await ctx.answerCbQuery('Cancelled.');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.reply('Post cancelled and removed.');
+        pendingResolutions.get(payload)?.('cancelled');
+        pendingResolutions.delete(payload);
+      }
+
       // --- Comment reply flow ---
 
       if (action === 'cr_select') {
@@ -153,6 +265,7 @@ export function startBot(): void {
         try {
           await postCommentReply(reply.postUrl, reply.commentId, reply.replyOptions[optionIdx - 1]);
           updateReplyStatus(replyId, { status: 'replied', selectedOption: optionIdx, repliedAt: new Date().toISOString() });
+          console.log(`Comment reply posted — ${reply.commentAuthor} | ${reply.postUrl}`);
         } catch (err: any) {
           postErr = err;
           console.error('[cr_confirm] postCommentReply failed:', err);
@@ -234,6 +347,7 @@ export function startBot(): void {
           await postOutboundComment(comment.postUrl, comment.commentOptions[optionIdx - 1]);
           updateCommentStatus(commentId, { status: 'posted', selectedOption: optionIdx, postedAt: new Date().toISOString() });
           incrementDailyCount();
+          console.log(`Outbound comment posted — ${comment.profileName} | ${comment.postUrl}`);
         } catch (err: any) {
           postErr = err;
           console.error('[oc_confirm] postOutboundComment failed:', err);
@@ -270,15 +384,21 @@ export function startBot(): void {
       }
 
       if (action === 'oc_skip') {
+        console.log(`[oc_skip] Skipping comment ${payload}`);
         updateCommentStatus(payload, { status: 'skipped' });
-        await ctx.answerCbQuery('Skipped.');
-        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.answerCbQuery('Skipped.').catch(() => {});
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
 
         const next = popFallbackCandidate();
         if (!next) {
-          await ctx.reply('No more posts to show.');
+          console.log('[oc_skip] No fallback candidate available.');
+          await ctx.reply('No more posts to show.').catch(() => {});
           return;
         }
+
+        markPostSeen(next.id);
+        console.log(`[oc_skip] Generating comment for fallback: ${next.profileName} | ${next.url}`);
+        await ctx.reply('Generating next option...').catch(() => {});
 
         let nextGenerated;
         try {
@@ -287,7 +407,8 @@ export function startBot(): void {
             { insider: next.insider, colleague: next.colleague },
           );
         } catch (err: any) {
-          await ctx.reply(`Could not generate comment for next post: ${err.message}`);
+          console.error('[oc_skip] Failed to generate fallback comment:', err);
+          await ctx.reply(`Could not generate comment for next post: ${err.message}`).catch(() => {});
           return;
         }
 
@@ -307,6 +428,7 @@ export function startBot(): void {
           createdAt: new Date().toISOString(),
         };
         addPendingComment(nextComment);
+        console.log(`[oc_skip] Sending fallback comment notification for ${next.profileName}`);
         await notifyOutboundComment(nextComment);
       }
 
@@ -406,11 +528,15 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
         [{ text: '✅ Approve', callback_data: `approve:${post.id}` }],
         [{ text: '🚫 Approve (no image)', callback_data: `approve_no_image:${post.id}` }],
         [{ text: '❌ Reject', callback_data: `reject:${post.id}` }],
+        [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
       ]
-    : [[
-        { text: '✅ Approve', callback_data: `approve:${post.id}` },
-        { text: '❌ Reject', callback_data: `reject:${post.id}` },
-      ]];
+    : [
+        [
+          { text: '✅ Approve', callback_data: `approve:${post.id}` },
+          { text: '❌ Reject', callback_data: `reject:${post.id}` },
+        ],
+        [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
+      ];
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -472,8 +598,11 @@ function formatMessage(post: PendingPost): string {
   const feedNote = post.draft.sourceFeed ? `*Feed:* ${post.draft.sourceFeed}` : '';
   const bd = post.draft.scoreBreakdown;
   const bdStr = bd ? ` (I:${bd.intersection} N:${bd.novelty} G:${bd.geography} NPX:${bd.npx})` : '';
+  const multiplierStr = (post.draft.balanceMultiplier !== undefined && post.draft.recencyMultiplier !== undefined && post.draft.postContentFeedback !== undefined)
+    ? ` × B:${post.draft.balanceMultiplier.toFixed(2)} R:${post.draft.recencyMultiplier.toFixed(2)} P:${post.draft.postContentFeedback.toFixed(2)}`
+    : '';
   const scoreNote = post.draft.combinedScore !== undefined
-    ? `*Score:* ${post.draft.combinedScore.toFixed(2)}${bdStr}`
+    ? `*Score:* ${post.draft.combinedScore.toFixed(2)}${bdStr}${multiplierStr}`
     : '';
   const metaLine = [feedNote, scoreNote].filter(Boolean).join(' | ');
 

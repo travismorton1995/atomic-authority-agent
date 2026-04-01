@@ -12,6 +12,8 @@ export interface OutboundProfile {
   active: boolean;
   insider?: boolean;  // true if you work/are affiliated with this org
   colleague?: boolean; // true if this person is a direct colleague — avoid contrarian approaches
+  lastSeenPostAt?: string;      // ISO timestamp — last time a fresh post was found
+  consecutiveDryPolls?: number; // how many polls in a row found nothing new
 }
 
 export interface PendingComment {
@@ -111,6 +113,20 @@ export function addProfile(url: string, name: string = ''): { profile: OutboundP
   return { profile, existed: false };
 }
 
+export function recordProfilePollResult(url: string, hadNewPosts: boolean): void {
+  const store = loadProfiles();
+  const normalized = normalizeProfileUrl(url);
+  const p = store.profiles.find(p => p.url === normalized);
+  if (!p) return;
+  if (hadNewPosts) {
+    p.lastSeenPostAt = new Date().toISOString();
+    p.consecutiveDryPolls = 0;
+  } else {
+    p.consecutiveDryPolls = (p.consecutiveDryPolls ?? 0) + 1;
+  }
+  saveProfiles(store);
+}
+
 export function updateProfileName(url: string, name: string): void {
   const store = loadProfiles();
   const normalized = normalizeProfileUrl(url);
@@ -178,6 +194,19 @@ export function storeFallbackCandidate(candidate: CandidatePost | null): void {
   const state = loadState();
   state.fallbackCandidate = candidate;
   saveState(state);
+}
+
+/** Returns hours since the most recent posted comment for a given profile URL, or Infinity if none. */
+export function hoursSinceLastComment(profileUrl: string): number {
+  const state = loadState();
+  let latest = 0;
+  for (const c of state.pendingComments) {
+    if (c.status === 'posted' && c.profileUrl === profileUrl && c.postedAt) {
+      const t = new Date(c.postedAt).getTime();
+      if (t > latest) latest = t;
+    }
+  }
+  return latest === 0 ? Infinity : (Date.now() - latest) / 3_600_000;
 }
 
 export function popFallbackCandidate(): CandidatePost | null {

@@ -11,19 +11,34 @@ export interface FeedItem {
 }
 
 const FEEDS = [
+  { url: 'https://api.io.canada.ca/io-server/gc/news/en/v2?dept=canadiannuclearsafetycommission&sort=publishedDate&orderBy=desc&publishedDate%3E=2021-07-23&pick=15&format=atom&atomtitle=Canadian%20Nuclear%20Safety%20Commission', source: 'CNSC' },
   { url: 'https://www.world-nuclear-news.org/rss', source: 'World Nuclear News' },
   { url: 'https://cna.ca/feed/', source: 'Canadian Nuclear Association' },
-  { url: 'https://api.io.canada.ca/io-server/gc/news/en/v2?dept=canadiannuclearsafetycommission&sort=publishedDate&orderBy=desc&publishedDate%3E=2021-07-23&pick=15&format=atom&atomtitle=Canadian%20Nuclear%20Safety%20Commission', source: 'CNSC' },
   { url: 'https://www.ans.org/news/feed/', source: 'ANS Newswire' },
   { url: 'https://www.iaea.org/feeds/topnews', source: 'IAEA' },
   { url: 'https://www.brucepower.com/feed/', source: 'Bruce Power' },
-  { url: 'https://www.neimagazine.com/rss', source: 'NEI Magazine' },
   { url: 'https://www.powermag.com/category/nuclear/feed/', source: 'Power Magazine' },
   { url: 'https://www.cns-snc.ca/feed/', source: 'Canadian Nuclear Society' },
   { url: 'https://www.cnl.ca/feed/', source: 'Canadian Nuclear Laboratories' },
+  { url: 'https://www.utilitydive.com/feeds/news/', source: 'Utility Dive' },
+  { url: 'https://www.power-eng.com/feed/', source: 'Power Engineering' },
 ];
 
-const parser = new Parser();
+const parser = new Parser({
+  customFields: {
+    item: [
+      ['media:content', 'mediaContent', { keepArray: false }],
+      ['media:thumbnail', 'mediaThumbnail', { keepArray: false }],
+    ],
+  },
+});
+
+function extractFeedImage(item: any): string | undefined {
+  return item.enclosure?.url
+    ?? item.mediaContent?.$?.url
+    ?? item.mediaThumbnail?.$?.url
+    ?? undefined;
+}
 
 // Normalizes pubDate strings to ISO format.
 // Handles standard RFC 2822/ISO dates as well as non-standard formats
@@ -50,25 +65,37 @@ function normalizeDate(raw: string | undefined): string {
 }
 
 export async function fetchLatestItems(maxPerFeed = 5): Promise<FeedItem[]> {
-  const items: FeedItem[] = [];
-
-  for (const feed of FEEDS) {
-    try {
+  const results = await Promise.allSettled(
+    FEEDS.map(async feed => {
       const parsed = await parser.parseURL(feed.url);
-      const recent = parsed.items.slice(0, maxPerFeed);
-      for (const item of recent) {
-        items.push({
-          title: item.title ?? '',
-          link: (item.link ?? '').replace(/([^:])\/\/+/g, '$1/'),
-          summary: item.contentSnippet ?? item.content ?? '',
-          source: feed.source,
-          pubDate: normalizeDate(item.pubDate),
-        });
-      }
-    } catch (err) {
-      console.error(`Failed to fetch feed: ${feed.source}`, err);
+      return parsed.items.slice(0, maxPerFeed).map((item: any) => ({
+        title: item.title ?? '',
+        link: (item.link ?? '').replace(/([^:])\/\/+/g, '$1/'),
+        summary: item.contentSnippet ?? item.content ?? '',
+        source: feed.source,
+        pubDate: normalizeDate(item.pubDate),
+        imageUrl: extractFeedImage(item),
+      }));
+    })
+  );
+
+  const items: FeedItem[] = [];
+  const ok: string[] = [];
+  const failed: string[] = [];
+
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i];
+    if (result.status === 'fulfilled') {
+      items.push(...result.value);
+      ok.push(`${FEEDS[i].source} (${result.value.length})`);
+    } else {
+      failed.push(FEEDS[i].source);
+      console.error(`Failed to fetch feed: ${FEEDS[i].source}`, result.reason);
     }
   }
+
+  console.log(`RSS feeds fetched — OK: ${ok.join(', ')}`);
+  if (failed.length > 0) console.warn(`RSS feeds failed: ${failed.join(', ')}`);
 
   return items;
 }

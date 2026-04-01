@@ -52,23 +52,29 @@ Poll recent posts → Scrape new comments → Classify & generate 3 reply option
 ### Outbound engagement pipeline
 
 ```
-Poll curated profiles → Scrape original posts (<12h) → Rank by recency
+Poll curated profiles → Scrape original posts (<12h) → Score by relevance + recency + diversity
   → Generate 2 comment options → Screen for AI-isms → Telegram notification
   → Human selects & confirms → Post comment
 ```
 
 1. **Profiles** — a curated list of LinkedIn profiles and company pages in `outbound_profiles.json`. Add a profile by sending its LinkedIn URL to the Telegram bot.
-2. **Poll** — runs at 10am and 2pm ET on weekdays (max 3 comments/day). Opens one shared browser context and visits each profile in sequence to minimise overhead.
+2. **Poll** — runs at 10am and 2pm ET on weekdays. Opens one shared browser context and visits each profile in sequence to minimise overhead. Profiles with no recent posts are checked less frequently (every 2nd or 3rd poll) to save time.
 3. **Scrape** — fetches posts ≤12h old from each profile's activity feed. Reposts are filtered out by comparing the post author against the known profile name.
-4. **Rank** — all fresh unseen posts across all profiles are sorted by age ascending. Posts <2h old are flagged as ⚡ golden window.
-5. **Generate** — Claude Haiku generates a 1-sentence plain-English post summary, a 1-sentence engagement rationale, and 2 comment options with distinct approaches (add-context, ask-question, counterpoint, affirm-extend).
-6. **Persona** — profile flags adjust the comment voice:
+4. **Relevance gate** — each post is scored against a 100-keyword bank covering AI, nuclear, energy, regulation, and adjacent topics. Posts with zero keyword hits are discarded entirely.
+5. **Rank** — all relevant candidates across all profiles are scored on three weighted factors:
+   - **Relevance (50%)** — keyword hit count (0–5+ hits scaled to 0–1)
+   - **Recency (30%)** — post age (0–12h scaled to 1–0)
+   - **Profile diversity (20%)** — hours since last comment on that profile (0–48h+ scaled to 0–1)
+   - Profile candidates receive a small score bonus (+0.1) over hashtag candidates
+6. **Generate** — Claude Haiku generates a 1-sentence plain-English post summary, a 1-sentence engagement rationale, and 2 comment options with distinct approaches (add-context, ask-question, counterpoint, affirm-extend). Comments never cite specific numbers, stats, or studies not present in the original post.
+7. **Persona** — profile flags adjust the comment voice:
    - `insider: true` — comments as a team member with internal knowledge (used for affiliated orgs)
    - `colleague: true` — suppresses contrarian/counterpoint approaches for direct colleagues
-7. **Screen** — both comment options are screened for AI-isms.
-8. **Notify** — Telegram message shows the profile name, post age (with ⚡ if <2h), post snippet, plain-English summary, 1-sentence reason to engage, and 2 labeled options. Recommended option appears first (⭐).
-9. **Skip** — skipping serves the next most-recent candidate post. Skipping that ends the session.
-10. **Post** — Playwright navigates to the post, clicks the comment box, and types at a natural speed.
+   - `stranger: true` — (hashtag-sourced posts) prefers ask-question/add-context over counterpoint
+8. **Screen** — both comment options are screened for AI-isms.
+9. **Notify** — Telegram message shows the profile name, post age (with ⚡ if <2h), keyword count, post snippet, plain-English summary, 1-sentence reason to engage, and 2 labeled options. Recommended option appears first (⭐).
+10. **Skip** — skipping marks the post as seen (won't resurface) and serves the next best candidate. Skipping that ends the session.
+11. **Post** — Playwright navigates to the post, clicks the comment box, and types at a natural speed.
 
 ### Analytics & reporting
 
@@ -293,7 +299,7 @@ npm run poll-comments -- https://www.linkedin.com/posts/...
 npm run poll-outbound
 ```
 
-Scrapes all profiles in `outbound_profiles.json`, finds the most recent original post <12h old, generates comment options, and sends a Telegram notification. Respects the daily limit (max 3/day).
+Scrapes all profiles in `outbound_profiles.json`, scores posts by relevance/recency/diversity, generates comment options for the best match, and sends a Telegram notification.
 
 ### Fetch metrics and run monthly report
 
@@ -325,7 +331,7 @@ src/
   hitl/           # post queue, comment queue, outbound poll, Telegram bot and notifications
   scheduler/      # cron logic, time window picker, comment poll and outbound scheduling
   poster/         # LinkedIn browser automation (post, reply, outbound comment, @mentions)
-  outbound/       # profile scraper, comment generator, outbound queue state
+  outbound/       # profile scraper, comment generator, relevance keyword bank, outbound queue state
   cli/            # generate / approve / reject / post-now / poll-comments / poll-outbound / fetch-metrics CLI commands
 pending_posts.json      # active queue (pending and approved posts)
 rejected_posts.json     # rejected posts (24-hour cooldown before re-selection)

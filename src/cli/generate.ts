@@ -15,11 +15,15 @@ function parseArgs(): { url?: string; topic?: string } {
 async function main() {
   const options = parseArgs();
   startBot();
-  let action: 'approved' | 'rejected';
+  let action: 'approved' | 'rejected' | 'cancelled';
   do {
     const post = await runPipeline(options);
     console.log('Waiting for your approval in Telegram...');
     action = await waitForAction(post.id);
+    if (action === 'cancelled') {
+      console.log('Post cancelled. Exiting.');
+      process.exit(0);
+    }
     if (action === 'rejected') {
       console.log('Post rejected — generating a replacement...');
       // On retry, fall back to RSS so we don't regenerate the same custom input

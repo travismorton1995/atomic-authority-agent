@@ -31,7 +31,17 @@ function readFile<T>(path: string, fallback: T): T {
 }
 
 function writeFile(path: string, data: unknown): void {
-  writeFileSync(path, JSON.stringify(data, null, 2), 'utf-8');
+  // Pretty-print but collapse short string arrays (like contentTags) to single lines
+  const raw = JSON.stringify(data, null, 2);
+  const collapsed = raw.replace(
+    /\[\n(\s+)"([^"]+)"(,\n\s+"[^"]+")*\n\s+\]/g,
+    (match) => {
+      const items = [...match.matchAll(/"([^"]+)"/g)].map(m => `"${m[1]}"`);
+      const oneLine = `[${items.join(', ')}]`;
+      return oneLine.length <= 120 ? oneLine : match;
+    },
+  );
+  writeFileSync(path, collapsed, 'utf-8');
 }
 
 function sanitize(text: string): string {
@@ -184,6 +194,15 @@ export function cleanupRejectedPosts(olderThanDays = 90): number {
     console.log(`Cleaned up ${removed} rejected post(s) older than ${olderThanDays} days.`);
   }
   return removed;
+}
+
+export function cancelPost(id: string): PendingPost | null {
+  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const post = posts.find(p => p.id === id);
+  if (!post) return null;
+  writeFile(PENDING_FILE, posts.filter(p => p.id !== id));
+  clearCandidateStore();
+  return post;
 }
 
 export function rejectPost(id: string): PendingPost | null {

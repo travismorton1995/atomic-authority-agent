@@ -45,6 +45,40 @@ async function downloadImageToTemp(imageUrl: string): Promise<string | null> {
   }
 }
 
+// Opens a headed browser and waits for the user to log in manually.
+// Returns true on success, false on timeout or error.
+export async function renewSession(): Promise<boolean> {
+  const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: 'chrome',
+    headless: false,
+    locale: 'en-US',
+    viewport: { width: 1280, height: 800 },
+  });
+
+  const page = context.pages()[0] ?? await context.newPage();
+
+  try {
+    await page.goto(LINKEDIN_FEED, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    const url = page.url();
+    const needsLogin =
+      url.includes('/login') ||
+      url.includes('/authwall') ||
+      url.includes('/checkpoint') ||
+      await page.locator('input[name="session_key"]').isVisible({ timeout: 2000 }).catch(() => false);
+
+    if (!needsLogin) return true;
+
+    console.log('LinkedIn login required — waiting up to 3 minutes for manual login...');
+    await page.waitForURL('**/feed/**', { timeout: 180000 });
+    await page.waitForTimeout(2000);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    await context.close();
+  }
+}
+
 // Silently checks whether the saved LinkedIn session is still valid.
 // Returns true if the session is active, false if login is required.
 export async function pingSession(): Promise<boolean> {

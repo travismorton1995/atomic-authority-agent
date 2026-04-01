@@ -1,74 +1,133 @@
 import crypto from 'crypto';
-import { openScrapeContext, scrapeProfilePostsWithPage, type ScrapedPost } from '../outbound/scrape-feed.js';
+import { openScrapeContext, scrapeProfilePostsWithPage, scrapeHashtagWithPage, type ScrapedPost } from '../outbound/scrape-feed.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
+import { relevanceHits } from '../outbound/relevance.js';
 import {
   getActiveProfiles,
   isPostSeen,
   markPostSeen,
   addPendingComment,
-  getDailyCount,
-  incrementDailyCount,
   recordOutboundPoll,
   updateProfileName,
+  recordProfilePollResult,
   storeFallbackCandidate,
+  hoursSinceLastComment,
   type OutboundProfile,
   type PendingComment,
 } from '../outbound/outbound-queue.js';
 import { notifyOutboundComment } from './telegram.js';
 
-const DAILY_MAX = 3;
+// Hashtags to monitor for commenting opportunities — scraped alongside curated profiles
+// DISABLED: LinkedIn search results use anti-scraping measures that prevent reliable extraction.
+// Re-enable when a workaround is found (e.g. LinkedIn API, RSS, or updated selectors).
+const HASHTAGS: string[] = [
+  // 'NuclearEnergy',
+  // 'SMR',
+  // 'AdvancedReactors',
+  // 'NuclearSafety',
+  // 'NuclearIndustry',
+  // 'AIinEnergy',
+  // 'EnergyTransition',
+  // 'CleanEnergy',
+  // 'AIGovernance',
+  // 'NuclearPower',
+  // 'Decarbonization',
+  // 'DigitalTwin',
+  // 'CriticalInfrastructure',
+  // 'NuclearInnovation',
+];
+
+// Profile bias: profile candidates get a small score bonus over hashtag candidates
+const PROFILE_BONUS = 0.1;
+
+type CandidateSource = 'profile' | 'hashtag';
+
+interface Candidate extends ScrapedPost {
+  profile: OutboundProfile | null; // null for hashtag-sourced posts
+  source: CandidateSource;
+  sourceLabel: string;             // profile name or #hashtag
+}
 
 export async function runOutboundPoll(): Promise<void> {
   const profiles = getActiveProfiles();
-  if (profiles.length === 0) {
-    console.log('Outbound poll: no active profiles. Add some by sending a LinkedIn URL to the Telegram bot.');
+  if (profiles.length === 0 && HASHTAGS.length === 0) {
+    console.log('Outbound poll: no active profiles or hashtags configured.');
     return;
   }
 
-  if (getDailyCount() >= DAILY_MAX) {
-    console.log(`Outbound poll: daily limit reached (${DAILY_MAX}/day).`);
-    return;
-  }
+  console.log(`Outbound poll: checking ${profiles.length} profile(s) + ${HASHTAGS.length} hashtag(s)...`);
 
-  console.log(`Outbound poll: checking ${profiles.length} profile(s) for posts < 12h old...`);
+  const candidates: Candidate[] = [];
+  const seenIds = new Set<string>(); // deduplicate across profiles and hashtags
 
-  // Collect all fresh unseen posts across every profile — one browser context for all scrapes
-  const candidates: Array<ScrapedPost & { profile: OutboundProfile }> = [];
+  // Skip profiles that have been dry for several consecutive polls.
+  let skippedDry = 0;
+  const pollProfiles = profiles.filter(profile => {
+    const dry = profile.consecutiveDryPolls ?? 0;
+    if (dry < 3) return true;
+    const checkEvery = dry < 6 ? 2 : 3;
+    const shouldCheck = dry % checkEvery === 0;
+    if (!shouldCheck) skippedDry++;
+    return shouldCheck;
+  });
+  if (skippedDry > 0) console.log(`  Skipping ${skippedDry} profile(s) with no recent posts.`);
 
   const { context, page } = await openScrapeContext();
   try {
-  for (const profile of profiles) {
-    let posts;
-    try {
-      posts = await scrapeProfilePostsWithPage(profile.url, page);
-    } catch (err) {
-      console.warn(`  Failed to scrape ${profile.name}: ${(err as Error).message}`);
-      continue;
+    // --- Scrape curated profiles ---
+    for (const profile of pollProfiles) {
+      let posts;
+      try {
+        posts = await scrapeProfilePostsWithPage(profile.url, page);
+      } catch (err) {
+        console.warn(`  Failed to scrape ${profile.name}: ${(err as Error).message}`);
+        continue;
+      }
+
+      const ownerName = (posts.length > 0 && posts[0].authorName)
+        ? posts[0].authorName
+        : profile.name;
+      if (ownerName && ownerName !== profile.name) {
+        updateProfileName(profile.url, ownerName);
+      }
+
+      // Filter out reposts
+      const ownPosts = posts.filter(p =>
+        !p.authorName || p.authorName.toLowerCase() === ownerName.toLowerCase()
+      );
+      const repostCount = posts.length - ownPosts.length;
+      if (repostCount > 0) console.log(`  ${ownerName} — skipped ${repostCount} repost(s)`);
+
+      const newPosts = ownPosts.filter(p => !isPostSeen(p.id));
+      const ageNote = newPosts.map(p => p.ageHours !== null ? `${p.ageHours.toFixed(1)}h` : '?h').join(', ');
+      console.log(`  ${ownerName} — ${ownPosts.length} original post(s) < 12h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
+
+      recordProfilePollResult(profile.url, newPosts.length > 0);
+      for (const p of newPosts) {
+        seenIds.add(p.id);
+        candidates.push({ ...p, profile, source: 'profile', sourceLabel: ownerName });
+      }
     }
 
-    // Determine the profile owner's display name — use first post's authorName if profile
-    // name still looks like a URL slug (no spaces), then persist it for future runs.
-    const ownerName = (posts.length > 0 && posts[0].authorName)
-      ? posts[0].authorName
-      : profile.name;
-    if (ownerName && ownerName !== profile.name) {
-      updateProfileName(profile.url, ownerName);
+    // --- Scrape hashtag feeds ---
+    for (const tag of HASHTAGS) {
+      let posts;
+      try {
+        posts = await scrapeHashtagWithPage(tag, page);
+      } catch (err) {
+        console.warn(`  Failed to scrape #${tag}: ${(err as Error).message}`);
+        continue;
+      }
+
+      // Deduplicate: skip posts already found via profiles or earlier hashtags
+      const newPosts = posts.filter(p => !seenIds.has(p.id) && !isPostSeen(p.id));
+      console.log(`  #${tag} — ${posts.length} post(s), ${newPosts.length} new`);
+
+      for (const p of newPosts) {
+        seenIds.add(p.id);
+        candidates.push({ ...p, profile: null, source: 'hashtag', sourceLabel: `#${tag}` });
+      }
     }
-
-    // Filter out reposts: on a profile page, any post whose author doesn't match
-    // the profile owner is a reshare of someone else's content.
-    const ownPosts = posts.filter(p =>
-      !p.authorName || p.authorName.toLowerCase() === ownerName.toLowerCase()
-    );
-    const repostCount = posts.length - ownPosts.length;
-    if (repostCount > 0) console.log(`  ${ownerName} — skipped ${repostCount} repost(s)`);
-
-    const newPosts = ownPosts.filter(p => !isPostSeen(p.id));
-    const ageNote = newPosts.map(p => p.ageHours !== null ? `${p.ageHours.toFixed(1)}h` : '?h').join(', ');
-    console.log(`  ${ownerName} — ${ownPosts.length} original post(s) < 12h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
-
-    candidates.push(...newPosts.map(p => ({ ...p, profile })));
-  }
   } finally {
     await context.close();
   }
@@ -79,37 +138,77 @@ export async function runOutboundPoll(): Promise<void> {
     return;
   }
 
-  // Sort by recency: posts < 2h (golden window) first, then older posts, unknown age last
-  candidates.sort((a, b) => {
-    const ah = a.ageHours ?? Infinity;
-    const bh = b.ageHours ?? Infinity;
-    return ah - bh;
+  // Score each candidate: higher score = better pick
+  // Four factors: relevance, recency, profile diversity, and source bonus
+  const scored = candidates.map(c => {
+    const postAge = c.ageHours ?? 12;
+    const profileCooldown = c.source === 'profile'
+      ? hoursSinceLastComment(c.profile!.url)
+      : Infinity; // hashtag posts from strangers — no cooldown penalty
+    const keywords = relevanceHits(c.text);
+
+    // Relevance: 0–1 (0 = no keywords, 1 = 5+ keyword hits)
+    const relevanceScore = Math.min(keywords / 5, 1);
+
+    // Recency: 0–1 (1 = brand new, 0 = 12h old)
+    const recencyScore = 1 - Math.min(postAge / 12, 1);
+
+    // Diversity: 0–1 (1 = never commented or 48h+ ago, 0 = just commented)
+    const diversityScore = profileCooldown >= 48 ? 1 : profileCooldown / 48;
+
+    // Weighted: 50% relevance, 30% recency, 20% diversity + profile bonus
+    let score = relevanceScore * 0.5 + recencyScore * 0.3 + diversityScore * 0.2;
+    if (c.source === 'profile') score += PROFILE_BONUS;
+
+    return { candidate: c, score, postAge, profileCooldown, keywords };
   });
 
-  const best = candidates[0];
+  // Filter out posts with zero relevance
+  const relevant = scored.filter(s => s.keywords > 0);
+  if (relevant.length === 0) {
+    console.log(`  ${scored.length} candidate(s) found but none matched relevance keywords. Nothing queued.`);
+    recordOutboundPoll();
+    return;
+  }
+
+  relevant.sort((a, b) => b.score - a.score);
+
+  const pick = relevant[0];
+  const best = pick.candidate;
   const ageLabel = best.ageHours !== null ? `${best.ageHours.toFixed(1)}h old` : 'unknown age';
   const inGoldenWindow = best.ageHours !== null && best.ageHours < 2;
-  console.log(`  Picked: [${best.profile.name}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''}`);
+  const cooldownLabel = pick.profileCooldown === Infinity ? 'never' : `${pick.profileCooldown.toFixed(0)}h ago`;
+  const sourceTag = best.source === 'profile' ? 'profile' : best.sourceLabel;
+  console.log(`  Picked: [${best.authorName || best.sourceLabel}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''} | ${pick.keywords} keyword(s) | ${sourceTag} | last comment: ${cooldownLabel}`);
 
-  // Store the 2nd candidate as a skip fallback (cleared after it's used or a new poll runs)
-  const fallback = candidates[1] ?? null;
-  storeFallbackCandidate(fallback ? {
-    id: fallback.id,
-    url: fallback.url,
-    text: fallback.text,
-    authorName: fallback.authorName,
-    ageHours: fallback.ageHours,
-    profileUrl: fallback.profile.url,
-    profileName: fallback.profile.name,
-    insider: fallback.profile.insider ?? false,
-    colleague: fallback.profile.colleague ?? false,
+  // Store the 2nd candidate as a skip fallback
+  const fb = relevant[1]?.candidate ?? null;
+  storeFallbackCandidate(fb ? {
+    id: fb.id,
+    url: fb.url,
+    text: fb.text,
+    authorName: fb.authorName,
+    ageHours: fb.ageHours,
+    profileUrl: fb.profile?.url ?? '',
+    profileName: fb.profile?.name ?? fb.authorName,
+    insider: fb.profile?.insider ?? false,
+    colleague: fb.profile?.colleague ?? false,
   } : null);
 
   markPostSeen(best.id);
 
+  // Hashtag posts are from strangers — avoid counterpoint, lean toward ask-question / add-context
+  const isStranger = best.source === 'hashtag';
   let generated;
   try {
-    generated = await generateOutboundComment(best, { insider: best.profile.insider ?? false, colleague: best.profile.colleague ?? false });
+    generated = await generateOutboundComment(
+      { text: best.text, authorName: best.authorName, url: best.url },
+      {
+        insider: best.profile?.insider ?? false,
+        colleague: best.profile?.colleague ?? false,
+        stranger: isStranger,
+      },
+    );
     console.log(`  Options: ${generated.options.map(o => o.label).join(', ')}`);
   } catch (err) {
     console.warn(`  Failed to generate comment: ${(err as Error).message}`);
@@ -119,8 +218,8 @@ export async function runOutboundPoll(): Promise<void> {
 
   const comment: PendingComment = {
     id: `oc_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
-    profileUrl: best.profile.url,
-    profileName: best.profile.name,
+    profileUrl: best.profile?.url ?? '',
+    profileName: best.profile?.name ?? best.authorName,
     postUrl: best.url,
     postSnippet: best.text.split('\n')[0].slice(0, 100),
     postSummary: generated.postSummary,

@@ -6,7 +6,8 @@
       "name": "Nuclear Promise X",
       "addedAt": "2026-03-31T02:27:03.463Z",
       "active": true,
-      "insider": true
+      "insider": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "0f9753d6-9935-4847-9523-9f2f58f57827",
@@ -14,28 +15,32 @@
       "name": "Joshua Guzman Bell, PE, MBA",
       "addedAt": "2026-03-31T02:28:39.888Z",
       "active": true,
-      "colleague": true
+      "colleague": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "20740197-b914-40fb-991c-a7d2c13d66e4",
       "url": "https://www.linkedin.com/company/vector-institute/",
-      "name": "Vector Institute",
+      "name": "Shingai Manjengwa",
       "addedAt": "2026-03-31T02:32:56.450Z",
-      "active": true
+      "active": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "0c41a83e-5aa2-4e3f-b22e-1bf2c85157b3",
       "url": "https://www.linkedin.com/company/bruce-power/",
       "name": "Bruce Power",
       "addedAt": "2026-03-31T02:57:54.635Z",
-      "active": true
+      "active": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "cd2113b0-8724-46ed-a9ac-c220ffc617c9",
       "url": "https://www.linkedin.com/in/vitaliipronin/",
       "name": "Vitalii Pronin",
       "addedAt": "2026-03-31T03:17:39.233Z",
-      "active": true
+      "active": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "f78e68c0-7c6c-421a-ae34-0015172c4b7c",
@@ -49,42 +54,75 @@
       "url": "https://www.linkedin.com/in/susanbrownceozortrex/",
       "name": "Susan Brown",
       "addedAt": "2026-03-31T03:21:48.959Z",
-      "active": true
+      "active": true,
+      "lastSeenPostAt": "2026-04-01T18:09:58.543Z",
+      "consecutiveDryPolls": 3
     },
     {
       "id": "adc1789a-51c9-4df0-8af4-20a454fe4662",
       "url": "https://www.linkedin.com/company/ontario-s-nuclear-advantage/",
       "name": "ontario-s-nuclear-advantage",
       "addedAt": "2026-03-31T03:41:10.765Z",
-      "active": true
+      "active": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "4dd32356-9321-4f5b-8fa4-5254509e3707",
       "url": "https://www.linkedin.com/company/techcrunch/",
       "name": "TechCrunch",
       "addedAt": "2026-03-31T03:42:49.165Z",
-      "active": true
+      "active": true,
+      "lastSeenPostAt": "2026-04-01T18:00:37.706Z",
+      "consecutiveDryPolls": 3
     },
     {
       "id": "3028c5d7-e2fc-4a5f-ba0f-aea9f28f98a0",
       "url": "https://www.linkedin.com/in/harris-walker/",
-      "name": "harris-walker",
+      "name": "Harris Walker",
       "addedAt": "2026-03-31T13:34:47.680Z",
-      "active": true
+      "active": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "991c0227-9b2b-4c99-ad64-3188c811eca7",
       "url": "https://www.linkedin.com/company/nuclearn/",
       "name": "nuclearn",
       "addedAt": "2026-03-31T13:40:42.756Z",
-      "active": true
+      "active": true,
+      "consecutiveDryPolls": 3
     },
     {
       "id": "7d15949a-8df6-45c4-b997-a46076726128",
       "url": "https://www.linkedin.com/company/atkinsrealis/",
       "name": "AtkinsRéalis",
       "addedAt": "2026-03-31T13:42:15.895Z",
-      "active": true
+      "active": true,
+      "consecutiveDryPolls": 3
+    },
+    {
+      "id": "64899360-748f-459b-b9cc-825678da3b39",
+      "url": "https://www.linkedin.com/in/artemxtech/",
+      "name": "artemxtech",
+      "addedAt": "2026-04-01T02:00:25.144Z",
+      "active": true,
+      "consecutiveDryPolls": 3
+    },
+    {
+      "id": "19f0b5a2-632b-47bf-8d39-d4ee02221e0f",
+      "url": "https://www.linkedin.com/in/syed-mukeeth-ur-rahiman-349120244/",
+      "name": "syed-mukeeth-ur-rahiman",
+      "addedAt": "2026-04-01T16:10:16.063Z",
+      "active": true,
+      "consecutiveDryPolls": 3
+    },
+    {
+      "id": "e999c334-f1d8-42be-8696-9d03aded7d36",
+      "url": "https://www.linkedin.com/in/osamabaig1/",
+      "name": "Osama Baig",
+      "addedAt": "2026-04-01T16:15:06.511Z",
+      "active": true,
+      "lastSeenPostAt": "2026-04-01T16:21:03.759Z",
+      "consecutiveDryPolls": 3
     }
   ]
 }
