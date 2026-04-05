@@ -278,10 +278,10 @@ Write the LinkedIn post now. You have the full article text above — use specif
       role: 'user',
       content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Output the comment text only — do not include the URL.
 
-${item.source && item.source !== 'Manual' ? `Format: Via [Source Name]. [One direct question.]
+${item.source && item.source !== 'Manual' ? `Format: Sourced from [Source Name]. [One direct question.]
 
 Rules:
-- "Via [Source Name]" uses the publication name (e.g. "Via World Nuclear News", "Via Bruce Power", "Via IAEA")
+- "Sourced from [Source Name]" uses the publication name (e.g. "Sourced from World Nuclear News", "Sourced from Bruce Power", "Sourced from IAEA")
 - Use a period after the source name, not a dash
 - The question must be directly tied to the specific argument or claim made in the post above — not a general question about the topic
 - The question must be specific enough that a nuclear engineer or AI developer would have a concrete, opinionated answer
