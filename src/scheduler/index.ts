@@ -291,18 +291,24 @@ async function runCommentPollGuarded(opts?: CommentPollOptions): Promise<Comment
   }
 }
 
-// Weekdays: every 10 minutes — run immediately if a post is <2h old,
-// otherwise only if 3+ hours have passed since the last poll.
-cron.schedule('*/10 * * * 1-5', async () => {
+// Weekdays: every 5 minutes — frequency varies by post age.
+// First hour after a post: poll every 5 min (critical engagement window).
+// Hours 1-2: poll every 10 min.
+// Quiet period: full sweep every 3 hours.
+cron.schedule('*/5 * * * 1-5', async () => {
   const ageMs = getMostRecentPostAge();
+  const withinFirstHour = ageMs !== null && ageMs < 1 * 60 * 60 * 1000;
   const withinActiveWindow = ageMs !== null && ageMs < 2 * 60 * 60 * 1000;
   const lastPoll = getLastPollAt();
-  const hoursSincePoll = lastPoll ? (Date.now() - lastPoll.getTime()) / 3_600_000 : Infinity;
+  const minutesSincePoll = lastPoll ? (Date.now() - lastPoll.getTime()) / 60_000 : Infinity;
 
-  if (withinActiveWindow) {
-    // Active window: only check the most recent post
+  if (withinFirstHour) {
+    // Critical first hour: poll every 5 min (every tick)
     await runCommentPollGuarded({ recentOnly: true });
-  } else if (hoursSincePoll >= 3) {
+  } else if (withinActiveWindow && minutesSincePoll >= 10) {
+    // Hours 1-2: poll every 10 min
+    await runCommentPollGuarded({ recentOnly: true });
+  } else if (minutesSincePoll >= 180) {
     // Quiet period: full sweep of all posts in the 14-day window
     await runCommentPollGuarded();
   }

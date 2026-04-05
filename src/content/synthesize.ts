@@ -87,7 +87,10 @@ Content snippet: ${articleSnippet}
 Post type: ${postType}
 ${ageRule ? `\nTEMPORAL RULE: ${ageRule}` : ''}
 
+HARD CONSTRAINT: Each hook must be under 140 characters. This is the mobile "See More" truncation point — the full hook must be visible before the fold on all devices. If a hook exceeds 140 characters, score it 0 regardless of quality.
+
 Rules for a strong hook (score 7-10):
+- Under 140 characters (mandatory)
 - Makes a specific, surprising, or tension-creating claim
 - Drops the reader directly into the implication — does NOT restate the headline
 - Uses a counterintuitive fact, a specific number/date, or a short declarative that creates tension
@@ -95,6 +98,7 @@ Rules for a strong hook (score 7-10):
 - Does NOT open with a definition
 
 Rules for a weak hook (score 1-5):
+- Over 140 characters
 - Generic or restates the article headline
 - Starts with "I followed by a bland statement"
 - Opens with "In [year], ..." or a definition
@@ -113,6 +117,8 @@ Return ONLY a valid JSON array (no markdown, no extra text):
     try {
       const hooks = JSON.parse(arrayMatch[0]) as Array<{ hook: string; score: number }>;
       for (const h of hooks) {
+        // Hard reject hooks over 140 chars — mobile truncation limit
+        if (h.hook.length > 140) continue;
         if (h.score > bestScore) {
           bestScore = h.score;
           bestHook = h.hook;
