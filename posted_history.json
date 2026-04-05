@@ -9,7 +9,17 @@
       "sourceUrl": "https://www.world-nuclear-news.org//articles/nrc-issues-construction-permit-for-first-natrium-plant",
       "sourceDate": "Thu, 05 Mar 2026 16:09:25 GMT",
       "generatedAt": "2026-03-19T16:05:33.221Z",
-      "contentTags": ["nrc", "licensing", "reactor-design", "safety-case", "digital-twin", "usa", "machine-learning"]
+      "contentTags": [
+        "nrc",
+        "licensing",
+        "reactor-design",
+        "safety-case",
+        "digital-twin",
+        "usa",
+        "machine-learning",
+        "new-build",
+        "regulatory"
+      ]
     },
     "screening": {
       "cringeScore": 3,
@@ -25,7 +35,7 @@
     "publishedAt": "2026-03-19T16:09:57.579Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440428997878013952/",
     "metrics": {
-      "fetchedAt": "2026-04-01T16:31:03.799Z",
+      "fetchedAt": "2026-04-04T23:25:13.898Z",
       "reactions": 3,
       "comments": 1,
       "reposts": null
@@ -41,7 +51,17 @@
       "sourceUrl": "https://www.ans.org/news/2026-03-18/article-7851/uk-releases-new-plans-to-speed-nuclear-deployment/",
       "sourceDate": "Wed, 18 Mar 2026 19:57:13 +0000",
       "generatedAt": "2026-03-20T00:39:56.269Z",
-      "contentTags": ["regulatory", "safety-case", "document-automation", "uk", "new-build", "licensing", "workforce"]
+      "contentTags": [
+        "regulatory",
+        "safety-case",
+        "document-automation",
+        "uk",
+        "new-build",
+        "licensing",
+        "workforce",
+        "adoption",
+        "change-management"
+      ]
     },
     "screening": {
       "cringeScore": 3,
@@ -57,7 +77,7 @@
     "publishedAt": "2026-03-20T12:46:53.367Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440740463885746176/",
     "metrics": {
-      "fetchedAt": "2026-04-01T16:31:10.508Z",
+      "fetchedAt": "2026-04-04T23:25:23.262Z",
       "reactions": 2,
       "comments": 14,
       "reposts": null
@@ -73,7 +93,19 @@
       "sourceUrl": "https://www.ans.org/news/2026-03-20/article-7858/xenergy-forms-partnership-with-talen-energy-to-assess-xe100-deployment/",
       "sourceDate": "Fri, 20 Mar 2026 14:30:48 +0000",
       "generatedAt": "2026-03-20T16:28:19.234Z",
-      "contentTags": ["smr", "safety-case", "licensing", "nrc", "usa", "trust", "adoption"]
+      "contentTags": [
+        "smr",
+        "safety-case",
+        "licensing",
+        "nrc",
+        "usa",
+        "trust",
+        "adoption",
+        "new-build",
+        "northeast-us",
+        "regulatory",
+        "change-management"
+      ]
     },
     "screening": {
       "cringeScore": 3,
@@ -89,7 +121,7 @@
     "publishedAt": "2026-03-23T12:44:48.919Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7441827081430282240/",
     "metrics": {
-      "fetchedAt": "2026-04-01T16:31:17.924Z",
+      "fetchedAt": "2026-04-04T23:25:32.243Z",
       "reactions": 1,
       "comments": 1,
       "reposts": null
@@ -105,7 +137,17 @@
       "sourceUrl": "https://www.ans.org/news/2026-03-20/article-7779/60-years-of-u-perspectives-on-resources-demand-and-the-evolving-role-of-nuclear-energy/",
       "sourceDate": "Fri, 20 Mar 2026 20:00:55 +0000",
       "generatedAt": "2026-03-23T15:00:27.741Z",
-      "contentTags": ["smr", "public-opinion", "safety-case", "machine-learning", "licensing", "adoption"]
+      "contentTags": [
+        "smr",
+        "public-opinion",
+        "safety-case",
+        "machine-learning",
+        "licensing",
+        "adoption",
+        "regulatory",
+        "document-automation",
+        "usa"
+      ]
     },
     "screening": {
       "cringeScore": 5,
@@ -121,7 +163,7 @@
     "publishedAt": "2026-03-24T13:25:33.050Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442199752626094080/",
     "metrics": {
-      "fetchedAt": "2026-04-01T16:31:25.327Z",
+      "fetchedAt": "2026-04-04T23:25:39.731Z",
       "reactions": 4,
       "comments": 1,
       "reposts": null
@@ -139,7 +181,7 @@
       "sourceFeed": "Canadian Nuclear Laboratories",
       "generatedAt": "2026-03-24T23:14:56.659Z",
       "combinedScore": 11.200000000000001,
-      "contentTags": ["cybersecurity", "safety-case", "canada", "anomaly-detection"]
+      "contentTags": ["cybersecurity", "safety-case", "canada", "anomaly-detection", "regulatory", "trust"]
     },
     "screening": {
       "cringeScore": 4,
@@ -156,7 +198,7 @@
     "publishedAt": "2026-03-25T15:29:43.169Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442593340212236288/",
     "metrics": {
-      "fetchedAt": "2026-04-01T16:31:32.721Z",
+      "fetchedAt": "2026-04-04T23:25:46.729Z",
       "reactions": 2,
       "comments": 1,
       "reposts": null
@@ -175,7 +217,18 @@
       "generatedAt": "2026-03-25T23:35:01.611Z",
       "imageUrl": "https://www.ans.org/file/23729/l/eielson afb.jpg",
       "combinedScore": 21,
-      "contentTags": ["smr", "licensing", "new-build", "usa", "public-opinion", "regulatory", "nrc"]
+      "contentTags": [
+        "smr",
+        "licensing",
+        "new-build",
+        "usa",
+        "public-opinion",
+        "regulatory",
+        "nrc",
+        "northeast-us",
+        "midwest-us",
+        "southeast-us"
+      ]
     },
     "screening": {
       "cringeScore": 3,
@@ -192,7 +245,7 @@
     "publishedAt": "2026-03-26T16:12:32.549Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442966521708158976/",
     "metrics": {
-      "fetchedAt": "2026-04-01T16:31:39.992Z",
+      "fetchedAt": "2026-04-04T23:25:57.972Z",
       "reactions": 3,
       "comments": 1,
       "reposts": null
@@ -234,8 +287,8 @@
     "publishedAt": "2026-03-31T13:23:58.129Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7444736016478846976/",
     "metrics": {
-      "fetchedAt": "2026-04-01T16:31:47.842Z",
-      "reactions": 1,
+      "fetchedAt": "2026-04-04T23:26:08.199Z",
+      "reactions": 2,
       "comments": 3,
       "reposts": null
     }
@@ -274,6 +327,67 @@
     "scheduledFor": "2026-04-01T19:07:00.000Z",
     "publishFailures": 1,
     "publishedAt": "2026-04-01T19:08:47.067Z",
-    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445185194199834624/"
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445185194199834624/",
+    "metrics": {
+      "fetchedAt": "2026-04-04T23:26:17.686Z",
+      "reactions": 50,
+      "comments": 1,
+      "reposts": 1
+    }
+  },
+  {
+    "id": "post_1775084468570",
+    "draft": {
+      "content": "Texas just unlocked $350M for advanced nuclear construction—enough to fund multiple reactor projects at once. Here's why this matters for the energy supply chain.\n\nBut buried in the details is a bottleneck most people will overlook: only projects with a [[MENTION:NRC]]-docketed application can access the big construction fund. Right now, that's exactly two projects in all of Texas.\n\nTANEO is letting developers apply if they expect docketing by year-end. That's pragmatic. It also means a wave of NRC licensing applications is about to hit, each one generating thousands of pages of safety case documentation, the structured argument that proves a reactor design meets regulatory requirements under every analyzed condition.\n\nThis is where AI earns its place. LLM-assisted documentation tools can accelerate how applicants draft, cross-reference, and maintain consistency across licensing submissions. When you're racing a May 14 application deadline and a year-end docketing target, shaving weeks off document preparation is worth real money.\n\nThe catch: NRC submissions demand full traceability. Every claim needs a verifiable source. Any AI tooling here has to produce outputs that regulators can audit sentence by sentence. Black-box text generation won't survive first contact with a NRC reviewer.\n\nTexas put $350 million on the table. The teams that can document fastest and most rigorously will be first to access it.\n\n#NuclearEnergy #AIinEnergy #SMR #NRC #LLM #AdvancedNuclear #TexasEnergy",
+      "firstComment": "Via Power Magazine. If NRC reviewers need sentence-level traceability, can LLM-assisted drafting tools actually meet that bar without external validation layers?\n\nhttps://www.powermag.com/exclusive-texas-opens-350m-advanced-nuclear-grant-programs-to-spur-reactor-buildout-supply-chain/",
+      "postType": "bridge",
+      "sourceTitle": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs to Spur Reactor Buildout, Supply Chain",
+      "sourceUrl": "https://www.powermag.com/exclusive-texas-opens-350m-advanced-nuclear-grant-programs-to-spur-reactor-buildout-supply-chain/",
+      "sourceDate": "2026-04-01T14:17:27.000Z",
+      "sourceFeed": "Power Magazine",
+      "generatedAt": "2026-04-01T23:00:48.874Z",
+      "imageUrl": "https://www.powermag.com/wp-content/uploads/2018/05/nuclearcoolingtowerssunset_power_web1.jpg",
+      "combinedScore": 7.428571428571428,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.1428571428571428,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": [
+        "regulatory",
+        "safety-case",
+        "licensing",
+        "nrc",
+        "llm",
+        "document-automation",
+        "explainability",
+        "new-build",
+        "texas",
+        "usa"
+      ]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook uses an em dash and the phrase 'unlocked,' which reads AI-polished. 'Here's why this matters' is a cringe trigger pattern. The second line 'But buried in the details' is a classic AI pivot structure. Seven hashtags exceed the limit. The post is otherwise substantive with real specifics (TANEO, May 14 deadline, docketing requirement), but the framing leans generated. First comment is too long and reads like the author asking themselves a question rather than prompting discussion.",
+      "revisedContent": "Only two projects in all of Texas currently qualify for the state's new $350M advanced nuclear construction fund.\n\nTANEO, the Texas Advanced Nuclear Energy Organization, just opened grant programs totaling $350 million. But there's an eligibility bottleneck most people will miss: the big construction fund requires a docketed [[MENTION:NRC]] application, meaning the Nuclear Regulatory Commission has formally accepted the application for review.\n\nRight now, only two Texas projects meet that bar.\n\nTANEO is letting developers apply if they expect docketing by year-end. That's pragmatic. It also means a wave of NRC licensing applications is about to hit, each one generating thousands of pages of safety case documentation.\n\nThis is where AI tooling becomes relevant. LLM-assisted documentation tools can accelerate how applicants draft, cross-reference, and maintain consistency across licensing submissions.\n\nWhen you're racing a May 14 application deadline and a year-end docketing target, shaving weeks off document preparation is worth real money.\n\nThe catch: NRC submissions demand full traceability. Every claim needs a verifiable source. Any AI tooling here has to produce outputs that regulators can audit sentence by sentence. Black-box text generation won't survive first contact with an NRC reviewer.\n\nTexas put $350 million on the table. The teams that can document fastest and most rigorously will be first to access it.\n\n#NuclearEnergy #AIinEnergy #NRC #AdvancedNuclear",
+      "revisedFirstComment": "Via Power Magazine. If NRC reviewers need sentence-level traceability, can LLM-assisted drafting tools actually meet that bar without external validation layers?\n\nhttps://www.powermag.com/exclusive-texas-opens-350m-advanced-nuclear-grant-programs-to-spur-reactor-buildout-supply-chain/"
+    },
+    "finalContent": "Only two projects in all of Texas currently qualify for the state's new $350M advanced nuclear construction fund.\n\nTANEO, the Texas Advanced Nuclear Energy Organization, just opened grant programs totaling $350 million. But there's an eligibility bottleneck most people will miss: the big construction fund requires a docketed [[MENTION:NRC]] application, meaning the Nuclear Regulatory Commission has formally accepted the application for review.\n\nRight now, only two Texas projects meet that bar.\n\nTANEO is letting developers apply if they expect docketing by year-end. That's pragmatic. It also means a wave of NRC licensing applications is about to hit, each one generating thousands of pages of safety case documentation.\n\nThis is where AI tooling becomes relevant. LLM-assisted documentation tools can accelerate how applicants draft, cross-reference, and maintain consistency across licensing submissions.\n\nWhen you're racing a May 14 application deadline and a year-end docketing target, shaving weeks off document preparation is worth real money.\n\nThe catch: NRC submissions demand full traceability. Every claim needs a verifiable source. Any AI tooling here has to produce outputs that regulators can audit sentence by sentence. Black-box text generation won't survive first contact with an NRC reviewer.\n\nTexas put $350 million on the table. The teams that can document fastest and most rigorously will be first to access it.\n\n#NuclearEnergy #AIinEnergy #NRC #AdvancedNuclear",
+    "status": "published",
+    "createdAt": "2026-04-01T23:01:08.570Z",
+    "actedAt": "2026-04-01T23:47:38.595Z",
+    "scheduledFor": "2026-04-02T15:33:00.000Z",
+    "publishedAt": "2026-04-02T15:35:25.147Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445493857913360384/",
+    "metrics": {
+      "fetchedAt": "2026-04-04T23:26:27.865Z",
+      "reactions": 6,
+      "comments": 16,
+      "reposts": null
+    }
   }
 ]

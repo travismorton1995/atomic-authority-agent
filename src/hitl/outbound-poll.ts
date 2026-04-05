@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { openScrapeContext, scrapeProfilePostsWithPage, scrapeHashtagWithPage, type ScrapedPost } from '../outbound/scrape-feed.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
 import { relevanceHits } from '../outbound/relevance.js';
+import { isSessionExpiredUrl } from '../poster/index.js';
 import {
   getActiveProfiles,
   isPostSeen,
@@ -60,20 +61,38 @@ export async function runOutboundPoll(): Promise<void> {
   const candidates: Candidate[] = [];
   const seenIds = new Set<string>(); // deduplicate across profiles and hashtags
 
-  // Skip profiles that have been dry for several consecutive polls.
+  // Reduce polling frequency for profiles that haven't posted recently.
+  // - No lastSeenPostAt or seen within 2 days → check every time
+  // - Dry for 2–5 days → check every other poll (staggered by profile ID)
+  // - Dry for 5+ days → check every 4th poll (staggered by profile ID)
+  // Resets to every-time as soon as a new post is found (via recordProfilePollResult).
   let skippedDry = 0;
+  const now = Date.now();
   const pollProfiles = profiles.filter(profile => {
-    const dry = profile.consecutiveDryPolls ?? 0;
-    if (dry < 3) return true;
-    const checkEvery = dry < 6 ? 2 : 3;
-    const shouldCheck = dry % checkEvery === 0;
+    const lastSeen = profile.lastSeenPostAt ? new Date(profile.lastSeenPostAt).getTime() : 0;
+    const daysDry = lastSeen === 0 ? 0 : (now - lastSeen) / (1000 * 60 * 60 * 24);
+
+    if (daysDry < 2) return true;
+
+    const checkEvery = daysDry < 5 ? 2 : 4;
+    const pollCount = profile.consecutiveDryPolls ?? 0;
+    const offset = profile.id.charCodeAt(0) % checkEvery;
+    const shouldCheck = (pollCount + offset) % checkEvery === 0;
     if (!shouldCheck) skippedDry++;
     return shouldCheck;
   });
-  if (skippedDry > 0) console.log(`  Skipping ${skippedDry} profile(s) with no recent posts.`);
+  if (skippedDry > 0) console.log(`  Skipping ${skippedDry} profile(s) — no recent posts (checked less frequently).`);
 
   const { context, page } = await openScrapeContext();
   try {
+    // Verify LinkedIn session before scraping
+    await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: 15000 });
+    if (isSessionExpiredUrl(page.url())) {
+      console.error('Outbound poll: LinkedIn session expired. Run /login to renew.');
+      recordOutboundPoll();
+      return;
+    }
+
     // --- Scrape curated profiles ---
     for (const profile of pollProfiles) {
       let posts;
@@ -163,17 +182,19 @@ export async function runOutboundPoll(): Promise<void> {
     return { candidate: c, score, postAge, profileCooldown, keywords };
   });
 
-  // Filter out posts with zero relevance
-  const relevant = scored.filter(s => s.keywords > 0);
-  if (relevant.length === 0) {
-    console.log(`  ${scored.length} candidate(s) found but none matched relevance keywords. Nothing queued.`);
+  // Hard-filter only hashtag candidates with zero relevance (strangers posting off-topic).
+  // Profile candidates always pass — you curated them for a reason. Keywords boost their
+  // score but don't exclude them.
+  const eligible = scored.filter(s => s.candidate.source === 'profile' || s.keywords > 0);
+  if (eligible.length === 0) {
+    console.log(`  ${scored.length} candidate(s) found but none were eligible. Nothing queued.`);
     recordOutboundPoll();
     return;
   }
 
-  relevant.sort((a, b) => b.score - a.score);
+  eligible.sort((a, b) => b.score - a.score);
 
-  const pick = relevant[0];
+  const pick = eligible[0];
   const best = pick.candidate;
   const ageLabel = best.ageHours !== null ? `${best.ageHours.toFixed(1)}h old` : 'unknown age';
   const inGoldenWindow = best.ageHours !== null && best.ageHours < 2;
@@ -182,7 +203,7 @@ export async function runOutboundPoll(): Promise<void> {
   console.log(`  Picked: [${best.authorName || best.sourceLabel}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''} | ${pick.keywords} keyword(s) | ${sourceTag} | last comment: ${cooldownLabel}`);
 
   // Store the 2nd candidate as a skip fallback
-  const fb = relevant[1]?.candidate ?? null;
+  const fb = eligible[1]?.candidate ?? null;
   storeFallbackCandidate(fb ? {
     id: fb.id,
     url: fb.url,

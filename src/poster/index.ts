@@ -81,6 +81,12 @@ export async function renewSession(): Promise<boolean> {
 
 // Silently checks whether the saved LinkedIn session is still valid.
 // Returns true if the session is active, false if login is required.
+// Lightweight session check — call after navigating to any LinkedIn page.
+// Returns true if the page landed on a login/authwall instead of real content.
+export function isSessionExpiredUrl(url: string): boolean {
+  return url.includes('/login') || url.includes('/authwall') || url.includes('/checkpoint');
+}
+
 export async function pingSession(): Promise<boolean> {
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',

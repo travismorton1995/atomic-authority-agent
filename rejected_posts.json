@@ -716,12 +716,7 @@
         "geography": 1,
         "npx": 0
       },
-      "contentTags": [
-        "nrc",
-        "licensing",
-        "llm",
-        "usa"
-      ]
+      "contentTags": ["nrc", "licensing", "llm", "usa"]
     },
     "screening": {
       "cringeScore": 3,
@@ -745,12 +740,7 @@
       "sourceDate": "2026-04-01T13:22:52.096Z",
       "sourceFeed": "Manual",
       "generatedAt": "2026-04-01T13:23:05.395Z",
-      "contentTags": [
-        "smr",
-        "safety-case",
-        "cnsc",
-        "llm"
-      ]
+      "contentTags": ["smr", "safety-case", "cnsc", "llm"]
     },
     "screening": {
       "cringeScore": 0,
@@ -762,5 +752,110 @@
     "status": "rejected",
     "createdAt": "2026-04-01T13:23:19.543Z",
     "actedAt": "2026-04-01T13:26:15.413Z"
+  },
+  {
+    "id": "post_1775346118567",
+    "draft": {
+      "content": "Meta and YouTube just lost billions in court—not for what they sold, but for how they designed their platforms to be psychologically addictive. The tobacco playbook is now being used against Big Tech.\n\nThe AI community should pay close attention.\n\n\"Move fast and break things\" works until a court decides the things you broke were children's mental health. These rulings didn't target bugs or data breaches. They targeted design intent. The engagement metrics these platforms optimized for became the evidence used against them.\n\nIn nuclear, we have a concept called Defense-in-Depth, which means layering multiple independent safety barriers so no single failure can cause harm. It applies to reactor design, but the philosophy runs deeper. You don't ship a system that optimizes for one variable while ignoring downstream consequences. Period.\n\nThe AI industry keeps treating explainability and safety constraints as friction that slows innovation. Nuclear engineers treat those constraints as the product. A reactor that performs brilliantly but can't demonstrate its safety case to the [[MENTION:CNSC]] doesn't get licensed. Full stop.\n\nIf your AI system can't explain why it made a decision, you haven't built something innovative. You've built a liability with a delayed court date.\n\n#NuclearEnergy #AIethics #DefenseInDepth #ExplainableAI #BigTech",
+      "firstComment": "Via Insights IAS. If design intent is now legal evidence, should AI systems face pre-deployment licensing like nuclear reactors, or is post-hoc audit enough?\n\nhttps://www.insightsonindia.com/2026/04/04/upsc-current-affairs-4-april-2026/",
+      "postType": "contrarian",
+      "sourceTitle": "UPSC CURRENT AFFAIRS – 4 April 2026",
+      "sourceUrl": "https://www.insightsonindia.com/2026/04/04/upsc-current-affairs-4-april-2026/",
+      "sourceDate": "2026-04-04T14:09:59.000Z",
+      "sourceFeed": "NewsData: Insights Ias - Simplifying Upsc Ias Exam Preparati",
+      "generatedAt": "2026-04-04T23:41:43.146Z",
+      "imageUrl": "https://www.insightsonindia.com/wp-content/uploads/2026/04/Social-Media-Addiction.png",
+      "combinedScore": 12.48,
+      "scoreBreakdown": {
+        "intersection": 4,
+        "novelty": 3,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["safety-case", "licensing", "cnsc", "explainability", "trust", "adoption"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "Strong hook with a specific, attention-grabbing claim. Good nuclear-AI crossover with Defense-in-Depth explained inline. However, the post has a contrasting reframe ('Nuclear engineers treat those constraints as the product') and another reframe in the closing ('You haven't built something innovative. You've built a liability'). The paragraph starting 'In nuclear, we have a concept called Defense-in-Depth' is 4 sentences long, which is a wall of text. The closing line is punchy but edges into bumper-sticker territory.",
+      "revisedContent": "Meta and YouTube just lost billions in court, not for what they sold, but for how they designed their platforms to be psychologically addictive. The tobacco playbook is now being used against Big Tech.\n\nThe AI community should pay close attention.\n\n\"Move fast and break things\" works until a court decides the things you broke were children's mental health. These rulings didn't target bugs or data breaches. They targeted design intent.\n\nThe engagement metrics these platforms optimized for became the evidence used against them.\n\nIn nuclear, we have a concept called Defense-in-Depth, which means layering multiple independent safety barriers so no single failure can cause harm. It applies to reactor design, but the philosophy runs deeper.\n\nYou don't ship a system that optimizes for one variable while ignoring downstream consequences. Period.\n\nThe AI industry keeps treating explainability and safety constraints as friction that slows innovation. In nuclear, those constraints are the product. A reactor that performs brilliantly but can't demonstrate its safety case to the [[MENTION:CNSC]] (Canada's nuclear regulator) doesn't get licensed. Full stop.\n\nIf your AI system can't explain why it made a decision, you've built a liability with a delayed court date.\n\n#NuclearEnergy #AIethics #DefenseInDepth #ExplainableAI",
+      "revisedFirstComment": "Via Insights IAS. If design intent is now legal evidence, should AI systems face pre-deployment licensing like nuclear reactors, or is post-hoc audit enough?\n\nhttps://www.insightsonindia.com/2026/04/04/upsc-current-affairs-4-april-2026/"
+    },
+    "finalContent": "Meta and YouTube just lost billions in court, not for what they sold, but for how they designed their platforms to be psychologically addictive. The tobacco playbook is now being used against Big Tech.\n\nThe AI community should pay close attention.\n\n\"Move fast and break things\" works until a court decides the things you broke were children's mental health. These rulings didn't target bugs or data breaches. They targeted design intent.\n\nThe engagement metrics these platforms optimized for became the evidence used against them.\n\nIn nuclear, we have a concept called Defense-in-Depth, which means layering multiple independent safety barriers so no single failure can cause harm. It applies to reactor design, but the philosophy runs deeper.\n\nYou don't ship a system that optimizes for one variable while ignoring downstream consequences. Period.\n\nThe AI industry keeps treating explainability and safety constraints as friction that slows innovation. In nuclear, those constraints are the product. A reactor that performs brilliantly but can't demonstrate its safety case to the [[MENTION:CNSC]] (Canada's nuclear regulator) doesn't get licensed. Full stop.\n\nIf your AI system can't explain why it made a decision, you've built a liability with a delayed court date.\n\n#NuclearEnergy #AIethics #DefenseInDepth #ExplainableAI",
+    "status": "rejected",
+    "createdAt": "2026-04-04T23:41:58.567Z",
+    "actedAt": "2026-04-04T23:48:06.609Z"
+  },
+  {
+    "id": "post_1775346516305",
+    "draft": {
+      "content": "A nuclear power site in Punjab was deemed suitable for 2,800 MW in the early 2000s—and then went nowhere for 17 years. Just this week, the government confirmed there's still no active proposal to revive it.\n\nIn tech, this would be called a failure. A wasted opportunity. Evidence that the system is broken and needs disruption.\n\nI'd call it the nuclear sector working exactly as designed.\n\nThe site at Patran in Patiala district passed technical evaluation. 4x700 MW capacity. The engineering said yes. But the Punjab state government never made a policy decision in 2007, so the project stopped. The Standing Site Selection Committee of the Department of Atomic Energy won't even begin detailed feasibility until a state proposal comes in.\n\nThat's Defense-in-Depth applied to decision-making itself, where multiple independent layers of approval must align before anything proceeds.\n\nSilicon Valley's \"move fast and break things\" assumes the cost of inaction exceeds the cost of a bad decision. In nuclear, that math is inverted. A premature commitment to the wrong site, the wrong political environment, or the wrong public readiness creates consequences that last generations.\n\nPatience isn't paralysis. Sometimes the most engineered decision is the one you don't make yet.\n\n#NuclearEnergy #DefenseInDepth #NuclearPolicy #AI #EnergyTransition",
+      "firstComment": "Via The Tribune India. Does the Standing Site Selection Committee's requirement for a state proposal first actually protect against bad outcomes, or does it just diffuse accountability across layers?\n\nhttps://www.tribuneindia.com/news/top-headlines/no-proposal-to-set-up-a-nuke-power-plant-in-punjab-pmo-minister-in-parliament",
+      "postType": "contrarian",
+      "sourceTitle": "No proposal to set up a nuke power plant in Punjab: PMO minister in Parliament",
+      "sourceUrl": "https://www.tribuneindia.com/news/top-headlines/no-proposal-to-set-up-a-nuke-power-plant-in-punjab-pmo-minister-in-parliament",
+      "sourceDate": "2026-04-04T12:53:28.000Z",
+      "sourceFeed": "NewsData: The Tribune India",
+      "generatedAt": "2026-04-04T23:48:21.351Z",
+      "imageUrl": "https://www.tribuneindia.com/sortd-service/imaginary/v22-01/jpg/large/high?url=dGhldHJpYnVuZS1zb3J0ZC1wcm8tcHJvZC1zb3J0ZC9tZWRpYWM1MzNkNmEwLTMwMDMtMTFmMS04ZWE5LTk5MGI3ZjZhOWEzOS5qcGc=",
+      "combinedScore": 7.800000000000001,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "public-opinion", "change-management", "adoption", "canada"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The post has a strong hook and a genuine nuclear-specific argument, but it hits two cringe triggers: a contrasting reframe pattern ('Patience isn't paralysis.') and an em dash in the opening line. The #AI hashtag is bolted on with no AI content in the post. The Defense-in-Depth analogy is interesting but the explanation could be tighter. The 'That's Defense-in-Depth applied to decision-making itself' line uses the contrasting reframe structure implicitly. Overall the writing is mostly human-sounding but needs minor cleanup.",
+      "revisedContent": "A nuclear power site in Punjab was deemed suitable for 2,800 MW in the early 2000s, then went nowhere for 17 years. Just this week, the government confirmed there's still no active proposal to revive it.\n\nIn tech, this would be called a failure. A wasted opportunity. Evidence that the system is broken and needs disruption.\n\nI'd call it the nuclear sector working exactly as designed.\n\nThe site at Patran in Patiala district passed technical evaluation. 4x700 MW capacity. The engineering said yes.\n\nBut the Punjab state government never made a policy decision in 2007, so the project stopped. The Standing Site Selection Committee of the Department of Atomic Energy won't even begin detailed feasibility until a state proposal comes in.\n\nThis is Defense-in-Depth applied to decision-making, where multiple independent layers of approval must align before anything proceeds. The concept originates in reactor safety, where redundant barriers prevent any single failure from causing harm. The same logic governs siting decisions.\n\nSilicon Valley's \"move fast and break things\" assumes the cost of inaction exceeds the cost of a bad decision. In nuclear, that math is inverted.\n\nA premature commitment to the wrong site, the wrong political environment, or the wrong public readiness creates consequences that last generations.\n\nSometimes the most engineered decision is the one you don't make yet.\n\n#NuclearEnergy #DefenseInDepth #NuclearPolicy #EnergyTransition",
+      "revisedFirstComment": "Via The Tribune India. Does the Standing Site Selection Committee's requirement for a state proposal first actually protect against bad outcomes, or does it just diffuse accountability across layers?\n\nhttps://www.tribuneindia.com/news/top-headlines/no-proposal-to-set-up-a-nuke-power-plant-in-punjab-pmo-minister-in-parliament"
+    },
+    "finalContent": "A nuclear power site in Punjab was deemed suitable for 2,800 MW in the early 2000s, then went nowhere for 17 years. Just this week, the government confirmed there's still no active proposal to revive it.\n\nIn tech, this would be called a failure. A wasted opportunity. Evidence that the system is broken and needs disruption.\n\nI'd call it the nuclear sector working exactly as designed.\n\nThe site at Patran in Patiala district passed technical evaluation. 4x700 MW capacity. The engineering said yes.\n\nBut the Punjab state government never made a policy decision in 2007, so the project stopped. The Standing Site Selection Committee of the Department of Atomic Energy won't even begin detailed feasibility until a state proposal comes in.\n\nThis is Defense-in-Depth applied to decision-making, where multiple independent layers of approval must align before anything proceeds. The concept originates in reactor safety, where redundant barriers prevent any single failure from causing harm. The same logic governs siting decisions.\n\nSilicon Valley's \"move fast and break things\" assumes the cost of inaction exceeds the cost of a bad decision. In nuclear, that math is inverted.\n\nA premature commitment to the wrong site, the wrong political environment, or the wrong public readiness creates consequences that last generations.\n\nSometimes the most engineered decision is the one you don't make yet.\n\n#NuclearEnergy #DefenseInDepth #NuclearPolicy #EnergyTransition",
+    "status": "rejected",
+    "createdAt": "2026-04-04T23:48:36.305Z",
+    "actedAt": "2026-04-04T23:52:18.521Z"
+  },
+  {
+    "id": "post_1775346768926",
+    "draft": {
+      "content": "California just chose climate pragmatism over ideology: extending a nuclear plant's license by 20 years while the state simultaneously phases out natural gas. The cognitive dissonance is the entire energy transition.\n\nHere's what the AI world should pay attention to.\n\nThe mainstream tech playbook says move fast, ship MVPs, iterate in production, fix it later. The [[MENTION:NRC]] just completed its 99th and 100th license renewals for commercial reactors. That process involved a supplemental environmental impact statement, consultations with federal, state, local, and tribal agencies, water quality permits, and public comment periods.\n\nDiablo Canyon provides 2,240 MWe and 17 percent of California's zero-carbon electricity. You don't \"iterate in production\" on infrastructure at that scale.\n\nAI companies building for regulated industries keep running into this wall. They want agile. Regulators want a safety case, meaning a structured, documented argument that a system is acceptably safe before it operates. Not after.\n\nThe nuclear sector has spent decades perfecting how to make conservative, evidence-heavy decisions under uncertainty. That discipline isn't a bottleneck. It's the methodology AI deployment in critical infrastructure desperately needs to adopt.\n\nDiablo Canyon survived a decade-long near-death experience because people eventually did the math. AI adoption in energy will follow the same arc. Slower than the hype suggests, faster than skeptics expect.\n\n#NuclearEnergy #AI #EnergyPolicy #DiabloCanyon #NuclearLicensing",
+      "firstComment": "Via ANS Newswire. Does adopting nuclear's safety case methodology mean pre-deployment certification by independent regulators, or internal adoption of nuclear documentation standards while regulators catch up?\n\nhttps://www.ans.org/news/2026-04-03/article-7906/nrc-approves-diablo-canyon-license-renewal-extension/",
+      "postType": "contrarian",
+      "sourceTitle": "NRC approves Diablo Canyon license renewal, extension",
+      "sourceUrl": "https://www.ans.org/news/2026-04-03/article-7906/nrc-approves-diablo-canyon-license-renewal-extension/",
+      "sourceDate": "2026-04-03T14:23:39.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-04-04T23:52:33.669Z",
+      "imageUrl": "https://www.ans.org/file/17386/l/whale 5_DiabloCanyon_PGE.jpg",
+      "combinedScore": 6.24,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "safety-case", "licensing", "nrc", "usa", "machine-learning", "adoption", "public-opinion"]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The post has real substance and industry-specific knowledge (MWe figures, NRC license renewals, safety case methodology), but hits several cringe triggers: a contrasting reframe ('That discipline isn't a bottleneck. It's the methodology...'), a pivot filler sentence ('Here's what the AI world should pay attention to.'), stacked adjectives ('conservative, evidence-heavy decisions'), and one paragraph that runs to 3 sentences (the NRC process paragraph). The hook is decent, opening with a specific claim about California's decision creating cognitive dissonance. The 'safety case' term is explained inline, which is good. But the AI-isms and structural patterns push it into detectable-polish territory.",
+      "revisedContent": "California just chose climate pragmatism over ideology: extending a nuclear plant's license by 20 years while the state simultaneously phases out natural gas. The cognitive dissonance is the entire energy transition.\n\nThe mainstream tech playbook says move fast, ship MVPs, iterate in production, fix it later. The [[MENTION:NRC]] just completed its 99th and 100th license renewals for commercial reactors.\n\nThat process involved a supplemental environmental impact statement, consultations with federal, state, local, and tribal agencies, water quality permits, and public comment periods.\n\nDiablo Canyon provides 2,240 MWe and 17 percent of California's zero-carbon electricity. You don't \"iterate in production\" on infrastructure at that scale.\n\nAI companies building for regulated industries keep running into this wall. They want agile. Regulators want a safety case, a structured, documented argument that a system is acceptably safe before it operates. Not after.\n\nThe nuclear sector has spent decades perfecting how to make conservative decisions under uncertainty. That discipline is the methodology AI deployment in critical infrastructure desperately needs to adopt.\n\nDiablo Canyon survived a decade-long near-death experience because people eventually did the math. AI adoption in energy will follow the same arc. Slower than the hype suggests, faster than skeptics expect.\n\n#NuclearEnergy #AI #EnergyPolicy #DiabloCanyon",
+      "revisedFirstComment": "Via ANS Newswire. Does adopting nuclear's safety case methodology mean pre-deployment certification by independent regulators, or internal adoption of nuclear documentation standards while regulators catch up?\n\nhttps://www.ans.org/news/2026-04-03/article-7906/nrc-approves-diablo-canyon-license-renewal-extension/"
+    },
+    "finalContent": "California just chose climate pragmatism over ideology: extending a nuclear plant's license by 20 years while the state simultaneously phases out natural gas. The cognitive dissonance is the entire energy transition.\n\nThe mainstream tech playbook says move fast, ship MVPs, iterate in production, fix it later. The [[MENTION:NRC]] just completed its 99th and 100th license renewals for commercial reactors.\n\nThat process involved a supplemental environmental impact statement, consultations with federal, state, local, and tribal agencies, water quality permits, and public comment periods.\n\nDiablo Canyon provides 2,240 MWe and 17 percent of California's zero-carbon electricity. You don't \"iterate in production\" on infrastructure at that scale.\n\nAI companies building for regulated industries keep running into this wall. They want agile. Regulators want a safety case, a structured, documented argument that a system is acceptably safe before it operates. Not after.\n\nThe nuclear sector has spent decades perfecting how to make conservative decisions under uncertainty. That discipline is the methodology AI deployment in critical infrastructure desperately needs to adopt.\n\nDiablo Canyon survived a decade-long near-death experience because people eventually did the math. AI adoption in energy will follow the same arc. Slower than the hype suggests, faster than skeptics expect.\n\n#NuclearEnergy #AI #EnergyPolicy #DiabloCanyon",
+    "status": "rejected",
+    "createdAt": "2026-04-04T23:52:48.926Z",
+    "actedAt": "2026-04-04T23:54:05.741Z"
   }
 ]

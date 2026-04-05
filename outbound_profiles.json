@@ -7,7 +7,8 @@
       "addedAt": "2026-03-31T02:27:03.463Z",
       "active": true,
       "insider": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 0,
+      "lastSeenPostAt": "2026-04-02T14:00:05.275Z"
     },
     {
       "id": "0f9753d6-9935-4847-9523-9f2f58f57827",
@@ -16,15 +17,17 @@
       "addedAt": "2026-03-31T02:28:39.888Z",
       "active": true,
       "colleague": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
     },
     {
       "id": "20740197-b914-40fb-991c-a7d2c13d66e4",
       "url": "https://www.linkedin.com/company/vector-institute/",
-      "name": "Shingai Manjengwa",
+      "name": "Vector Institute",
       "addedAt": "2026-03-31T02:32:56.450Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 3,
+      "lastSeenPostAt": "2026-04-02T18:00:13.579Z"
     },
     {
       "id": "0c41a83e-5aa2-4e3f-b22e-1bf2c85157b3",
@@ -32,7 +35,8 @@
       "name": "Bruce Power",
       "addedAt": "2026-03-31T02:57:54.635Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 3,
+      "lastSeenPostAt": "2026-04-02T18:00:17.451Z"
     },
     {
       "id": "cd2113b0-8724-46ed-a9ac-c220ffc617c9",
@@ -40,7 +44,8 @@
       "name": "Vitalii Pronin",
       "addedAt": "2026-03-31T03:17:39.233Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-03T11:29:47.155Z"
     },
     {
       "id": "f78e68c0-7c6c-421a-ae34-0015172c4b7c",
@@ -55,8 +60,8 @@
       "name": "Susan Brown",
       "addedAt": "2026-03-31T03:21:48.959Z",
       "active": true,
-      "lastSeenPostAt": "2026-04-01T18:09:58.543Z",
-      "consecutiveDryPolls": 3
+      "lastSeenPostAt": "2026-04-05T00:48:33.585Z",
+      "consecutiveDryPolls": 0
     },
     {
       "id": "adc1789a-51c9-4df0-8af4-20a454fe4662",
@@ -64,7 +69,8 @@
       "name": "ontario-s-nuclear-advantage",
       "addedAt": "2026-03-31T03:41:10.765Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
     },
     {
       "id": "4dd32356-9321-4f5b-8fa4-5254509e3707",
@@ -72,8 +78,8 @@
       "name": "TechCrunch",
       "addedAt": "2026-03-31T03:42:49.165Z",
       "active": true,
-      "lastSeenPostAt": "2026-04-01T18:00:37.706Z",
-      "consecutiveDryPolls": 3
+      "lastSeenPostAt": "2026-04-05T00:48:40.803Z",
+      "consecutiveDryPolls": 0
     },
     {
       "id": "3028c5d7-e2fc-4a5f-ba0f-aea9f28f98a0",
@@ -81,15 +87,17 @@
       "name": "Harris Walker",
       "addedAt": "2026-03-31T13:34:47.680Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
     },
     {
       "id": "991c0227-9b2b-4c99-ad64-3188c811eca7",
       "url": "https://www.linkedin.com/company/nuclearn/",
-      "name": "nuclearn",
+      "name": "Nuclearn",
       "addedAt": "2026-03-31T13:40:42.756Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 0,
+      "lastSeenPostAt": "2026-04-02T02:08:52.407Z"
     },
     {
       "id": "7d15949a-8df6-45c4-b997-a46076726128",
@@ -97,7 +105,8 @@
       "name": "AtkinsRéalis",
       "addedAt": "2026-03-31T13:42:15.895Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 2,
+      "lastSeenPostAt": "2026-04-02T19:48:56.803Z"
     },
     {
       "id": "64899360-748f-459b-b9cc-825678da3b39",
@@ -105,7 +114,8 @@
       "name": "artemxtech",
       "addedAt": "2026-04-01T02:00:25.144Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
     },
     {
       "id": "19f0b5a2-632b-47bf-8d39-d4ee02221e0f",
@@ -113,7 +123,8 @@
       "name": "syed-mukeeth-ur-rahiman",
       "addedAt": "2026-04-01T16:10:16.063Z",
       "active": true,
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
     },
     {
       "id": "e999c334-f1d8-42be-8696-9d03aded7d36",
@@ -122,7 +133,61 @@
       "addedAt": "2026-04-01T16:15:06.511Z",
       "active": true,
       "lastSeenPostAt": "2026-04-01T16:21:03.759Z",
-      "consecutiveDryPolls": 3
+      "consecutiveDryPolls": 0
+    },
+    {
+      "id": "142da7e9-e681-4905-9cd0-9218091b20c9",
+      "url": "https://www.linkedin.com/in/munir-machmud-ali-1b2a4774/",
+      "name": "munir-machmud-ali-1b2a4774",
+      "addedAt": "2026-04-01T23:57:45.698Z",
+      "active": true,
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
+    },
+    {
+      "id": "a0034048-9e71-4afc-92b2-6996046c6e37",
+      "url": "https://www.linkedin.com/company/canadian-nuclear-association/",
+      "name": "canadian-nuclear-association",
+      "addedAt": "2026-04-02T02:50:11.942Z",
+      "active": true,
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
+    },
+    {
+      "id": "5fa17ae0-3ca1-4e3a-9df2-23b50b610b6d",
+      "url": "https://www.linkedin.com/company/ontario-power-generation/",
+      "name": "Ontario Power Generation",
+      "addedAt": "2026-04-02T02:51:20.512Z",
+      "active": true,
+      "consecutiveDryPolls": 2,
+      "lastSeenPostAt": "2026-04-02T19:49:06.437Z"
+    },
+    {
+      "id": "de36855b-d6cb-4e1c-8126-0603093133eb",
+      "url": "https://www.linkedin.com/in/jasonh1/",
+      "name": "jasonh1",
+      "addedAt": "2026-04-03T13:02:31.911Z",
+      "active": true,
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
+    },
+    {
+      "id": "37cd3eb3-d1bd-4174-8c1e-d30e75ed82cd",
+      "url": "https://www.linkedin.com/in/ethan-li-cfa-56394182/",
+      "name": "ethan-li-cfa-56394182",
+      "addedAt": "2026-04-03T15:35:04.450Z",
+      "active": true,
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
+    },
+    {
+      "id": "e388819c-a446-44f3-8652-9f34de607c1e",
+      "url": "https://www.linkedin.com/in/amyaharder/",
+      "name": "amyaharder",
+      "addedAt": "2026-04-04T03:38:51.903Z",
+      "active": true,
+      "consecutiveDryPolls": 4,
+      "lastSeenPostAt": "2026-04-04T17:00:21.225Z"
     }
   ]
 }

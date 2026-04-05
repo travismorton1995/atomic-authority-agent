@@ -44,8 +44,8 @@ NOVELTY / SURPRISE (0–3):
 
 GEOGRAPHIC RELEVANCE (0–2):
 2 = Canadian angle: CNSC, Bruce Power, CNL, OPG, NB Power, Ontario, or Canadian companies/policy
-1 = US or North American angle, OR no specific geography mentioned (article is industry-wide or technology-focused without naming a country)
-0 = Explicitly international focus only: IAEA, UK, France, Ukraine, Asia — no meaningful North American relevance
+1 = US or North American angle: NRC, DOE, US companies, US states, or North American policy. Also use 1 if the article has no specific geography (industry-wide or technology-focused without naming a country)
+0 = Explicitly non-North-American: Europe, EU, India, UK, France, Germany, Ukraine, Asia, Middle East, Africa, South Korea, Japan, China, Russia, IAEA, or any other country/region outside North America. If the article names a non-NA geography in the title or first sentence, this MUST be 0 regardless of whether the topic has general relevance
 
 NPX MENTION (0–1):
 1 = "NPX" or "Nuclear Promise X" appears anywhere in the article title or summary
@@ -113,7 +113,7 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 6144,
+    max_tokens: 16384,
     system: RANKER_SYSTEM,
     messages: [{
       role: 'user',
@@ -161,8 +161,10 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
         suggestedTags: (s?.suggestedTags ?? []).filter((t): t is ContentTag => (CONTENT_TAGS as readonly string[]).includes(t)),
       };
     });
-  } catch {
-    console.error('Ranker returned non-JSON response:', raw);
+  } catch (err) {
+    console.error(`Ranker JSON parse failed (${eligible.length} articles, response length ${raw.length}):`, (err as Error).message);
+    console.error('Response start:', raw.slice(0, 200));
+    console.error('Response end:', raw.slice(-200));
     return eligible.map(item => ({
       item,
       score: 1,

@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { initLogger } from '../utils/logger.js';
 initLogger();
 import cron from 'node-cron';
-import { getPostsDueForPublishing, markPublished, incrementPublishFailures, cleanupRejectedPosts } from '../hitl/queue.js';
+import { getPostsDueForPublishing, getPendingPosts, markPublished, incrementPublishFailures, cleanupRejectedPosts } from '../hitl/queue.js';
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 import path from 'path';
 
@@ -53,8 +53,8 @@ function alreadyPostedToday(): boolean {
   }
 }
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
-import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler } from '../hitl/telegram.js';
-import { runPipeline } from '../content/pipeline.js';
+import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler, setOnMetricsHandler, setOnRewriteHandler } from '../hitl/telegram.js';
+import { runPipeline, rewritePost } from '../content/pipeline.js';
 import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
 import { runCommentPoll, type CommentPollOptions, type CommentPollStats } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
@@ -104,14 +104,18 @@ async function runGenerate(): Promise<'started' | 'already_running'> {
   return 'started';
 }
 
+let isPublishing = false;
+
 async function publishDuePosts() {
-  if (alreadyPostedToday()) {
+  if (isPublishing || alreadyPostedToday()) {
     return;
   }
 
   const due = getPostsDueForPublishing();
   if (due.length === 0) return;
 
+  isPublishing = true;
+  try {
   for (const post of due) {
     console.log(`Publishing post ${post.id} — "${post.draft.sourceTitle}"`);
     try {
@@ -139,6 +143,9 @@ async function publishDuePosts() {
       }
     }
   }
+  } finally {
+    isPublishing = false;
+  }
 }
 
 console.log('Atomic Authority scheduler starting...');
@@ -157,6 +164,24 @@ setOnOutboundHandler(async () => {
   } finally {
     outboundPollRunning = false;
   }
+});
+
+setOnMetricsHandler(async () => {
+  console.log('[/metrics] Running metrics fetch...');
+  await runMetricsFetch();
+  console.log('[/metrics] Sending performance report...');
+  await runWeeklyReport();
+  console.log('[/metrics] Metrics fetch and report complete.');
+});
+
+setOnRewriteHandler(async (postId: string) => {
+  const posts = getPostsDueForPublishing();
+  const pending = getPendingPosts();
+  const post = [...pending, ...posts].find(p => p.id === postId);
+  if (!post) throw new Error(`Post ${postId} not found.`);
+  console.log(`[rewrite] Rewriting post ${postId}...`);
+  await rewritePost(post);
+  console.log(`[rewrite] Rewrite complete.`);
 });
 
 // Generate a draft at 7pm Mon/Tue/Wed ET — approve that evening, posts next morning (Tue/Wed/Thu)

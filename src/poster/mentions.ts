@@ -6,10 +6,26 @@
 // `verified` is set to true only after manually confirming via `npm run test-mentions`.
 // Unverified entries are ignored during posting.
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
 const MENTIONS_FILE = resolve(process.cwd(), 'src/poster/mentions.ts');
+const BLOCKLIST_FILE = resolve(process.cwd(), 'mentions_blocklist.json');
+
+// Names that were explicitly rejected via test-mentions and should never be re-added.
+function loadBlocklist(): Set<string> {
+  if (!existsSync(BLOCKLIST_FILE)) return new Set();
+  try {
+    const list = JSON.parse(readFileSync(BLOCKLIST_FILE, 'utf-8')) as string[];
+    return new Set(list.map(s => s.toLowerCase()));
+  } catch { return new Set(); }
+}
+
+function addToBlocklist(name: string): void {
+  const blocked = loadBlocklist();
+  blocked.add(name.toLowerCase());
+  writeFileSync(BLOCKLIST_FILE, JSON.stringify([...blocked].sort(), null, 2), 'utf-8');
+}
 
 export interface MentionEntry {
   searchTerm: string;  // what to type after @ in the LinkedIn composer
@@ -91,7 +107,7 @@ export const MENTIONS: Record<string, MentionEntry> = {
   // Auto-detected — run npm run test-mentions to verify
 
   // Auto-detected — run npm run test-mentions to verify
-  'Nordion':                                   { searchTerm: 'Nordion',                    verified: false },
+  'Nordion':                                   { searchTerm: 'Nordion Energi',                    verified: true },
 
   // Auto-detected — run npm run test-mentions to verify
 
@@ -100,14 +116,42 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'Idaho National Lab':                        { searchTerm: 'Idaho National Lab',         verified: true },
 
   // Auto-detected — run npm run test-mentions to verify
-  'Utility Dive':                              { searchTerm: 'Utility Dive',               verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+
+  // Auto-detected — run npm run test-mentions to verify
+  'TerraFlow Energy':                          { searchTerm: 'TerraFlow Energy',           verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+
+  // Auto-detected — run npm run test-mentions to verify
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Everstar':                                  { searchTerm: 'Everstar',                   verified: false },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Nano Nuclear':                              { searchTerm: 'Nano Nuclear Power PLC',               verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Meta':                                      { searchTerm: 'Meta',                       verified: false },
+  'YouTube':                                   { searchTerm: 'YouTube',                    verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Department of Atomic Energy':               { searchTerm: 'Department of Atomic Energy', verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+  'Diablo Canyon':                             { searchTerm: 'Diablo Canyon',              verified: true },
+
+  // Auto-detected — run npm run test-mentions to verify
+
+  // Auto-detected — run npm run test-mentions to verify
+  'European Union':                            { searchTerm: 'European Union',             verified: true },
 
   // Auto-detected — run npm run test-mentions to verify
   'DOE':                                       { searchTerm: 'DOE',                        verified: false },
-  'NQA-1':                                     { searchTerm: 'NQA-1',                      verified: false },
 
   // Auto-detected — run npm run test-mentions to verify
-  'TerraFlow Energy':                          { searchTerm: 'TerraFlow Energy',           verified: false },
+  'DOE':                                       { searchTerm: 'DOE',                        verified: false },
 
 };
 
@@ -123,7 +167,8 @@ export function verifiedMentions(): Record<string, MentionEntry> {
 // Called automatically after each post is generated.
 export function addUnverifiedMentions(names: string[]): void {
   const existingKeys = new Set(Object.keys(MENTIONS).map(k => k.toLowerCase()));
-  const toAdd = names.filter(n => n.length > 2 && !existingKeys.has(n.toLowerCase()));
+  const blocked = loadBlocklist();
+  const toAdd = names.filter(n => n.length > 2 && !existingKeys.has(n.toLowerCase()) && !blocked.has(n.toLowerCase()));
   if (toAdd.length === 0) return;
 
   let src = readFileSync(MENTIONS_FILE, 'utf8').replace(/\r\n/g, '\n');
@@ -161,5 +206,6 @@ export function removeMentionEntry(name: string): void {
   if (idx === -1) { console.warn(`  Could not find entry for "${name}" to remove.`); return; }
   lines.splice(idx, 1);
   writeFileSync(MENTIONS_FILE, lines.join('\n'), 'utf8');
-  console.log(`  Removed "${name}" from mentions.`);
+  addToBlocklist(name);
+  console.log(`  Removed "${name}" from mentions and added to blocklist.`);
 }

@@ -24,7 +24,7 @@ const OUTBOUND_APPROACHES = `
 
 const ANTI_AI_RULES = `
 Hard constraints — any violation is a rewrite trigger:
-- Never use: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock," "seamlessly," "it's worth noting," "this matters because," "at its core," or similar AI-ism phrases
+- Never use: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock," "seamlessly," "it's worth noting," "this matters because," "at its core," "the [X] I keep hearing," "let me steelman that," or similar AI-ism phrases
 - Never use contrasting reframe sentences. Banned: "It's not X, it's Y" / "This isn't about X, it's about Y" / "Not X. Y." / "Less X, more Y." / "Not just X — Y."
 - No em dashes (—). Use a comma or period instead.
 - No gerund openers ("Building on this...", "Recognizing the need...")

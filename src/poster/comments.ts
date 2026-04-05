@@ -1,6 +1,7 @@
 import { chromium } from 'playwright';
 import path from 'path';
 import crypto from 'crypto';
+import { isSessionExpiredUrl } from './index.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 
@@ -21,6 +22,9 @@ export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]>
   const page = context.pages()[0] ?? await context.newPage();
   try {
     await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    if (isSessionExpiredUrl(page.url())) {
+      throw new Error('LinkedIn session expired — run /login to renew');
+    }
     await page.waitForTimeout(3000);
 
     // Expand the comments section (click the comment count button)
@@ -197,12 +201,12 @@ export async function postOutboundComment(
     await page.keyboard.press('Control+End');
     console.log(`Outbound comment: typing comment...`);
     await page.keyboard.type(commentText, { delay: 40 });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1500);
 
     const submitBtn = page.locator(
       'button[aria-label*="Post comment"], button.comments-comment-box__submit-button--cr, button.comments-comment-box__submit-button'
     ).last();
-    await submitBtn.waitFor({ state: 'visible', timeout: 5000 });
+    await submitBtn.waitFor({ state: 'visible', timeout: 10000 });
     await submitBtn.click();
     await page.waitForTimeout(2000);
     console.log(`Outbound comment: submitted successfully.`);

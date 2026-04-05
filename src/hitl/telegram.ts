@@ -41,6 +41,17 @@ export function setOnPollHandler(handler: () => Promise<void>) : void {
   onPollHandler = handler;
 }
 
+let onMetricsHandler: (() => Promise<void>) | null = null;
+let onRewriteHandler: ((postId: string) => Promise<void>) | null = null;
+
+export function setOnMetricsHandler(handler: () => Promise<void>): void {
+  onMetricsHandler = handler;
+}
+
+export function setOnRewriteHandler(handler: (postId: string) => Promise<void>): void {
+  onRewriteHandler = handler;
+}
+
 export function setOnOutboundHandler(handler: () => Promise<void>): void {
   onOutboundHandler = handler;
 }
@@ -59,6 +70,7 @@ export function startBot(): void {
       '/generate — Run the content pipeline and generate a new draft\n' +
       '/poll — Run a comment reply poll (checks for new comments on your posts)\n' +
       '/outbound — Run the outbound engagement poll (finds posts to comment on)\n' +
+      '/metrics — Fetch engagement metrics for all published posts\n' +
       '/login — Open a browser to renew your LinkedIn session\n' +
       '/help — Show this message\n\n' +
       '*Other actions:*\n' +
@@ -114,6 +126,18 @@ export function startBot(): void {
       .catch(err => {
         console.error('[/outbound] Poll error:', err);
         ctx.reply(`Outbound poll failed: ${err.message}`).catch(() => {});
+      });
+  });
+
+  bot.command('metrics', async (ctx) => {
+    if (!onMetricsHandler) { await ctx.reply('Metrics fetch not available.'); return; }
+    console.log('Telegram /metrics command received');
+    await ctx.reply('Fetching engagement metrics...').catch(err => console.error('[/metrics] Failed to send reply:', err));
+    onMetricsHandler()
+      .then(() => ctx.reply('Metrics fetch complete.').catch(() => {}))
+      .catch(err => {
+        console.error('[/metrics] Fetch error:', err);
+        ctx.reply(`Metrics fetch failed: ${err.message}`).catch(() => {});
       });
   });
 
@@ -211,6 +235,18 @@ export function startBot(): void {
         } else {
           await ctx.reply('Post rejected.');
         }
+      }
+
+      if (action === 'rewrite') {
+        if (!onRewriteHandler) { await ctx.answerCbQuery('Rewrite not available.'); return; }
+        await ctx.answerCbQuery('Rewriting...');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.reply('Rewriting post with fresh hooks and text...');
+        console.log(`Rewrite requested for post ${payload}`);
+        onRewriteHandler(payload).catch(err => {
+          console.error('[rewrite] Failed:', err);
+          ctx.reply(`Rewrite failed: ${err.message}`).catch(() => {});
+        });
       }
 
       if (action === 'cancel') {
@@ -527,15 +563,19 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
     ? [
         [{ text: '✅ Approve', callback_data: `approve:${post.id}` }],
         [{ text: '🚫 Approve (no image)', callback_data: `approve_no_image:${post.id}` }],
+        [{ text: '🔄 Rewrite', callback_data: `rewrite:${post.id}` }],
         [{ text: '❌ Reject', callback_data: `reject:${post.id}` }],
         [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
       ]
     : [
         [
           { text: '✅ Approve', callback_data: `approve:${post.id}` },
-          { text: '❌ Reject', callback_data: `reject:${post.id}` },
+          { text: '🔄 Rewrite', callback_data: `rewrite:${post.id}` },
         ],
-        [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
+        [
+          { text: '❌ Reject', callback_data: `reject:${post.id}` },
+          { text: '🗑 Cancel', callback_data: `cancel:${post.id}` },
+        ],
       ];
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {

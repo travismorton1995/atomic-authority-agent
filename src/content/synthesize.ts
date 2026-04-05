@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { readFileSync, existsSync } from 'fs';
 import { FeedItem } from './rss.js';
 import { PostType, SYSTEM_PROMPT, POST_TYPE_INSTRUCTIONS } from './persona.js';
 import { verifiedMentions } from '../poster/mentions.js';
@@ -150,6 +151,39 @@ function injectMentionMarkers(text: string): string {
   return result;
 }
 
+// Computes hashtag performance from posted_history.json.
+// Returns a ranked list of hashtags with avg engagement, sorted best-first.
+// Only hashtags appearing in 2+ posts are eligible.
+function getHashtagPerformance(): Array<{ hashtag: string; posts: number; avgEngagement: number }> {
+  if (!existsSync('posted_history.json')) return [];
+  try {
+    const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
+    const scores: Record<string, number[]> = {};
+    for (const p of history) {
+      const m = p.metrics;
+      if (!m) continue;
+      const engagement = (m.reactions ?? 0) + (m.comments ?? 0) + (m.reposts ?? 0);
+      const content: string = p.finalContent ?? '';
+      const hashtags = content.match(/#\w+/g) ?? [];
+      for (const ht of hashtags) {
+        const key = ht; // preserve original casing
+        if (!scores[key]) scores[key] = [];
+        scores[key].push(engagement);
+      }
+    }
+    return Object.entries(scores)
+      .filter(([, vals]) => vals.length >= 2)
+      .map(([hashtag, vals]) => ({
+        hashtag,
+        posts: vals.length,
+        avgEngagement: vals.reduce((a, b) => a + b, 0) / vals.length,
+      }))
+      .sort((a, b) => b.avgEngagement - a.avgEngagement);
+  } catch {
+    return [];
+  }
+}
+
 export async function synthesizePost(item: FeedItem, postType: PostType): Promise<DraftPost> {
   const articleContent = item.fullText
     ? `Summary: ${item.summary}\n\nFull article text:\n${item.fullText}`
@@ -164,6 +198,28 @@ export async function synthesizePost(item: FeedItem, postType: PostType): Promis
     ? `\nOPENING LINE (use this exact sentence as your first line — do not alter it):\n${bestHook}\n`
     : '';
 
+  // Build hashtag guidance from historical performance
+  const hashtagPerf = getHashtagPerformance();
+  let hashtagGuidance = '';
+  if (hashtagPerf.length > 0) {
+    const globalAvg = hashtagPerf.reduce((a, h) => a + h.avgEngagement, 0) / hashtagPerf.length;
+    const above = hashtagPerf.filter(h => h.avgEngagement >= globalAvg);
+    const below = hashtagPerf.filter(h => h.avgEngagement < globalAvg);
+
+    const formatLine = (h: typeof hashtagPerf[0]) =>
+      `${h.hashtag} (${h.posts} posts, avg ${h.avgEngagement.toFixed(1)} engagement)`;
+
+    console.log(`Hashtag performance (avg ${globalAvg.toFixed(1)}): ${hashtagPerf.map(h => `${h.hashtag} ${h.avgEngagement.toFixed(1)}`).join(', ')}`);
+
+    hashtagGuidance = `\nHASHTAG PERFORMANCE (from past posts — average engagement across all hashtags: ${globalAvg.toFixed(1)}):
+${above.length > 0 ? `\nAbove average — prefer these when relevant:\n${above.map(formatLine).join('\n')}` : ''}
+${below.length > 0 ? `\nBelow average — avoid unless the topic specifically demands them:\n${below.map(formatLine).join('\n')}` : ''}
+
+When choosing hashtags, prefer high-performing ones from this list IF they are relevant to the post topic. Avoid below-average hashtags when a better-performing alternative exists for the same topic. Do not force irrelevant hashtags just because they performed well. Relevance always comes first.\n`;
+  } else {
+    console.log('Hashtag performance: no eligible hashtags yet (need 2+ posts each).');
+  }
+
   const userPrompt = `NEWS ITEM:
 Title: ${item.title}
 Source: ${item.source}
@@ -173,7 +229,7 @@ ${articleContent}
 
 POST TYPE: ${postType}
 INSTRUCTION: ${POST_TYPE_INSTRUCTIONS[postType]}
-${ageRule ? `TEMPORAL RULE: ${ageRule}\n` : ''}${hookConstraint}
+${ageRule ? `TEMPORAL RULE: ${ageRule}\n` : ''}${hookConstraint}${hashtagGuidance}
 Write the LinkedIn post now. You have the full article text above — use specific facts, figures, quotes, or details from it where they strengthen the post. Output only the post text — no preamble, no "here is your post," no quotation marks wrapping the whole thing.`;
 
   const message = await client.messages.create({

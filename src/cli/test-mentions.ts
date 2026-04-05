@@ -8,6 +8,7 @@ import 'dotenv/config';
 import * as readline from 'readline';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { chromium } from 'playwright';
 import { MENTIONS, removeMentionEntry } from '../poster/mentions.js';
 
@@ -24,8 +25,17 @@ async function openComposer(page: import('playwright').Page): Promise<void> {
   await page.goto(LINKEDIN_FEED, { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForTimeout(2000);
 
+  // Check if we're logged in — if not, wait for the user to log in manually
   const startPostBtn = page.locator('[aria-label="Start a post"]').first();
-  await startPostBtn.waitFor({ state: 'visible', timeout: 20000 });
+  const isLoggedIn = await startPostBtn.isVisible({ timeout: 5000 }).catch(() => false);
+  if (!isLoggedIn) {
+    console.log('\nNot logged in. Please log into LinkedIn in the browser window.');
+    console.log('Waiting for login...');
+    await startPostBtn.waitFor({ state: 'visible', timeout: 300000 }); // 5 min to log in
+    console.log('Logged in. Starting tests...');
+    await page.waitForTimeout(2000);
+  }
+
   await startPostBtn.click();
 
   const textArea = page.locator('.share-box-v2__modal div[contenteditable="true"], div[role="textbox"], .ql-editor').first();
@@ -69,10 +79,21 @@ async function markVerified(name: string): Promise<void> {
     process.exit(0);
   }
 
+  // Copy user_data to a temp directory so we don't conflict with
+  // the scheduler or the user's personal Chrome instance.
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aa-mentions-'));
+  console.log('Copying LinkedIn session to temp profile...');
+  fs.cpSync(USER_DATA_DIR, tmpDir, { recursive: true });
+  // Remove Chrome's profile lock from the copy so Playwright can open it
+  for (const lock of ['SingletonLock', 'SingletonSocket', 'SingletonCookie']) {
+    try { fs.rmSync(path.join(tmpDir, lock), { force: true }); } catch {}
+  }
+
   console.log(`\nTesting ${unverified.length} unverified mention(s).`);
   console.log('Controls: y = verified, n = skip, r = remove, q = quit\n');
 
-  const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+  const context = await chromium.launchPersistentContext(tmpDir, {
+    channel: 'chrome',
     headless: false,
     locale: 'en-US',
     timezoneId: 'America/Toronto',
@@ -95,6 +116,7 @@ async function markVerified(name: string): Promise<void> {
     }
   } finally {
     await context.close();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 
   console.log('\nDone. Run npm run test-mentions again to test remaining entries.');

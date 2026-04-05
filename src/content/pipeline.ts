@@ -1,9 +1,10 @@
 import { fetchLatestItems, FeedItem } from './rss.js';
+import { fetchNewsDataItems } from './newsdata.js';
 import { fetchArticle } from './fetch-article.js';
 import { synthesizePost } from './synthesize.js';
 import { screenPost } from './screen.js';
 import { verifyPost } from './verify.js';
-import { addPendingPost, getSourceHistory, PendingPost } from '../hitl/queue.js';
+import { addPendingPost, getSourceHistory, cancelPost, PendingPost } from '../hitl/queue.js';
 import { notifyTelegram } from '../hitl/telegram.js';
 import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
 import { rankItems, ScoreBreakdown } from './rank.js';
@@ -169,8 +170,8 @@ function getTagEngagementScores(): Record<string, number> {
 }
 
 // Given an article's suggested tags and historical tag scores, returns a
-// 0.8–1.2 post-content feedback multiplier. Articles whose tags historically
-// perform above average score above 1.0; below average score below 1.0.
+// 1.0–1.25 post-content feedback multiplier. Articles whose tags historically
+// perform above average get a boost; no penalty for below average.
 // Falls back to 1.0 when there is no data yet.
 function computePostContentFeedback(tags: string[], tagScores: Record<string, number>): number {
   if (tags.length === 0 || Object.keys(tagScores).length === 0) return 1.0;
@@ -179,7 +180,7 @@ function computePostContentFeedback(tags: string[], tagScores: Record<string, nu
   const matched = tags.filter(t => tagScores[t] !== undefined);
   if (matched.length === 0) return 1.0;
   const avgScore = matched.reduce((a, t) => a + tagScores[t], 0) / matched.length;
-  return Math.min(1.2, Math.max(1.0, avgScore / globalAvg));
+  return Math.min(1.25, Math.max(1.0, avgScore / globalAvg));
 }
 
 
@@ -302,6 +303,54 @@ async function fetchAndFinalize(candidate: ScoredCandidate): Promise<PendingPost
   return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown, { balance: candidate.balanceMultiplier, recency: candidate.recencyMultiplier, postContent: candidate.postContentFeedback });
 }
 
+// Re-runs synthesis for an existing post — same article, same post type, fresh hooks/text/screening.
+export async function rewritePost(post: PendingPost): Promise<PendingPost> {
+  if (pipelineRunning) {
+    throw new Error('Pipeline already in progress — concurrent calls are not allowed.');
+  }
+  pipelineRunning = true;
+  try {
+    console.log(`Rewriting post ${post.id} — "${post.draft.sourceTitle}"`);
+
+    // Reconstruct the FeedItem from the stored draft
+    const item: FeedItem = {
+      title: post.draft.sourceTitle,
+      link: post.draft.sourceUrl,
+      summary: '',
+      source: post.draft.sourceFeed ?? post.draft.sourceTitle,
+      pubDate: post.draft.sourceDate,
+      fullText: post.draft.sourceUrl ? undefined : undefined,
+      imageUrl: post.draft.imageUrl,
+    };
+
+    // Re-fetch full article text if we have a URL
+    if (item.link) {
+      try {
+        console.log('Re-fetching full article text...');
+        const fetched = await fetchArticle(item.link);
+        if (fetched.fullText) item.fullText = fetched.fullText;
+        if (fetched.imageUrl) item.imageUrl = fetched.imageUrl;
+      } catch {
+        console.warn('Could not fetch full article text — will use summary only.');
+      }
+    }
+
+    // Cancel the old post
+    cancelPost(post.id);
+    console.log(`Old post ${post.id} cancelled.`);
+
+    const postType = post.draft.postType as PostType;
+    return await finalize(item, postType, post.draft.combinedScore, post.draft.scoreBreakdown,
+      post.draft.balanceMultiplier !== undefined ? {
+        balance: post.draft.balanceMultiplier,
+        recency: post.draft.recencyMultiplier ?? 1,
+        postContent: post.draft.postContentFeedback ?? 1,
+      } : undefined);
+  } finally {
+    pipelineRunning = false;
+  }
+}
+
 export async function runPipeline(options: PipelineOptions = {}): Promise<PendingPost> {
   if (pipelineRunning) {
     throw new Error('Pipeline already in progress — concurrent calls are not allowed.');
@@ -362,7 +411,21 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
 
   // --- Fresh fetch + rank + score ---
   console.log('Fetching RSS feeds...');
-  const items = await fetchLatestItems(5);
+  const rssItems = await fetchLatestItems(5);
+
+  console.log('Fetching NewsData articles...');
+  const newsDataItems = await fetchNewsDataItems();
+
+  // Merge and deduplicate by URL
+  const seenUrls = new Set<string>();
+  const items: FeedItem[] = [];
+  for (const item of [...rssItems, ...newsDataItems]) {
+    const key = item.link.replace(/\/$/, '').toLowerCase();
+    if (seenUrls.has(key)) continue;
+    seenUrls.add(key);
+    items.push(item);
+  }
+  console.log(`Total articles: ${items.length} (${rssItems.length} RSS + ${newsDataItems.length} NewsData, ${rssItems.length + newsDataItems.length - items.length} duplicates removed)`);
 
   if (items.length === 0) throw new Error('No feed items found. Check network or feed URLs.');
 
