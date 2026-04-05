@@ -224,7 +224,7 @@ async function extractAndRegisterMentions(content: string): Promise<void> {
   }
 }
 
-async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown, multipliers?: { balance: number; recency: number; postContent: number }): Promise<PendingPost> {
+async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown, multipliers?: { balance: number; recency: number; postContent: number }, existingImagePath?: string): Promise<PendingPost> {
   console.log(`Post type: ${postType}`);
 
   console.log('Synthesizing draft...');
@@ -266,6 +266,22 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
   if (contentTags.length > 0) {
     draft = { ...draft, contentTags };
     console.log(`Content tags: ${contentTags.join(', ')}`);
+  }
+
+  // Reuse existing AI image on rewrites; generate fresh otherwise
+  if (existingImagePath) {
+    draft = { ...draft, generatedImagePath: existingImagePath };
+    console.log(`Reusing existing AI image: ${existingImagePath}`);
+  } else {
+    try {
+      const { generateImage } = await import('./generate-image.js');
+      const generatedImagePath = await generateImage(stripMentionMarkers(draft.content).clean, postType);
+      if (generatedImagePath) {
+        draft = { ...draft, generatedImagePath };
+      }
+    } catch (err: any) {
+      console.warn('Image generation failed (non-fatal):', err?.message ?? err);
+    }
   }
 
   const post = addPendingPost(draft, screening);
@@ -345,7 +361,8 @@ export async function rewritePost(post: PendingPost): Promise<PendingPost> {
         balance: post.draft.balanceMultiplier,
         recency: post.draft.recencyMultiplier ?? 1,
         postContent: post.draft.postContentFeedback ?? 1,
-      } : undefined);
+      } : undefined,
+      post.draft.generatedImagePath);
   } finally {
     pipelineRunning = false;
   }

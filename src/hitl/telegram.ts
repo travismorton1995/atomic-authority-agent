@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf';
 import { readFileSync, existsSync } from 'fs';
-import { approvePost, rejectPost, cancelPost, clearPostImage } from './queue.js';
+import { approvePost, rejectPost, cancelPost, clearPostImage, setImageChoice } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
@@ -187,6 +187,32 @@ export function startBot(): void {
         await ctx.answerCbQuery('Approved!');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
         await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
+        pendingResolutions.get(payload)?.('approved');
+        pendingResolutions.delete(payload);
+      }
+
+      if (action === 'approve_og' || action === 'approve_ai') {
+        const choice = action === 'approve_og' ? 'og' : 'ai';
+        setImageChoice(payload, choice);
+        const scheduledFor = pickScheduledTime();
+        const post = approvePost(payload, scheduledFor);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found or already actioned.');
+          return;
+        }
+        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short',
+        });
+        const label = choice === 'og' ? 'article image' : 'AI image';
+        await ctx.answerCbQuery(`Approved (${label})!`);
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.reply(`Post approved (${label}). Scheduled for ${scheduledStr}.`);
         pendingResolutions.get(payload)?.('approved');
         pendingResolutions.delete(payload);
       }
@@ -550,18 +576,36 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
   const MAX_RETRIES = 3;
   const RETRY_DELAY_MS = 15 * 1000;
 
-  // Send image preview first if available (non-fatal if it fails)
-  if (post.draft.imageUrl) {
+  // Send image previews (non-fatal if they fail)
+  const hasOgImage = !!post.draft.imageUrl;
+  const hasAiImage = !!post.draft.generatedImagePath;
+
+  if (hasOgImage) {
     try {
-      await sender.telegram.sendPhoto(chatId, post.draft.imageUrl);
+      await sender.telegram.sendPhoto(chatId, post.draft.imageUrl!, { caption: 'Article image (og:image)' });
     } catch {
       // Non-fatal — some image URLs may be inaccessible to Telegram's servers
     }
   }
 
-  const keyboard = post.draft.imageUrl
+  if (hasAiImage) {
+    try {
+      const { createReadStream } = await import('fs');
+      await sender.telegram.sendPhoto(chatId, { source: createReadStream(post.draft.generatedImagePath!) }, { caption: 'AI-generated image' });
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  const hasAnyImage = hasOgImage || hasAiImage;
+  const keyboard = hasAnyImage
     ? [
-        [{ text: '✅ Approve', callback_data: `approve:${post.id}` }],
+        ...(hasOgImage && hasAiImage
+          ? [[{ text: '✅ Approve (article image)', callback_data: `approve_og:${post.id}` }],
+             [{ text: '✅ Approve (🤖 AI image)', callback_data: `approve_ai:${post.id}` }]]
+          : hasOgImage
+          ? [[{ text: '✅ Approve (with image)', callback_data: `approve_og:${post.id}` }]]
+          : [[{ text: '✅ Approve (🤖 AI image)', callback_data: `approve_ai:${post.id}` }]]),
         [{ text: '🚫 Approve (no image)', callback_data: `approve_no_image:${post.id}` }],
         [{ text: '🔄 Rewrite', callback_data: `rewrite:${post.id}` }],
         [{ text: '❌ Reject', callback_data: `reject:${post.id}` }],

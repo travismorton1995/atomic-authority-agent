@@ -19,9 +19,10 @@ export class LinkedInSessionExpiredError extends Error {
 }
 
 export interface PostOptions {
-  forceHeaded?: boolean; // override LINKEDIN_HEADLESS — always show browser
-  firstComment?: string; // posted as first comment immediately after publishing
-  imageUrl?: string;     // og:image URL — downloaded and attached to the post
+  forceHeaded?: boolean;        // override LINKEDIN_HEADLESS — always show browser
+  firstComment?: string;        // posted as first comment immediately after publishing
+  imageUrl?: string;            // og:image URL — downloaded and attached to the post
+  generatedImagePath?: string;  // local file path to AI-generated image
 }
 
 async function downloadImageToTemp(imageUrl: string): Promise<string | null> {
@@ -193,60 +194,67 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     //
     // To pick this up later:
     //   - Try suppressing navigator.webdriver via context.addInitScript():
-    if (options.imageUrl) {
-      const tempPath = await downloadImageToTemp(options.imageUrl);
-      if (tempPath) {
-        try {
-          console.log('Attaching image via clipboard paste...');
+    // Resolve image source: AI-generated local file or og:image URL
+    let imagePath: string | null = null;
+    let shouldDeleteImage = false;
 
-          // Determine MIME type from file extension
-          const mime = tempPath.endsWith('.png') ? 'image/png'
-            : tempPath.endsWith('.gif') ? 'image/gif'
-            : tempPath.endsWith('.webp') ? 'image/webp'
-            : 'image/jpeg';
+    if (options.generatedImagePath) {
+      imagePath = options.generatedImagePath;
+      shouldDeleteImage = false; // keep generated images
+    } else if (options.imageUrl) {
+      imagePath = await downloadImageToTemp(options.imageUrl);
+      shouldDeleteImage = true;
+    }
 
-          // Write image to clipboard as PNG via canvas conversion.
-          // Chrome's Clipboard API only accepts image/png — convert any format
-          // (jpeg, webp, gif) by drawing to a canvas element first.
-          const base64 = readFileSync(tempPath).toString('base64');
-          await page.evaluate(async ({ b64, mimeType }) => {
-            const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-            const srcBlob = new Blob([bytes], { type: mimeType });
-            const objectUrl = URL.createObjectURL(srcBlob);
-            const pngBlob = await new Promise<Blob>((resolve, reject) => {
-              const img = new Image();
-              img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.naturalWidth;
-                canvas.height = img.naturalHeight;
-                const ctx = canvas.getContext('2d')!;
-                ctx.drawImage(img, 0, 0);
-                canvas.toBlob(blob => {
-                  URL.revokeObjectURL(objectUrl);
-                  blob ? resolve(blob) : reject(new Error('canvas.toBlob returned null'));
-                }, 'image/png');
-              };
-              img.onerror = () => reject(new Error('Image load failed'));
-              img.src = objectUrl;
-            });
-            await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
-          }, { b64: base64, mimeType: mime });
+    if (imagePath) {
+      try {
+        console.log(`Attaching image via clipboard paste (${options.generatedImagePath ? 'AI-generated' : 'og:image'})...`);
 
-          // Focus the composer text area and paste — LinkedIn processes the image inline
-          await textArea.click();
-          await page.keyboard.press('Control+v');
-          console.log('Paste sent — waiting for LinkedIn to process image...');
+        // Determine MIME type from file extension
+        const mime = imagePath.endsWith('.png') ? 'image/png'
+          : imagePath.endsWith('.gif') ? 'image/gif'
+          : imagePath.endsWith('.webp') ? 'image/webp'
+          : 'image/jpeg';
 
-          // Wait for the image preview to appear in the composer
-          await page.waitForTimeout(4000);
-          console.log('Image pasted into composer.');
-        } catch (err) {
-          console.warn('Image paste failed (non-fatal) — posting text only:', (err as any)?.message);
-        } finally {
-          unlinkSync(tempPath);
-        }
-      } else {
-        console.warn('Failed to download image — posting text only.');
+        // Write image to clipboard as PNG via canvas conversion.
+        // Chrome's Clipboard API only accepts image/png — convert any format
+        // (jpeg, webp, gif) by drawing to a canvas element first.
+        const base64 = readFileSync(imagePath).toString('base64');
+        await page.evaluate(async ({ b64, mimeType }) => {
+          const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+          const srcBlob = new Blob([bytes], { type: mimeType });
+          const objectUrl = URL.createObjectURL(srcBlob);
+          const pngBlob = await new Promise<Blob>((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              const ctx = canvas.getContext('2d')!;
+              ctx.drawImage(img, 0, 0);
+              canvas.toBlob(blob => {
+                URL.revokeObjectURL(objectUrl);
+                blob ? resolve(blob) : reject(new Error('canvas.toBlob returned null'));
+              }, 'image/png');
+            };
+            img.onerror = () => reject(new Error('Image load failed'));
+            img.src = objectUrl;
+          });
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
+        }, { b64: base64, mimeType: mime });
+
+        // Focus the composer text area and paste — LinkedIn processes the image inline
+        await textArea.click();
+        await page.keyboard.press('Control+v');
+        console.log('Paste sent — waiting for LinkedIn to process image...');
+
+        // Wait for the image preview to appear in the composer
+        await page.waitForTimeout(4000);
+        console.log('Image pasted into composer.');
+      } catch (err) {
+        console.warn('Image paste failed (non-fatal) — posting text only:', (err as any)?.message);
+      } finally {
+        if (shouldDeleteImage && imagePath) unlinkSync(imagePath);
       }
     }
 

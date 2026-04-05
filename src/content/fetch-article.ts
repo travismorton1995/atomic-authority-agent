@@ -1,5 +1,15 @@
 import { FeedItem } from './rss.js';
 
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
+
 function extractMeta(html: string, property: string): string {
   const patterns = [
     new RegExp(`<meta[^>]+property=["']${property}["'][^>]+content=["']([^"']+)["']`, 'i'),
@@ -7,7 +17,7 @@ function extractMeta(html: string, property: string): string {
   ];
   for (const re of patterns) {
     const match = html.match(re);
-    if (match) return match[1].trim();
+    if (match) return decodeHtmlEntities(match[1].trim());
   }
   return '';
 }

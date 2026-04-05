@@ -41,6 +41,7 @@ export interface DraftPost {
   contentTags?: ContentTag[]; // topic tags for engagement learning
   generatedAt: string;
   imageUrl?: string;
+  generatedImagePath?: string; // local path to AI-generated image file
 }
 
 const HOOK_THRESHOLD = 7;

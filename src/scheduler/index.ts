@@ -119,9 +119,21 @@ async function publishDuePosts() {
   for (const post of due) {
     console.log(`Publishing post ${post.id} — "${post.draft.sourceTitle}"`);
     try {
+      // Resolve which image to use based on approval choice
+      const imageOpts: Record<string, string | undefined> = {};
+      if (post.imageChoice === 'ai' && post.draft.generatedImagePath) {
+        imageOpts.generatedImagePath = post.draft.generatedImagePath;
+      } else if (post.imageChoice === 'og' && post.draft.imageUrl) {
+        imageOpts.imageUrl = post.draft.imageUrl;
+      } else if (!post.imageChoice && post.draft.imageUrl) {
+        // Legacy fallback: no imageChoice set, use og:image (backward compat)
+        imageOpts.imageUrl = post.draft.imageUrl;
+      }
+      // imageChoice === 'none' → no image properties set
+
       const linkedInPostUrl = await postToLinkedIn(post.finalContent, {
         firstComment: post.draft.firstComment,
-        imageUrl: post.draft.imageUrl,
+        ...imageOpts,
       });
       markPublished(post.id, linkedInPostUrl);
       console.log(`Post ${post.id} marked as published.`);

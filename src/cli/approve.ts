@@ -1,10 +1,12 @@
 import 'dotenv/config';
-import { getPendingPosts, approvePost } from '../hitl/queue.js';
+import { getPendingPosts, approvePost, setImageChoice } from '../hitl/queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 
 const args = process.argv.slice(2);
 const idFlagIndex = args.indexOf('--id');
 const id = idFlagIndex !== -1 ? args[idFlagIndex + 1] : null;
+const imageFlagIndex = args.indexOf('--image');
+const imageChoice = imageFlagIndex !== -1 ? args[imageFlagIndex + 1] as 'ai' | 'og' | 'none' : undefined;
 
 const pending = getPendingPosts();
 
@@ -24,8 +26,16 @@ if (!id) {
     console.log(post.finalContent);
     console.log('---\n');
   }
-  console.log(`Run: npm run approve -- --id <id>`);
+  console.log(`Run: npm run approve -- --id <id> [--image ai|og|none]`);
   process.exit(0);
+}
+
+if (imageChoice) {
+  if (!['ai', 'og', 'none'].includes(imageChoice)) {
+    console.error('Invalid --image value. Use: ai, og, or none');
+    process.exit(1);
+  }
+  setImageChoice(id, imageChoice);
 }
 
 const scheduledFor = pickScheduledTime();
