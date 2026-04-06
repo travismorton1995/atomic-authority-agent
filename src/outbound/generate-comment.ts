@@ -34,6 +34,7 @@ Hard constraints — any violation is a rewrite trigger:
 - No gerund openers ("Building on this...", "Recognizing the need...")
 - No pivot fillers ("But here's the thing." / "Here's what that means.")
 - No hollow openers: "Great post", "Thanks for sharing", "Interesting point", or starting with "I"
+- No validation phrases: "what you are describing is real", "this is spot on", "you nailed it"
 - No stacked adjectives before nouns
 - Never reference your own posts, content, or experience directly
 - Never be self-promotional
