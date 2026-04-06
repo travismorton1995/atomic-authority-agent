@@ -721,6 +721,7 @@ function formatCommentMessage(reply: PendingReply): string {
     : '';
 
   return `💬 *New ${threadLabel}* | ${reply.postType}
+${reply.postUrl}
 _"${reply.postSnippet}…"_
 
 *From:* ${reply.commentAuthor} _(${reply.commentType})_
