@@ -45,12 +45,15 @@ HASHTAG RULE: Count all hashtags in the post. If there are more than 5, the revi
 
 PARAGRAPH LENGTH: Each paragraph must be 1–2 sentences maximum. If any paragraph is 3 or more sentences, treat it as a wall of text — bump the cringe score and reformat it in the revised version. Split at natural subject boundaries: if a paragraph contains more than one distinct point, each point gets its own paragraph. Do not lose any substance — every sentence must survive the split, just reorganized.
 
-FIRST COMMENT FORMAT AND QUALITY: The first comment must follow this exact structure: "Via [Source Name]. [One direct question.]" on a single short line, then the URL on its own line. Rules:
+FIRST COMMENT FORMAT AND QUALITY: The first comment must follow this exact structure: "Sourced from [Source Name]. [One simple question.]" on a single short line, then the URL on its own line. Rules:
+- Use "Sourced from", never "Via"
 - Use a period after the source name, never an em dash or any dash
 - The entire comment before the URL must be one sentence only. If it is longer, trim it.
-- The question must be directly tied to the specific argument or claim made in the post — not a general question about the broader topic
+- The question must be SHORT and SIMPLE — under 20 words, something a reader could answer casually. Write it the way you'd ask a colleague, not an exam question.
+- Good: "Are you seeing this at your site?" / "Would this actually speed things up?"
+- Bad: long multi-clause academic questions that nobody wants to answer
 - Generic questions do not meet the bar: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "What's your take?"
-- If the format is wrong, uses a dash, is longer than one sentence, or the question isn't grounded in the post's specific argument, provide a revised version in revisedFirstComment.
+- If the format is wrong, uses "Via", uses a dash, is longer than one sentence, or the question isn't simple enough, provide a revised version in revisedFirstComment.
 
 Respond ONLY in this exact JSON format:
 {
