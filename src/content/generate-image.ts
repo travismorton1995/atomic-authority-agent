@@ -1,14 +1,54 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { mkdirSync, writeFileSync, existsSync } from 'fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'fs';
 import path from 'path';
 import type { PostType } from './persona.js';
 
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const IMAGE_DIR = path.resolve('generated_images');
-const MODEL = '@cf/black-forest-labs/flux-2-dev';
 const WIDTH = 1200;
 const HEIGHT = 672; // 16:9, divisible by 8 for FLUX models
+
+// Model selection: FLUX.2 Dev for first image of the day, FLUX.1 Schnell after that.
+// Tracks daily usage via a small state file that resets at midnight UTC.
+const FLUX2_DEV = '@cf/black-forest-labs/flux-2-dev';
+const FLUX1_SCHNELL = '@cf/black-forest-labs/flux-1-schnell';
+const USAGE_FILE = path.resolve('generated_images', '.daily_usage.json');
+
+interface DailyUsage {
+  date: string; // UTC date string YYYY-MM-DD
+  count: number;
+}
+
+function getTodayUTC(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getDailyUsage(): DailyUsage {
+  try {
+    if (existsSync(USAGE_FILE)) {
+      const data = JSON.parse(readFileSync(USAGE_FILE, 'utf-8')) as DailyUsage;
+      if (data.date === getTodayUTC()) return data;
+    }
+  } catch {}
+  return { date: getTodayUTC(), count: 0 };
+}
+
+function incrementDailyUsage(): void {
+  const usage = getDailyUsage();
+  usage.count++;
+  usage.date = getTodayUTC();
+  if (!existsSync(IMAGE_DIR)) mkdirSync(IMAGE_DIR, { recursive: true });
+  writeFileSync(USAGE_FILE, JSON.stringify(usage), 'utf-8');
+}
+
+function pickModel(): { model: string; steps: number; label: string } {
+  const usage = getDailyUsage();
+  if (usage.count === 0) {
+    return { model: FLUX2_DEV, steps: 20, label: 'FLUX.2 Dev' };
+  }
+  return { model: FLUX1_SCHNELL, steps: 8, label: 'FLUX.1 Schnell' };
+}
 
 const client = new Anthropic();
 
@@ -83,20 +123,35 @@ export async function generateImage(postContent: string, postType: PostType = 'b
     }
     console.log(`Image prompt: ${prompt}`);
 
-    console.log('Calling Cloudflare Workers AI (FLUX.2 Dev)...');
-    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${MODEL}`;
+    const { model, steps, label } = pickModel();
+    console.log(`Calling Cloudflare Workers AI (${label})...`);
+    const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`;
 
-    const formData = new FormData();
-    formData.append('prompt', prompt);
-    formData.append('width', String(WIDTH));
-    formData.append('height', String(HEIGHT));
-    formData.append('num_steps', '20');
+    // FLUX.2 Dev requires multipart form data, FLUX.1 Schnell uses JSON
+    const isFlux2 = model === FLUX2_DEV;
+    let res: Response;
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}` },
-      body: formData,
-    });
+    if (isFlux2) {
+      const formData = new FormData();
+      formData.append('prompt', prompt);
+      formData.append('width', String(WIDTH));
+      formData.append('height', String(HEIGHT));
+      formData.append('num_steps', String(steps));
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}` },
+        body: formData,
+      });
+    } else {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${CLOUDFLARE_API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, width: WIDTH, height: HEIGHT, num_steps: steps }),
+      });
+    }
 
     if (!res.ok) {
       const errText = await res.text();
@@ -124,7 +179,8 @@ export async function generateImage(postContent: string, postType: PostType = 'b
     const filename = `img_${Date.now()}.png`;
     const filepath = path.join(IMAGE_DIR, filename);
     writeFileSync(filepath, imageBuffer);
-    console.log(`AI image saved: ${filepath} (${Math.round(imageBuffer.length / 1024)}KB)`);
+    incrementDailyUsage();
+    console.log(`AI image saved: ${filepath} (${Math.round(imageBuffer.length / 1024)}KB, model: ${label})`);
     return filepath;
   } catch (err: any) {
     console.warn('Image generation failed (non-fatal):', err?.message ?? err);
