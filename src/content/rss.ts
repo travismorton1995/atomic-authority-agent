@@ -64,18 +64,27 @@ function normalizeDate(raw: string | undefined): string {
   return '';
 }
 
-export async function fetchLatestItems(maxPerFeed = 5): Promise<FeedItem[]> {
+export async function fetchLatestItems(maxPerFeed = 7, maxAgeDays = 5): Promise<FeedItem[]> {
+  const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
+
   const results = await Promise.allSettled(
     FEEDS.map(async feed => {
       const parsed = await parser.parseURL(feed.url);
-      return parsed.items.slice(0, maxPerFeed).map((item: any) => ({
-        title: item.title ?? '',
-        link: (item.link ?? '').replace(/([^:])\/\/+/g, '$1/'),
-        summary: item.contentSnippet ?? item.content ?? '',
-        source: feed.source,
-        pubDate: normalizeDate(item.pubDate),
-        imageUrl: extractFeedImage(item),
-      }));
+      return parsed.items
+        .map((item: any) => ({
+          title: item.title ?? '',
+          link: (item.link ?? '').replace(/([^:])\/\/+/g, '$1/'),
+          summary: item.contentSnippet ?? item.content ?? '',
+          source: feed.source,
+          pubDate: normalizeDate(item.pubDate),
+          imageUrl: extractFeedImage(item),
+        }))
+        .filter(item => {
+          if (!item.pubDate) return true; // keep items with no date rather than discard
+          const ms = new Date(item.pubDate).getTime();
+          return isNaN(ms) || ms >= cutoff;
+        })
+        .slice(0, maxPerFeed);
     })
   );
 

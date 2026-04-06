@@ -428,7 +428,7 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
 
   // --- Fresh fetch + rank + score ---
   console.log('Fetching RSS feeds...');
-  const rssItems = await fetchLatestItems(5);
+  const rssItems = await fetchLatestItems();
 
   console.log('Fetching NewsData articles...');
   const newsDataItems = await fetchNewsDataItems();
