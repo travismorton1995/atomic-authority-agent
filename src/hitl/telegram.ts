@@ -755,6 +755,7 @@ function formatOutboundMessage(comment: PendingComment): string {
   const whySection = comment.reasoning ? `\n*Why:* _${comment.reasoning}_\n` : '';
 
   return `📤 *Outbound comment* | ${comment.profileName} | _${ageLabel}${goldenWindow ? ' ⚡' : ''}_
+${comment.postUrl}
 _"${comment.postSnippet}…"_
 ${summarySection}${whySection}
 *Comment options:*
