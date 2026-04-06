@@ -278,23 +278,24 @@ Write the LinkedIn post now. You have the full article text above — use specif
       role: 'user',
       content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Output the comment text only — do not include the URL.
 
-${item.source && item.source !== 'Manual' ? `Format: Sourced from [Source Name]. [One direct question.]
+${item.source && item.source !== 'Manual' ? `Format: Sourced from [Source Name]. [One simple question.]
 
 Rules:
 - "Sourced from [Source Name]" uses the publication name (e.g. "Sourced from World Nuclear News", "Sourced from Bruce Power", "Sourced from IAEA")
 - Use a period after the source name, not a dash
-- The question must be directly tied to the specific argument or claim made in the post above — not a general question about the topic
-- The question must be specific enough that a nuclear engineer or AI developer would have a concrete, opinionated answer
-- One sentence only
+- The question must be SHORT and SIMPLE — something a reader could answer in one sentence without thinking hard. Write it the way you'd casually ask a colleague, not how you'd phrase an exam question.
+- Good examples: "Are you seeing this at your site?" / "Would this actually speed things up?" / "Has anyone tried this approach?"
+- Bad examples: "Given the regulatory constraints of deterministic safety analysis frameworks, how might..." — too long, too academic, nobody wants to answer this
+- One sentence only, under 20 words
 - No em dashes
 - No preamble, no sign-off, no URL
 
-Source name: ${item.source}` : `Format: [One direct question.]
+Source name: ${item.source}` : `Format: [One simple question.]
 
 Rules:
-- The question must be directly tied to the specific argument or claim made in the post above — not a general question about the topic
-- The question must be specific enough that a nuclear engineer or AI developer would have a concrete, opinionated answer
-- One sentence only
+- The question must be SHORT and SIMPLE — something a reader could answer in one sentence without thinking hard. Write it the way you'd casually ask a colleague.
+- Good examples: "Are you seeing this at your site?" / "Would this actually speed things up?" / "Has anyone tried this approach?"
+- One sentence only, under 20 words
 - No em dashes
 - No preamble, no sign-off, no URL`}`,
     }],

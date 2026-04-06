@@ -16,10 +16,14 @@ export interface GeneratedComment {
 }
 
 const OUTBOUND_APPROACHES = `
-- add-context: Bring in an angle, implication, or connection they didn't mention that deepens the picture
-- ask-question: A single pointed question — genuinely curious or probing, advances the discussion
-- counterpoint: Challenge a specific claim directly with a concrete counter-argument or different framing
+DEFAULT approaches (use these in most cases):
 - affirm-extend: Agree with their core point and add one concrete thing they didn't say
+- add-context: Bring in an angle, implication, or connection they didn't mention that deepens the picture
+- support: Back up their argument with a related observation or experience that reinforces their point
+
+ONLY use these if the post makes a controversial, outlandish, or very niche claim:
+- ask-question: A single pointed question — genuinely curious, not combative
+- counterpoint: Challenge a specific claim directly with a concrete counter-argument or different framing
 `.trim();
 
 const ANTI_AI_RULES = `
@@ -72,9 +76,11 @@ Do four things and return a single JSON object:
 3. GENERATE 2 comment options using different approaches from:
 ${OUTBOUND_APPROACHES}
 
+IMPORTANT: Default to supportive approaches (affirm-extend, add-context, support). Only use ask-question or counterpoint if the post is making a genuinely controversial, outlandish, or highly debatable claim. Most LinkedIn posts deserve agreement and added value, not challenge.
+
 Each comment must:
 - Be exactly 1 sentence. No exceptions.
-- Add genuine value — a pointed question, a concrete counter-argument, or a reframing of something in the post
+- Add genuine value — a supporting observation, additional context, or a reframing that builds on the post
 - Never cite specific numbers, stats, dates, or named studies unless they appear in the original post. Your knowledge may be wrong. Use reasoning, analogy, or experience-based framing instead.
 - Write for a general professional audience — assume the reader is smart but not a specialist. Plain words over technical ones. If a concept needs jargon to express, find the plain-English version instead.
 - Competence comes through the sharpness of the insight, not the vocabulary
