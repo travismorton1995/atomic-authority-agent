@@ -9,81 +9,113 @@ const HISTORY_FILE = 'posted_history.json';
 
 export interface PostMetrics {
   fetchedAt: string;
+  impressions: number | null;
+  membersReached: number | null;
   reactions: number | null;
   comments: number | null;
   reposts: number | null;
+  saves: number | null;
+  sends: number | null;
+  newFollowers: number | null;
 }
 
-// Parse a reaction summary aria-label like:
-//   "Akkas Mughal and 1 other"       → 2
-//   "Name1, Name2 and 3 others"      → 5
-//   "Name1 and Name2"                → 2
-//   "Name1"                          → 1
-function parseReactionLabel(label: string | null | undefined): number | null {
-  if (!label) return null;
-  const othersMatch = label.match(/and (\d+) others?/i);
-  if (othersMatch) {
-    // Count comma-separated names before "and N others"
-    const beforeAnd = label.replace(/\s+and \d+ others?.*$/i, '');
-    const namedCount = beforeAnd.split(',').filter(Boolean).length;
-    return namedCount + parseInt(othersMatch[1], 10);
-  }
-  if (/ and /i.test(label)) return 2; // "Name1 and Name2"
-  return 1; // single name
-}
-
-function parseLeadingNumber(text: string | null | undefined): number | null {
+function parseNumber(text: string | undefined): number | null {
   if (!text) return null;
-  const m = text.match(/^(\d+)/);
-  return m ? parseInt(m[1], 10) : null;
+  const cleaned = text.replace(/,/g, '');
+  const n = parseInt(cleaned, 10);
+  return isNaN(n) ? null : n;
 }
 
-async function scrapeMetrics(url: string): Promise<PostMetrics> {
-  const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
-    channel: 'chrome',
-    headless: true,
-    locale: 'en-US',
-  });
+// Extracts the activity URN from a LinkedIn post URL.
+// e.g. "https://www.linkedin.com/feed/update/urn:li:activity:7444736016478846976/" → "urn:li:activity:7444736016478846976"
+function extractUrn(postUrl: string): string | null {
+  const match = postUrl.match(/(urn:li:activity:\d+)/);
+  return match ? match[1] : null;
+}
 
-  const page = context.pages()[0] ?? await context.newPage();
+// Scrapes the per-post analytics page at /analytics/post-summary/{urn}/
+// This gives us impressions, members reached, saves, sends, and new followers
+// in addition to the basic reactions/comments/reposts.
+async function scrapePostAnalytics(page: import('playwright').Page, urn: string): Promise<PostMetrics> {
+  const url = `https://www.linkedin.com/analytics/post-summary/${urn}/`;
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForTimeout(3000);
 
-  try {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await page.waitForTimeout(3000);
+  const pageText = await page.evaluate('document.body.innerText') as string;
 
-    const metrics = await page.evaluate(() => {
-      // Reactions: button with data-reaction-details inside the reactions li.
-      // aria-label is a name summary like "Akkas Mughal and 1 other" — no plain number.
-      const reactionBtn = document.querySelector<HTMLElement>(
-        '.social-details-social-counts__reactions button[data-reaction-details]'
-      );
-      const reactionLabel = reactionBtn?.getAttribute('aria-label') ?? null;
+  // LinkedIn analytics page has two sections with different patterns:
+  //   Discovery: "1,938\nImpressions\n1,071\nMembers reached" (number BEFORE label)
+  //   Engagement: "Reactions\n68\nComments\n1\nReposts\n3" (label BEFORE number)
+  // Parse each section separately to avoid cross-contamination.
+  const lines = pageText.split('\n').map(l => l.trim()).filter(Boolean);
 
-      // Comments: aria-label = "N comments on [name]'s post"
-      const commentBtn = document.querySelector<HTMLElement>(
-        '.social-details-social-counts__comments button[aria-label]'
-      );
-      const commentLabel = commentBtn?.getAttribute('aria-label') ?? null;
+  // Build a lookup: for each adjacent pair, map label→number.
+  // priority controls which direction wins on collision:
+  //   'number-first': "4604\nImpressions" → Impressions=4604 (Discovery section)
+  //   'label-first': "Reactions\n68" → Reactions=68 (Engagement section)
+  const buildLookup = (sectionLines: string[], priority: 'number-first' | 'label-first'): Map<string, string> => {
+    const map = new Map<string, string>();
+    const weak = priority === 'number-first' ? 'label-first' : 'number-first';
+    // First pass: weak direction
+    for (let i = 0; i < sectionLines.length - 1; i++) {
+      const curr = sectionLines[i];
+      const next = sectionLines[i + 1];
+      if (weak === 'label-first' && !/^[\d,]+$/.test(curr) && /^[\d,]+$/.test(next)) {
+        map.set(curr.toLowerCase(), next);
+      }
+      if (weak === 'number-first' && /^[\d,]+$/.test(curr) && !/^[\d,]+$/.test(next)) {
+        map.set(next.toLowerCase(), curr);
+      }
+    }
+    // Second pass: strong direction (overwrites)
+    for (let i = 0; i < sectionLines.length - 1; i++) {
+      const curr = sectionLines[i];
+      const next = sectionLines[i + 1];
+      if (priority === 'label-first' && !/^[\d,]+$/.test(curr) && /^[\d,]+$/.test(next)) {
+        map.set(curr.toLowerCase(), next);
+      }
+      if (priority === 'number-first' && /^[\d,]+$/.test(curr) && !/^[\d,]+$/.test(next)) {
+        map.set(next.toLowerCase(), curr);
+      }
+    }
+    return map;
+  };
 
-      // Reposts: aria-label = "N reposts of this post" — element absent when count is 0
-      const repostBtn = document.querySelector<HTMLElement>(
-        '.social-details-social-counts__reshares button[aria-label],' +
-        'button[aria-label*="repost" i]'
-      );
-      const repostLabel = repostBtn?.getAttribute('aria-label') ?? null;
+  // Split page into Discovery and Engagement sections
+  const discoveryIdx = lines.findIndex(l => l === 'Discovery');
+  const engagementIdx = lines.findIndex(l => l === 'Engagement');
+  const demographicsIdx = lines.findIndex(l => l === 'Top demographics');
 
-      return { reactionLabel, commentLabel, repostLabel };
-    });
+  const discoveryLines = discoveryIdx >= 0 && engagementIdx > discoveryIdx
+    ? lines.slice(discoveryIdx, engagementIdx) : [];
+  const engagementLines = engagementIdx >= 0
+    ? lines.slice(engagementIdx, demographicsIdx > engagementIdx ? demographicsIdx : engagementIdx + 30) : [];
 
-    return {
-      fetchedAt: new Date().toISOString(),
-      reactions: parseReactionLabel(metrics.reactionLabel),
-      comments: parseLeadingNumber(metrics.commentLabel),
-      reposts: parseLeadingNumber(metrics.repostLabel),
-    };
-  } finally {
-    await context.close();
-  }
+  const discoveryLookup = buildLookup(discoveryLines, 'number-first');
+  const engagementLookup = buildLookup(engagementLines, 'label-first');
+
+  const raw = {
+    impressions: discoveryLookup.get('impressions'),
+    membersReached: discoveryLookup.get('members reached'),
+    reactions: engagementLookup.get('reactions'),
+    comments: engagementLookup.get('comments'),
+    reposts: engagementLookup.get('reposts'),
+    saves: engagementLookup.get('saves'),
+    sends: engagementLookup.get('sends on linkedin'),
+    newFollowers: discoveryLookup.get('followers gained from this post'),
+  };
+
+  return {
+    fetchedAt: new Date().toISOString(),
+    impressions: parseNumber(raw.impressions),
+    membersReached: parseNumber(raw.membersReached),
+    reactions: parseNumber(raw.reactions),
+    comments: parseNumber(raw.comments),
+    reposts: parseNumber(raw.reposts),
+    saves: parseNumber(raw.saves),
+    sends: parseNumber(raw.sends),
+    newFollowers: parseNumber(raw.newFollowers),
+  };
 }
 
 export async function runMetricsFetch() {
@@ -107,16 +139,36 @@ export async function runMetricsFetch() {
 
   console.log(`Fetching metrics for ${postsWithUrl.length} post(s) (last 90 days)...`);
 
-  for (const post of postsWithUrl) {
-    console.log(`\n[${post.draft?.postType}] "${post.draft?.sourceTitle?.slice(0, 60)}"`);
-    console.log(`  URL: ${post.linkedInPostUrl}`);
-    try {
-      const metrics = await scrapeMetrics(post.linkedInPostUrl);
-      post.metrics = metrics;
-      console.log(`  Reactions: ${metrics.reactions ?? 'n/a'} | Comments: ${metrics.comments ?? 'n/a'} | Reposts: ${metrics.reposts ?? 'n/a'}`);
-    } catch (err) {
-      console.warn(`  Failed to fetch metrics: ${(err as Error).message}`);
+  const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+    channel: 'chrome',
+    headless: true,
+    locale: 'en-US',
+  });
+
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+  });
+
+  const page = context.pages()[0] ?? await context.newPage();
+
+  try {
+    for (const post of postsWithUrl) {
+      const urn = extractUrn(post.linkedInPostUrl);
+      console.log(`\n[${post.draft?.postType}] "${post.draft?.sourceTitle?.slice(0, 60)}"`);
+      if (!urn) {
+        console.warn(`  Could not extract URN from: ${post.linkedInPostUrl}`);
+        continue;
+      }
+      try {
+        const metrics = await scrapePostAnalytics(page, urn);
+        post.metrics = metrics;
+        console.log(`  Impressions: ${metrics.impressions ?? 'n/a'} | Reactions: ${metrics.reactions ?? 'n/a'} | Comments: ${metrics.comments ?? 'n/a'} | Reposts: ${metrics.reposts ?? 'n/a'} | Saves: ${metrics.saves ?? 'n/a'} | Followers: ${metrics.newFollowers ?? 'n/a'}`);
+      } catch (err) {
+        console.warn(`  Failed to fetch metrics: ${(err as Error).message}`);
+      }
     }
+  } finally {
+    await context.close();
   }
 
   const raw = JSON.stringify(history, null, 2);
@@ -151,18 +203,25 @@ export async function runWeeklyReport(): Promise<void> {
     return;
   }
 
-  // Attach engagement score to each post
-  interface PostWithEng { p: any; eng: number }
-  const withEng: PostWithEng[] = posts.map((p: any) => ({
-    p,
-    eng: (p.metrics?.reactions ?? 0) + (p.metrics?.comments ?? 0) + (p.metrics?.reposts ?? 0),
-  }));
+  // Attach engagement score and impression data to each post
+  interface PostWithEng { p: any; eng: number; impressions: number | null; engRate: number | null }
+  const withEng: PostWithEng[] = posts.map((p: any) => {
+    const eng = (p.metrics?.reactions ?? 0) + (p.metrics?.comments ?? 0) + (p.metrics?.reposts ?? 0);
+    const impressions: number | null = p.metrics?.impressions ?? null;
+    const engRate = impressions && impressions > 0 ? (eng / impressions) * 100 : null;
+    return { p, eng, impressions, engRate };
+  });
 
-  const totalReactions = posts.reduce((s: number, p: any) => s + (p.metrics?.reactions ?? 0), 0);
-  const totalComments  = posts.reduce((s: number, p: any) => s + (p.metrics?.comments  ?? 0), 0);
-  const totalReposts   = posts.reduce((s: number, p: any) => s + (p.metrics?.reposts   ?? 0), 0);
+  const totalReactions    = posts.reduce((s: number, p: any) => s + (p.metrics?.reactions ?? 0), 0);
+  const totalComments     = posts.reduce((s: number, p: any) => s + (p.metrics?.comments  ?? 0), 0);
+  const totalReposts      = posts.reduce((s: number, p: any) => s + (p.metrics?.reposts   ?? 0), 0);
+  const totalImpressions  = posts.reduce((s: number, p: any) => s + (p.metrics?.impressions ?? 0), 0);
+  const totalSaves        = posts.reduce((s: number, p: any) => s + (p.metrics?.saves ?? 0), 0);
+  const totalNewFollowers = posts.reduce((s: number, p: any) => s + (p.metrics?.newFollowers ?? 0), 0);
   const totalEng = totalReactions + totalComments + totalReposts;
   const avgEng   = posts.length > 0 ? (totalEng / posts.length).toFixed(1) : '0';
+  const avgImpressions = posts.length > 0 ? Math.round(totalImpressions / posts.length) : 0;
+  const overallEngRate = totalImpressions > 0 ? ((totalEng / totalImpressions) * 100).toFixed(1) : 'n/a';
 
   // Rank post types by avg engagement
   const typeMap = new Map<string, { total: number; count: number }>();
@@ -244,8 +303,8 @@ export async function runWeeklyReport(): Promise<void> {
     .sort((a, b) => b.avg - a.avg);
 
   // Photo vs no-photo
-  const withPhoto    = withEng.filter(({ p }) => !!p.draft?.imageUrl);
-  const withoutPhoto = withEng.filter(({ p }) => !p.draft?.imageUrl);
+  const withPhoto    = withEng.filter(({ p }) => !!p.draft?.imageUrl || !!p.draft?.generatedImagePath);
+  const withoutPhoto = withEng.filter(({ p }) => !p.draft?.imageUrl && !p.draft?.generatedImagePath);
   const photoAvg    = withPhoto.length    ? withPhoto.reduce((s, { eng }) => s + eng, 0)    / withPhoto.length    : null;
   const noPhotoAvg  = withoutPhoto.length ? withoutPhoto.reduce((s, { eng }) => s + eng, 0) / withoutPhoto.length : null;
 
@@ -293,7 +352,10 @@ export async function runWeeklyReport(): Promise<void> {
 `📊 *Monthly Report* (${dateStart}–${dateEnd})
 
 *Posts published:* ${posts.length}
+*Impressions:* ${totalImpressions.toLocaleString()} (avg ${avgImpressions.toLocaleString()}/post)
+*Engagement rate:* ${overallEngRate}%
 *Reactions:* ${totalReactions} | *Comments:* ${totalComments} | *Reposts:* ${totalReposts}
+*Saves:* ${totalSaves} | *New followers:* ${totalNewFollowers}
 *Avg engagement/post:* ${avgEng}
 ${photoLine ? `\n*Photo vs no photo:*\n${photoLine}` : ''}
 
@@ -316,7 +378,7 @@ ${dayLines}
 ${windowLines}
 
 *Best post:* [${bestType}] ${bestSnippet}…
-_${best.eng} total engagement_`;
+_${best.impressions ? `${best.impressions.toLocaleString()} impressions · ` : ''}${best.eng} engagements${best.engRate ? ` · ${best.engRate.toFixed(1)}% rate` : ''}_`;
 
   console.log('Sending weekly report to Telegram...');
   await sendMessage(message);

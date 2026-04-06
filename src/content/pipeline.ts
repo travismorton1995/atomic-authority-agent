@@ -142,6 +142,8 @@ function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
 }
 
 // Returns average engagement score per content tag across all posts with metrics.
+// Prefers engagement rate (engagement / impressions) when impressions are available,
+// falls back to raw engagement count for posts without impression data.
 function getTagEngagementScores(): Record<string, number> {
   const scores: Record<string, number[]> = {};
 
@@ -153,9 +155,12 @@ function getTagEngagementScores(): Record<string, number> {
         const m = p.metrics;
         if (!m || tags.length === 0) continue;
         const engagement = (m.reactions ?? 0) + (m.comments ?? 0) + (m.reposts ?? 0);
+        // Use engagement rate when impressions are available — more accurate than raw count
+        const impressions = m.impressions ?? 0;
+        const score = impressions > 0 ? (engagement / impressions) * 100 : engagement;
         for (const tag of tags) {
           if (!scores[tag]) scores[tag] = [];
-          scores[tag].push(engagement);
+          scores[tag].push(score);
         }
       }
     } catch {}
