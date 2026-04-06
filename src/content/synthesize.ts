@@ -161,21 +161,33 @@ function injectMentionMarkers(text: string): string {
 // Computes hashtag performance from posted_history.json.
 // Returns a ranked list of hashtags with avg engagement, sorted best-first.
 // Only hashtags appearing in 2+ posts are eligible.
+// Weighted composite performance score — inlined to avoid async import.
+// Must stay in sync with SCORE_WEIGHTS in fetch-metrics.ts.
+function compositeScore(m: any): number {
+  if (!m) return 0;
+  return (m.newFollowers ?? 0) * 10
+       + (m.reposts ?? 0)      * 5
+       + (m.sends ?? 0)        * 5
+       + (m.comments ?? 0)     * 3
+       + (m.saves ?? 0)        * 3
+       + (m.reactions ?? 0)    * 1
+       + (m.impressions ?? 0)  * 0.01;
+}
+
 function getHashtagPerformance(): Array<{ hashtag: string; posts: number; avgEngagement: number }> {
   if (!existsSync('posted_history.json')) return [];
   try {
     const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
     const scores: Record<string, number[]> = {};
     for (const p of history) {
-      const m = p.metrics;
-      if (!m) continue;
-      const engagement = (m.reactions ?? 0) + (m.comments ?? 0) + (m.reposts ?? 0);
+      if (!p.metrics) continue;
+      const score = compositeScore(p.metrics);
       const content: string = p.finalContent ?? '';
       const hashtags = content.match(/#\w+/g) ?? [];
       for (const ht of hashtags) {
         const key = ht; // preserve original casing
         if (!scores[key]) scores[key] = [];
-        scores[key].push(engagement);
+        scores[key].push(score);
       }
     }
     return Object.entries(scores)

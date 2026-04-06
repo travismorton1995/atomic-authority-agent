@@ -141,9 +141,22 @@ function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
   return multipliers as Record<PostType, number>;
 }
 
-// Returns average engagement score per content tag across all posts with metrics.
-// Prefers engagement rate (engagement / impressions) when impressions are available,
-// falls back to raw engagement count for posts without impression data.
+// Weighted composite performance score — inlined to avoid async import.
+// Must stay in sync with SCORE_WEIGHTS in fetch-metrics.ts.
+function compositeScore(m: any): number {
+  if (!m) return 0;
+  return (m.newFollowers ?? 0) * 10
+       + (m.reposts ?? 0)      * 5
+       + (m.sends ?? 0)        * 5
+       + (m.comments ?? 0)     * 3
+       + (m.saves ?? 0)        * 3
+       + (m.reactions ?? 0)    * 1
+       + (m.impressions ?? 0)  * 0.01;
+}
+
+// Returns average composite performance score per content tag across all posts with metrics.
+// Uses the weighted composite score (followers × 10, reposts × 5, comments × 3, etc.)
+// to capture audience growth potential, not just raw engagement.
 function getTagEngagementScores(): Record<string, number> {
   const scores: Record<string, number[]> = {};
 
@@ -152,12 +165,8 @@ function getTagEngagementScores(): Record<string, number> {
       const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
       for (const p of history) {
         const tags: string[] = p.draft?.contentTags ?? [];
-        const m = p.metrics;
-        if (!m || tags.length === 0) continue;
-        const engagement = (m.reactions ?? 0) + (m.comments ?? 0) + (m.reposts ?? 0);
-        // Use engagement rate when impressions are available — more accurate than raw count
-        const impressions = m.impressions ?? 0;
-        const score = impressions > 0 ? (engagement / impressions) * 100 : engagement;
+        if (!p.metrics || tags.length === 0) continue;
+        const score = compositeScore(p.metrics);
         for (const tag of tags) {
           if (!scores[tag]) scores[tag] = [];
           scores[tag].push(score);

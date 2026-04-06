@@ -19,6 +19,29 @@ export interface PostMetrics {
   newFollowers: number | null;
 }
 
+// Weighted composite performance score — values metrics by their contribution
+// to audience growth. Weights are tunable.
+const SCORE_WEIGHTS = {
+  newFollowers: 10,   // direct audience growth
+  reposts: 5,         // amplification to new audiences
+  sends: 5,           // high-trust private sharing
+  comments: 3,        // depth of engagement, triggers algorithmic distribution
+  saves: 3,           // content quality signal
+  reactions: 1,       // low-effort but positive
+  impressions: 0.01,  // reach floor — large numbers still contribute
+};
+
+export function computeCompositeScore(m: PostMetrics | null | undefined): number {
+  if (!m) return 0;
+  return (m.newFollowers ?? 0) * SCORE_WEIGHTS.newFollowers
+       + (m.reposts ?? 0)      * SCORE_WEIGHTS.reposts
+       + (m.sends ?? 0)        * SCORE_WEIGHTS.sends
+       + (m.comments ?? 0)     * SCORE_WEIGHTS.comments
+       + (m.saves ?? 0)        * SCORE_WEIGHTS.saves
+       + (m.reactions ?? 0)    * SCORE_WEIGHTS.reactions
+       + (m.impressions ?? 0)  * SCORE_WEIGHTS.impressions;
+}
+
 function parseNumber(text: string | undefined): number | null {
   if (!text) return null;
   const cleaned = text.replace(/,/g, '');
@@ -203,13 +226,13 @@ export async function runWeeklyReport(): Promise<void> {
     return;
   }
 
-  // Attach engagement score and impression data to each post
-  interface PostWithEng { p: any; eng: number; impressions: number | null; engRate: number | null }
-  const withEng: PostWithEng[] = posts.map((p: any) => {
+  // Attach composite score and raw metrics to each post
+  interface PostWithScore { p: any; score: number; eng: number; impressions: number | null }
+  const withScore: PostWithScore[] = posts.map((p: any) => {
+    const score = computeCompositeScore(p.metrics);
     const eng = (p.metrics?.reactions ?? 0) + (p.metrics?.comments ?? 0) + (p.metrics?.reposts ?? 0);
     const impressions: number | null = p.metrics?.impressions ?? null;
-    const engRate = impressions && impressions > 0 ? (eng / impressions) * 100 : null;
-    return { p, eng, impressions, engRate };
+    return { p, score, eng, impressions };
   });
 
   const totalReactions    = posts.reduce((s: number, p: any) => s + (p.metrics?.reactions ?? 0), 0);
@@ -219,97 +242,53 @@ export async function runWeeklyReport(): Promise<void> {
   const totalSaves        = posts.reduce((s: number, p: any) => s + (p.metrics?.saves ?? 0), 0);
   const totalNewFollowers = posts.reduce((s: number, p: any) => s + (p.metrics?.newFollowers ?? 0), 0);
   const totalEng = totalReactions + totalComments + totalReposts;
-  const avgEng   = posts.length > 0 ? (totalEng / posts.length).toFixed(1) : '0';
   const avgImpressions = posts.length > 0 ? Math.round(totalImpressions / posts.length) : 0;
   const overallEngRate = totalImpressions > 0 ? ((totalEng / totalImpressions) * 100).toFixed(1) : 'n/a';
+  const avgScore = posts.length > 0 ? withScore.reduce((s, { score }) => s + score, 0) / posts.length : 0;
 
-  // Rank post types by avg engagement
-  const typeMap = new Map<string, { total: number; count: number }>();
-  for (const { p, eng } of withEng) {
-    const t = p.draft?.postType ?? 'unknown';
-    const prev = typeMap.get(t) ?? { total: 0, count: 0 };
-    typeMap.set(t, { total: prev.total + eng, count: prev.count + 1 });
-  }
-  const typeRanked = [...typeMap.entries()]
-    .map(([type, { total, count }]) => ({ type, avg: total / count, count }))
-    .sort((a, b) => b.avg - a.avg);
-
-  // Rank content tags by avg engagement
-  const tagMap = new Map<string, { total: number; count: number }>();
-  for (const { p, eng } of withEng) {
-    for (const tag of (p.draft?.contentTags ?? [])) {
-      const prev = tagMap.get(tag) ?? { total: 0, count: 0 };
-      tagMap.set(tag, { total: prev.total + eng, count: prev.count + 1 });
+  // Helper: rank by avg composite score
+  function rankBy(items: PostWithScore[], extract: (p: any) => string | string[]) {
+    const map = new Map<string, { total: number; count: number }>();
+    for (const { p, score } of items) {
+      const vals = extract(p);
+      for (const v of (Array.isArray(vals) ? vals : [vals])) {
+        const prev = map.get(v) ?? { total: 0, count: 0 };
+        map.set(v, { total: prev.total + score, count: prev.count + 1 });
+      }
     }
+    return [...map.entries()]
+      .map(([label, { total, count }]) => ({ label, avg: total / count, count }))
+      .sort((a, b) => b.avg - a.avg);
   }
-  const tagRanked = [...tagMap.entries()]
-    .map(([tag, { total, count }]) => ({ tag, avg: total / count, count }))
-    .sort((a, b) => b.avg - a.avg)
-    .slice(0, 5);
 
-  // Rank hashtags by avg engagement
-  const hashtagMap = new Map<string, { total: number; count: number }>();
-  for (const { p, eng } of withEng) {
-    const hashtags = (p.finalContent?.match(/#\w+/g) ?? []).map((t: string) => t.toLowerCase());
-    for (const tag of hashtags) {
-      const prev = hashtagMap.get(tag) ?? { total: 0, count: 0 };
-      hashtagMap.set(tag, { total: prev.total + eng, count: prev.count + 1 });
-    }
-  }
-  const hashtagRanked = [...hashtagMap.entries()]
-    .map(([tag, { total, count }]) => ({ tag, avg: total / count, count }))
-    .sort((a, b) => b.avg - a.avg)
-    .slice(0, 5);
+  const typeRanked    = rankBy(withScore, (p: any) => p.draft?.postType ?? 'unknown');
+  const tagRanked     = rankBy(withScore, (p: any) => p.draft?.contentTags ?? []).slice(0, 5);
+  const hashtagRanked = rankBy(withScore, (p: any) =>
+    (p.finalContent?.match(/#\w+/g) ?? []).map((t: string) => t.toLowerCase())
+  ).slice(0, 5);
+  const feedRanked    = rankBy(withScore, (p: any) => p.draft?.sourceFeed ?? 'Unknown');
+  const dayRanked     = rankBy(withScore, (p: any) =>
+    new Date(p.publishedAt).toLocaleString('en-US', { timeZone: 'America/Toronto', weekday: 'short' })
+  );
 
-  // Rank source feeds by avg engagement
-  const feedMap = new Map<string, { total: number; count: number }>();
-  for (const { p, eng } of withEng) {
-    const feed = p.draft?.sourceFeed ?? 'Unknown';
-    const prev = feedMap.get(feed) ?? { total: 0, count: 0 };
-    feedMap.set(feed, { total: prev.total + eng, count: prev.count + 1 });
-  }
-  const feedRanked = [...feedMap.entries()]
-    .map(([feed, { total, count }]) => ({ feed, avg: total / count, count }))
-    .sort((a, b) => b.avg - a.avg);
-
-  // Rank by day of week (ET)
-  const dayMap = new Map<string, { total: number; count: number }>();
-  for (const { p, eng } of withEng) {
-    const day = new Date(p.publishedAt).toLocaleString('en-US', { timeZone: 'America/Toronto', weekday: 'short' });
-    const prev = dayMap.get(day) ?? { total: 0, count: 0 };
-    dayMap.set(day, { total: prev.total + eng, count: prev.count + 1 });
-  }
-  const dayRanked = [...dayMap.entries()]
-    .map(([day, { total, count }]) => ({ day, avg: total / count, count }))
-    .sort((a, b) => b.avg - a.avg);
-
-  // Rank by time window (ET)
   function getTimeWindow(iso: string): string {
     const d = new Date(iso);
     const hour = parseInt(d.toLocaleString('en-US', { timeZone: 'America/Toronto', hour: 'numeric', hour12: false }), 10);
-    if (hour >= 7 && hour < 9)   return 'Morning (7–9am)';
-    if (hour >= 12 && hour < 13) return 'Noon (12–1pm)';
-    if (hour >= 17 && hour < 19) return 'Evening (5–7pm)';
+    if (hour >= 7 && hour < 9)   return 'Morning (7-9am)';
+    if (hour >= 12 && hour < 13) return 'Noon (12-1pm)';
+    if (hour >= 17 && hour < 19) return 'Evening (5-7pm)';
     return 'Other';
   }
-  const windowMap = new Map<string, { total: number; count: number }>();
-  for (const { p, eng } of withEng) {
-    const w = getTimeWindow(p.publishedAt);
-    const prev = windowMap.get(w) ?? { total: 0, count: 0 };
-    windowMap.set(w, { total: prev.total + eng, count: prev.count + 1 });
-  }
-  const windowRanked = [...windowMap.entries()]
-    .map(([window, { total, count }]) => ({ window, avg: total / count, count }))
-    .sort((a, b) => b.avg - a.avg);
+  const windowRanked = rankBy(withScore, (p: any) => getTimeWindow(p.publishedAt));
 
   // Photo vs no-photo
-  const withPhoto    = withEng.filter(({ p }) => !!p.draft?.imageUrl || !!p.draft?.generatedImagePath);
-  const withoutPhoto = withEng.filter(({ p }) => !p.draft?.imageUrl && !p.draft?.generatedImagePath);
-  const photoAvg    = withPhoto.length    ? withPhoto.reduce((s, { eng }) => s + eng, 0)    / withPhoto.length    : null;
-  const noPhotoAvg  = withoutPhoto.length ? withoutPhoto.reduce((s, { eng }) => s + eng, 0) / withoutPhoto.length : null;
+  const withPhoto    = withScore.filter(({ p }) => !!p.draft?.imageUrl || !!p.draft?.generatedImagePath);
+  const withoutPhoto = withScore.filter(({ p }) => !p.draft?.imageUrl && !p.draft?.generatedImagePath);
+  const photoAvg    = withPhoto.length    ? withPhoto.reduce((s, { score }) => s + score, 0)    / withPhoto.length    : null;
+  const noPhotoAvg  = withoutPhoto.length ? withoutPhoto.reduce((s, { score }) => s + score, 0) / withoutPhoto.length : null;
 
   // Best individual post
-  const best = [...withEng].sort((a, b) => b.eng - a.eng)[0];
+  const best = [...withScore].sort((a, b) => b.score - a.score)[0];
   const bestSnippet = best.p.finalContent?.split('\n')[0]?.slice(0, 80) ?? '';
   const bestType = best.p.draft?.postType ?? 'unknown';
 
@@ -319,33 +298,27 @@ export async function runWeeklyReport(): Promise<void> {
   const dateStart = new Date(cutoff).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' });
   const dateEnd   = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' });
 
-  const typeLines = typeRanked.map((t, i) =>
-    `${medals[i] ?? '  •'} \`${t.type}\` — avg ${fmt(t.avg)} eng (${t.count} post${t.count !== 1 ? 's' : ''})`
-  ).join('\n');
+  const rankLine = (r: { label: string; avg: number; count: number }, i: number) =>
+    `${medals[i] ?? '  •'} \`${r.label}\` — avg ${fmt(r.avg)} score (${r.count} post${r.count !== 1 ? 's' : ''})`;
+
+  const typeLines = typeRanked.map(rankLine).join('\n');
 
   const tagLines = tagRanked.length > 0
-    ? tagRanked.map((t, i) => `  ${i + 1}\\. \`${t.tag}\` — avg ${fmt(t.avg)} eng`).join('\n')
+    ? tagRanked.map(rankLine).join('\n')
     : '  _(no tags)_';
 
-  const feedLines = feedRanked.map((f, i) =>
-    `${medals[i] ?? '  •'} ${f.feed} — avg ${fmt(f.avg)} eng`
-  ).join('\n');
+  const feedLines = feedRanked.map(rankLine).join('\n');
 
   const hashtagLines = hashtagRanked.length > 0
-    ? hashtagRanked.map((t, i) => `  ${i + 1}\\. \`${t.tag}\` — avg ${fmt(t.avg)} eng (${t.count} post${t.count !== 1 ? 's' : ''})`).join('\n')
+    ? hashtagRanked.map(rankLine).join('\n')
     : '  _(no hashtags found)_';
 
-  const dayLines = dayRanked.map((d, i) =>
-    `${medals[i] ?? '  •'} ${d.day} — avg ${fmt(d.avg)} eng (${d.count} post${d.count !== 1 ? 's' : ''})`
-  ).join('\n');
-
-  const windowLines = windowRanked.map((w, i) =>
-    `${medals[i] ?? '  •'} ${w.window} — avg ${fmt(w.avg)} eng (${w.count} post${w.count !== 1 ? 's' : ''})`
-  ).join('\n');
+  const dayLines = dayRanked.map(rankLine).join('\n');
+  const windowLines = windowRanked.map(rankLine).join('\n');
 
   const photoLine = [
-    withPhoto.length    ? `📷 with photo (${withPhoto.length}): avg ${fmt(photoAvg!)} eng`       : null,
-    withoutPhoto.length ? `🚫 no photo (${withoutPhoto.length}): avg ${fmt(noPhotoAvg!)} eng` : null,
+    withPhoto.length    ? `📷 with photo (${withPhoto.length}): avg ${fmt(photoAvg!)} score`       : null,
+    withoutPhoto.length ? `🚫 no photo (${withoutPhoto.length}): avg ${fmt(noPhotoAvg!)} score` : null,
   ].filter(Boolean).join(' | ');
 
   const message =
@@ -356,7 +329,7 @@ export async function runWeeklyReport(): Promise<void> {
 *Engagement rate:* ${overallEngRate}%
 *Reactions:* ${totalReactions} | *Comments:* ${totalComments} | *Reposts:* ${totalReposts}
 *Saves:* ${totalSaves} | *New followers:* ${totalNewFollowers}
-*Avg engagement/post:* ${avgEng}
+*Avg composite score:* ${fmt(avgScore)}
 ${photoLine ? `\n*Photo vs no photo:*\n${photoLine}` : ''}
 
 *Post types:*
@@ -378,7 +351,7 @@ ${dayLines}
 ${windowLines}
 
 *Best post:* [${bestType}] ${bestSnippet}…
-_${best.impressions ? `${best.impressions.toLocaleString()} impressions · ` : ''}${best.eng} engagements${best.engRate ? ` · ${best.engRate.toFixed(1)}% rate` : ''}_`;
+_Score: ${fmt(best.score)}${best.impressions ? ` · ${best.impressions.toLocaleString()} impressions` : ''} · ${best.eng} engagements_`;
 
   console.log('Sending weekly report to Telegram...');
   await sendMessage(message);
