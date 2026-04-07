@@ -307,9 +307,9 @@ export function startBot(): void {
         const selectedLabel = reply.replyLabels?.[optionIdx - 1] ?? `option ${optionIdx}`;
         await ctx.answerCbQuery();
         await ctx.editMessageText(
-          `💬 *Reply preview* | ${reply.postType} | _${selectedLabel}_\n\n"${selectedText}"`,
+          `💬 <b>Reply preview</b> | ${esc(reply.postType)} | <i>${esc(selectedLabel)}</i>\n\n"${esc(selectedText)}"`,
           {
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
             reply_markup: {
               inline_keyboard: [[
                 { text: '✅ Send', callback_data: `cr_confirm:${replyId}:${optionIdx}` },
@@ -340,9 +340,9 @@ export function startBot(): void {
         }
         if (postErr) {
           await ctx.editMessageText(
-            `❌ *Failed to post reply*\n\n${postErr.message}\n\nYou can try again or skip.`,
+            `❌ <b>Failed to post reply</b>\n\n${esc(postErr.message)}\n\nYou can try again or skip.`,
             {
-              parse_mode: 'Markdown',
+              parse_mode: 'HTML',
               reply_markup: {
                 inline_keyboard: [[
                   { text: '↩ Try again', callback_data: `cr_back:${replyId}` },
@@ -353,8 +353,8 @@ export function startBot(): void {
           );
         } else {
           await ctx.editMessageText(
-            `✅ *Reply posted* | ${reply.postType}\n\nReplied to ${reply.commentAuthor}.\n\n${reply.postUrl}`,
-            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [] } },
+            `✅ <b>Reply posted</b> | ${esc(reply.postType)}\n\nReplied to ${esc(reply.commentAuthor)}.\n\n${reply.postUrl}`,
+            { parse_mode: 'HTML', reply_markup: { inline_keyboard: [] } },
           );
         }
       }
@@ -387,9 +387,9 @@ export function startBot(): void {
         const selectedLabel = comment.commentLabels[optionIdx - 1] ?? `option ${optionIdx}`;
         await ctx.answerCbQuery();
         await ctx.editMessageText(
-          `📤 *Outbound preview* | _${selectedLabel}_\n\n"${selectedText}"`,
+          `📤 <b>Outbound preview</b> | <i>${esc(selectedLabel)}</i>\n\n"${esc(selectedText)}"`,
           {
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
             reply_markup: {
               inline_keyboard: [[
                 { text: '✅ Post', callback_data: `oc_confirm:${commentId}:${optionIdx}` },
@@ -422,9 +422,9 @@ export function startBot(): void {
         }
         if (postErr) {
           await ctx.editMessageText(
-            `❌ *Failed to post comment*\n\n${postErr.message}\n\nYou can try again or skip.`,
+            `❌ <b>Failed to post comment</b>\n\n${esc(postErr.message)}\n\nYou can try again or skip.`,
             {
-              parse_mode: 'Markdown',
+              parse_mode: 'HTML',
               reply_markup: {
                 inline_keyboard: [[
                   { text: '↩ Try again', callback_data: `oc_back:${commentId}` },
@@ -435,8 +435,8 @@ export function startBot(): void {
           );
         } else {
           await ctx.editMessageText(
-            `✅ *Comment posted* | ${comment.profileName}\n\n${comment.postUrl}`,
-            { parse_mode: 'Markdown', reply_markup: { inline_keyboard: [] } },
+            `✅ <b>Comment posted</b> | ${esc(comment.profileName)}\n\n${comment.postUrl}`,
+            { parse_mode: 'HTML', reply_markup: { inline_keyboard: [] } },
           );
         }
       }
