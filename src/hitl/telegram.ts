@@ -76,6 +76,7 @@ export function startBot(): void {
       '/poll — Run a comment reply poll (checks for new comments on your posts)\n' +
       '/outbound — Run the outbound engagement poll (finds posts to comment on)\n' +
       '/metrics — Fetch engagement metrics for all published posts\n' +
+      '/notes — Add a daily note (assembled into an insider post weekly)\n' +
       '/login — Open a browser to renew your LinkedIn session\n' +
       '/help — Show this message\n\n' +
       '*Other actions:*\n' +
@@ -145,6 +146,21 @@ export function startBot(): void {
         console.error('[/metrics] Fetch error:', err);
         ctx.reply(`Metrics fetch failed: ${err.message}`).catch(() => {});
       });
+  });
+
+  bot.command('notes', async (ctx) => {
+    const noteText = (ctx.message as any).text?.replace(/^\/notes\s*/, '').trim();
+    if (!noteText) {
+      const { getNoteCount } = await import('./daily-notes.js');
+      const count = getNoteCount();
+      await ctx.reply(`📝 ${count} note(s) this week.\n\nUsage: /notes Your note text here`);
+      return;
+    }
+    const { addNote, getNoteCount } = await import('./daily-notes.js');
+    addNote(noteText);
+    const count = getNoteCount();
+    console.log(`[/notes] Note added (${count} this week)`);
+    await ctx.reply(`📝 Note saved (${count} this week).`);
   });
 
   bot.command('login', async (ctx) => {
