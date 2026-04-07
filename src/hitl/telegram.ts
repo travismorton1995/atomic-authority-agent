@@ -642,13 +642,23 @@ export function startBot(): void {
 
     // Check for profile URL
     const profileMatch = text.match(/https:\/\/www\.linkedin\.com\/(in|company)\/[^\s?#]+/);
-    if (!profileMatch) return;
-    const url = profileMatch[0];
-    const { profile, existed } = addProfile(url);
-    if (existed) {
-      await ctx.reply(`Already tracking: ${profile.name} (${profile.url})`);
-    } else {
-      await ctx.reply(`✅ Added to outbound list: ${profile.name}\n${profile.url}`);
+    if (profileMatch) {
+      const url = profileMatch[0];
+      const { profile, existed } = addProfile(url);
+      if (existed) {
+        await ctx.reply(`Already tracking: ${profile.name} (${profile.url})`);
+      } else {
+        await ctx.reply(`✅ Added to outbound list: ${profile.name}\n${profile.url}`);
+      }
+      return;
+    }
+
+    // Capture plain text as a daily note if within the prompt window
+    const { isWithinPromptWindow, addNote, getNoteCount } = await import('./daily-notes.js');
+    if (isWithinPromptWindow() && text.length > 10) {
+      addNote(text);
+      const count = getNoteCount();
+      await ctx.reply(`📝 Note saved (${count} this week).`);
     }
   });
 

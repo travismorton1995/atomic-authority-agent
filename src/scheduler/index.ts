@@ -54,7 +54,8 @@ function alreadyPostedToday(): boolean {
 }
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
 import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler, setOnMetricsHandler, setOnRewriteHandler } from '../hitl/telegram.js';
-import { runPipeline, rewritePost } from '../content/pipeline.js';
+import { runPipeline, rewritePost, runInsiderPipeline } from '../content/pipeline.js';
+import { sendDailyPrompt, assembleAndClear } from '../hitl/daily-notes.js';
 import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
 import { runCommentPoll, type CommentPollOptions, type CommentPollStats } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
@@ -199,6 +200,31 @@ setOnRewriteHandler(async (postId: string) => {
 // Generate a draft at 7pm Mon/Tue/Wed ET — approve that evening, posts next morning (Tue/Wed/Thu)
 cron.schedule('0 19 * * 1,2,3', async () => {
   await runGenerate();
+}, { timezone: 'America/Toronto' });
+
+// Daily notes prompt at 4:45pm ET — capture what the user worked on today
+cron.schedule('45 16 * * *', async () => {
+  try {
+    await sendDailyPrompt();
+  } catch (err) {
+    console.error('[daily-notes] Failed to send prompt:', err);
+  }
+}, { timezone: 'America/Toronto' });
+
+// Weekly insider post assembly — Monday 10am ET (before the evening generate)
+cron.schedule('0 10 * * 1', async () => {
+  const notes = assembleAndClear();
+  if (!notes) {
+    console.log('[insider] No notes to assemble this week.');
+    return;
+  }
+  try {
+    console.log('[insider] Assembling weekly insider post...');
+    await runInsiderPipeline(notes);
+  } catch (err: any) {
+    console.error('[insider] Assembly failed:', err);
+    await sendAlert(`Insider post assembly failed: ${err?.message ?? err}`).catch(() => {});
+  }
 }, { timezone: 'America/Toronto' });
 
 // Poll every minute for posts due to be published

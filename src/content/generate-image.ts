@@ -62,6 +62,7 @@ const POST_TYPE_VISUAL_DIRECTION: Record<PostType, string> = {
   'myth-busting': 'Documentary photography style. Real-world evidence that feels concrete, unglamorous, and factual. Show the reality rather than the perception. Natural light, unposed, candid feel. The image should ground the viewer in what actually exists.',
   prediction: 'Forward-looking but grounded. Construction sites with cranes and partially built structures, blueprints laid out on tables, emerging facilities at dawn. Morning or golden hour light. Optimistic but rooted in physical progress, not fantasy.',
   'hot-take': 'High contrast with bold, tight framing. More dramatic crop than other types. Can feel slightly tense or confrontational. Strong shadows, decisive composition. The image should have an edge to it.',
+  insider: 'Behind-the-scenes, candid workplace photography. A developer at a desk with code on screen, a whiteboard with diagrams, a laptop in a meeting room with printed documents. Natural office lighting, slightly messy and real. The image should feel like someone snapped a photo mid-workday, not posed.',
 };
 
 const IMAGE_PROMPT_SYSTEM = `You convert LinkedIn posts into image generation prompts for the FLUX AI model. Your job is to produce a single photorealistic image prompt that a photographer could have actually shot.

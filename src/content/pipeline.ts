@@ -118,9 +118,9 @@ function getLastPostType(): PostType | undefined {
 // it is relative to its target weight across recent posts.
 // Types used less than their target share score above 1.0 (boosted).
 // Types used more than their target share score below 1.0 (suppressed).
-function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
+function getTypeBalanceMultipliers(lookback = 14): Partial<Record<PostType, number>> {
   const weights = POST_TYPE_WEIGHTS;
-  const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+  const totalWeight = Object.values(weights).filter((w): w is number => w != null).reduce((a, b) => a + b, 0);
 
   const counts: Record<string, number> = {};
   for (const type of Object.keys(weights)) counts[type] = 0;
@@ -138,7 +138,7 @@ function getTypeBalanceMultipliers(lookback = 14): Record<PostType, number> {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const multipliers: Record<string, number> = {};
 
-  for (const [type, weight] of Object.entries(weights)) {
+  for (const [type, weight] of Object.entries(weights).filter(([, w]) => w != null) as [string, number][]) {
     const targetShare = weight / totalWeight;
     const actualShare = total > 0 ? (counts[type] ?? 0) / total : 0;
     // Clamp between 0.8 and 1.2 — article quality should dominate, balance is a light nudge
@@ -390,6 +390,28 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
   pipelineRunning = true;
   try {
   return await _runPipeline(options);
+  } finally {
+    pipelineRunning = false;
+  }
+}
+
+// Runs the pipeline for an insider post using accumulated daily notes.
+export async function runInsiderPipeline(assembledNotes: string): Promise<PendingPost> {
+  if (pipelineRunning) {
+    throw new Error('Pipeline already in progress — concurrent calls are not allowed.');
+  }
+  pipelineRunning = true;
+  try {
+    console.log('[insider] Generating insider post from daily notes...');
+    const item: FeedItem = {
+      title: 'Weekly insider observations from NPX',
+      link: '',
+      summary: assembledNotes.slice(0, 400),
+      fullText: assembledNotes,
+      source: 'Daily Notes',
+      pubDate: new Date().toISOString(),
+    };
+    return await finalize(item, 'insider');
   } finally {
     pipelineRunning = false;
   }

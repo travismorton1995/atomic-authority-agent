@@ -1,6 +1,6 @@
-export type PostType = 'bridge' | 'contrarian' | 'change-management' | 'explainer' | 'myth-busting' | 'prediction' | 'hot-take';
+export type PostType = 'bridge' | 'contrarian' | 'change-management' | 'explainer' | 'myth-busting' | 'prediction' | 'hot-take' | 'insider';
 
-export const POST_TYPE_WEIGHTS: Record<PostType, number> = {
+export const POST_TYPE_WEIGHTS: Partial<Record<PostType, number>> = {
   bridge: 30,
   'change-management': 15,
   explainer: 20,
@@ -18,10 +18,11 @@ export const WORD_COUNT_TARGETS: Record<PostType, { min: number; max: number; re
   'change-management': { min: 120, max: 180, reviseMin: 130, reviseMax: 170 },
   prediction:          { min: 120, max: 180, reviseMin: 130, reviseMax: 170 },
   'myth-busting':      { min: 120, max: 180, reviseMin: 130, reviseMax: 170 },
+  insider:             { min: 120, max: 200, reviseMin: 130, reviseMax: 190 },
 };
 
 export function pickPostType(exclude?: PostType): PostType {
-  const eligible = Object.entries(POST_TYPE_WEIGHTS).filter(([type]) => type !== exclude);
+  const eligible = Object.entries(POST_TYPE_WEIGHTS).filter(([type, w]) => type !== exclude && w != null) as [string, number][];
   const total = eligible.reduce((a, [, weight]) => a + weight, 0);
   let roll = Math.random() * total;
   for (const [type, weight] of eligible) {
@@ -87,7 +88,8 @@ POST TYPES — write according to the type specified:
 - explainer: Translate a nuclear concept for an AI audience, or an AI concept for a nuclear audience. Build the bridge both ways.
 - myth-busting: Identify a specific misconception about nuclear or AI, present the strongest version of it fairly, then dismantle it with a concrete, verifiable claim.
 - prediction: Make a specific, time-bounded claim about where nuclear AI is heading. Vary the timeline naturally — don't always say "12-24 months" or "18 months." Use concrete deadlines like "before the end of 2027," "by Q3 next year," "before Christmas," or "within the next two regulatory cycles." The timeline should feel like a real person's estimate, not a template. Name the outcome, who it affects, and what needs to happen first.
-- hot-take: Short, pointed, and designed to spark a reaction. Can be frustrated or provocative. Use sparingly — only when the source material genuinely warrants it.`;
+- hot-take: Short, pointed, and designed to spark a reaction. Can be frustrated or provocative. Use sparingly — only when the source material genuinely warrants it.
+- insider: Firsthand observations from your daily work at NPX. Specific, concrete, grounded in real problems and solutions. Not news commentary — a dispatch from the field.`;
 
 export const POST_TYPE_INSTRUCTIONS: Record<PostType, string> = {
   bridge: 'Write a Bridge post. Connect the news item to a specific AI application in the nuclear sector. Be concrete — name the mechanism (e.g., LLM-assisted documentation, anomaly detection, digital twin validation) and give a plausible efficiency or safety benefit.',
@@ -97,4 +99,5 @@ export const POST_TYPE_INSTRUCTIONS: Record<PostType, string> = {
   'myth-busting': 'Write a Myth-Busting post. Identify a specific, widespread misconception about either nuclear energy or AI — especially ones that show up when the two fields interact. State the myth plainly and present the strongest version of it fairly, then dismantle it with a specific, verifiable claim.',
   prediction: 'Write a Prediction post. Make a specific, falsifiable claim — name the company, regulator, or technology, state what will happen, and give a concrete deadline. Do NOT use "12-24 months" or "18 months" — pick a real date ("before the next CNSC licence renewal cycle," "by Q2 2027," "before the OPG SMR goes critical"). State what happens if you are right AND what it means if you are wrong. Hedged predictions ("it is possible that...") are worthless — make a call and defend it. The best predictions make people screenshot and save them. Your reasoning should be tight enough that even someone who disagrees respects the logic.',
   'hot-take': 'Write a Hot Take post. Keep it under 120 words. Say something that would make a conference panel moderator nervous. Express genuine frustration, disagreement, or skepticism about something in the news item. Name names where appropriate (companies, initiatives, policies) — vague hot takes are just complaints. One strong claim, stated plainly, with one piece of evidence or experience backing it up. No qualifiers, no "I could be wrong," no both-sides balance. If the take could appear in a press release, rewrite it.',
+  insider: 'Write an Insider post. You have raw daily notes from your own work at NPX building AI tools for the nuclear sector. Synthesize these notes into a firsthand observation post — what you are actually seeing, building, or struggling with day to day. This is NOT a news commentary. This is a dispatch from the field. Be specific about the work: name the problem you are solving, describe what surprised you, or share a lesson that only someone doing this work would know. The tone is honest and grounded — like telling a colleague what your week was really like. Do not generalize into thought leadership. Stay concrete. Use "I" and "we" naturally. The reader should feel like they are getting an inside look that they cannot get anywhere else.',
 };
