@@ -74,7 +74,8 @@ export function startBot(): void {
       '/login — Open a browser to renew your LinkedIn session\n' +
       '/help — Show this message\n\n' +
       '*Other actions:*\n' +
-      '• Send a LinkedIn profile URL to add it to the outbound tracking list',
+      '• Send a LinkedIn profile URL to add it to the outbound tracking list\n' +
+      '• Send a LinkedIn post URL to generate comment options for that post',
       { parse_mode: 'Markdown' },
     );
   });
@@ -525,13 +526,61 @@ export function startBot(): void {
   })();
   console.log('Telegram bot started.');
 
-  // LinkedIn profile URL listener — send a profile URL to the bot to add it to the outbound list
+  // LinkedIn URL listener — profile URLs get added to outbound list,
+  // post URLs trigger ad-hoc comment generation.
   bot.on('message', async (ctx) => {
     const text = (ctx.message as any).text as string | undefined;
     if (!text) return;
-    const urlMatch = text.match(/https:\/\/www\.linkedin\.com\/(in|company)\/[^\s?#]+/);
-    if (!urlMatch) return;
-    const url = urlMatch[0];
+
+    // Check for post URL first (more specific match)
+    const postMatch = text.match(/https:\/\/www\.linkedin\.com\/feed\/update\/[^\s?#]+/) ??
+                      text.match(/https:\/\/www\.linkedin\.com\/posts\/[^\s?#]+/);
+    if (postMatch) {
+      const postUrl = postMatch[0];
+      console.log(`[ad-hoc comment] Received post URL: ${postUrl}`);
+      await ctx.reply('Scraping post and generating comment options...').catch(() => {});
+
+      try {
+        const { scrapePostByUrl } = await import('../outbound/scrape-post.js');
+        const scraped = await scrapePostByUrl(postUrl);
+        console.log(`[ad-hoc comment] Scraped: "${scraped.text.slice(0, 60)}..." by ${scraped.authorName}`);
+
+        const { generateOutboundComment } = await import('../outbound/generate-comment.js');
+        const generated = await generateOutboundComment(
+          { text: scraped.text, authorName: scraped.authorName, url: postUrl },
+          { stranger: true },
+        );
+
+        const comment: PendingComment = {
+          id: `oc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          profileUrl: '',
+          profileName: scraped.authorName,
+          postUrl,
+          postSnippet: scraped.text.split('\n')[0].slice(0, 100),
+          postSummary: generated.postSummary,
+          postAgeHours: null,
+          commentOptions: [generated.options[0].text, generated.options[1].text],
+          commentLabels: [generated.options[0].label, generated.options[1].label],
+          recommendationReason: generated.recommendationReason,
+          reasoning: generated.reasoning,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+
+        addPendingComment(comment);
+        await notifyOutboundComment(comment);
+        console.log(`[ad-hoc comment] Comment options sent for ${scraped.authorName}`);
+      } catch (err: any) {
+        console.error('[ad-hoc comment] Failed:', err);
+        await ctx.reply(`Failed to generate comment: ${err.message}`).catch(() => {});
+      }
+      return;
+    }
+
+    // Check for profile URL
+    const profileMatch = text.match(/https:\/\/www\.linkedin\.com\/(in|company)\/[^\s?#]+/);
+    if (!profileMatch) return;
+    const url = profileMatch[0];
     const { profile, existed } = addProfile(url);
     if (existed) {
       await ctx.reply(`Already tracking: ${profile.name} (${profile.url})`);
