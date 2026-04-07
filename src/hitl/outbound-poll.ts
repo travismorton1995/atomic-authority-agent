@@ -5,6 +5,7 @@ import { relevanceHits } from '../outbound/relevance.js';
 import { isSessionExpiredUrl } from '../poster/index.js';
 import {
   getActiveProfiles,
+  getProfilesByPriority,
   isPostSeen,
   markPostSeen,
   addPendingComment,
@@ -49,39 +50,24 @@ interface Candidate extends ScrapedPost {
   sourceLabel: string;             // profile name or #hashtag
 }
 
+const MAX_PROFILES_PER_POLL = 15;
+const COMMENT_COOLDOWN_HOURS = 72; // 3 days — won't queue a comment for a profile within this window
+
 export async function runOutboundPoll(): Promise<void> {
-  const profiles = getActiveProfiles();
-  if (profiles.length === 0 && HASHTAGS.length === 0) {
+  const allProfiles = getActiveProfiles();
+  if (allProfiles.length === 0 && HASHTAGS.length === 0) {
     console.log('Outbound poll: no active profiles or hashtags configured.');
     return;
   }
 
-  console.log(`Outbound poll: checking ${profiles.length} profile(s) + ${HASHTAGS.length} hashtag(s)...`);
+  // Select top profiles by priority (bounds runtime to ~2 min regardless of list size)
+  const pollProfiles = getProfilesByPriority(MAX_PROFILES_PER_POLL);
+  const skipped = allProfiles.length - pollProfiles.length;
+
+  console.log(`Outbound poll: checking ${pollProfiles.length} profile(s)${skipped > 0 ? ` (${skipped} deferred)` : ''} + ${HASHTAGS.length} hashtag(s)...`);
 
   const candidates: Candidate[] = [];
   const seenIds = new Set<string>(); // deduplicate across profiles and hashtags
-
-  // Reduce polling frequency for profiles that haven't posted recently.
-  // - No lastSeenPostAt or seen within 2 days → check every time
-  // - Dry for 2–5 days → check every other poll (staggered by profile ID)
-  // - Dry for 5+ days → check every 4th poll (staggered by profile ID)
-  // Resets to every-time as soon as a new post is found (via recordProfilePollResult).
-  let skippedDry = 0;
-  const now = Date.now();
-  const pollProfiles = profiles.filter(profile => {
-    const lastSeen = profile.lastSeenPostAt ? new Date(profile.lastSeenPostAt).getTime() : 0;
-    const daysDry = lastSeen === 0 ? 0 : (now - lastSeen) / (1000 * 60 * 60 * 24);
-
-    if (daysDry < 2) return true;
-
-    const checkEvery = daysDry < 5 ? 2 : 4;
-    const pollCount = profile.consecutiveDryPolls ?? 0;
-    const offset = profile.id.charCodeAt(0) % checkEvery;
-    const shouldCheck = (pollCount + offset) % checkEvery === 0;
-    if (!shouldCheck) skippedDry++;
-    return shouldCheck;
-  });
-  if (skippedDry > 0) console.log(`  Skipping ${skippedDry} profile(s) — no recent posts (checked less frequently).`);
 
   const { context, page } = await openScrapeContext();
   try {
@@ -172,8 +158,8 @@ export async function runOutboundPoll(): Promise<void> {
     // Recency: 0–1 (1 = brand new, 0 = 12h old)
     const recencyScore = 1 - Math.min(postAge / 12, 1);
 
-    // Diversity: 0–1 (1 = never commented or 48h+ ago, 0 = just commented)
-    const diversityScore = profileCooldown >= 48 ? 1 : profileCooldown / 48;
+    // Diversity: 0–1 (1 = never commented or cooldown elapsed, 0 = just commented)
+    const diversityScore = profileCooldown >= COMMENT_COOLDOWN_HOURS ? 1 : profileCooldown / COMMENT_COOLDOWN_HOURS;
 
     // Weighted: 50% relevance, 30% recency, 20% diversity + profile bonus
     let score = relevanceScore * 0.5 + recencyScore * 0.3 + diversityScore * 0.2;
@@ -182,10 +168,17 @@ export async function runOutboundPoll(): Promise<void> {
     return { candidate: c, score, postAge, profileCooldown, keywords };
   });
 
-  // Hard-filter only hashtag candidates with zero relevance (strangers posting off-topic).
-  // Profile candidates always pass — you curated them for a reason. Keywords boost their
-  // score but don't exclude them.
-  const eligible = scored.filter(s => s.candidate.source === 'profile' || s.keywords > 0);
+  // Hard filters:
+  // 1. Profile candidates within comment cooldown — skip (prevents spam)
+  // 2. Hashtag candidates with zero relevance — skip (strangers posting off-topic)
+  const eligible = scored.filter(s => {
+    if (s.profileCooldown < COMMENT_COOLDOWN_HOURS) {
+      console.log(`  Skipping ${s.candidate.authorName || s.candidate.sourceLabel} — commented ${s.profileCooldown.toFixed(0)}h ago (cooldown: ${COMMENT_COOLDOWN_HOURS}h).`);
+      return false;
+    }
+    if (s.candidate.source === 'hashtag' && s.keywords === 0) return false;
+    return true;
+  });
   if (eligible.length === 0) {
     console.log(`  ${scored.length} candidate(s) found but none were eligible. Nothing queued.`);
     recordOutboundPoll();

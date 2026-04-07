@@ -12,8 +12,8 @@ export interface OutboundProfile {
   active: boolean;
   insider?: boolean;  // true if you work/are affiliated with this org
   colleague?: boolean; // true if this person is a direct colleague — avoid contrarian approaches
-  lastSeenPostAt?: string;      // ISO timestamp — last time a fresh post was found
-  consecutiveDryPolls?: number; // how many polls in a row found nothing new
+  lastSeenPostAt?: string;   // ISO timestamp — last time a fresh post was found
+  lastCheckedAt?: string;    // ISO timestamp — last time this profile was scraped
 }
 
 export interface PendingComment {
@@ -118,13 +118,39 @@ export function recordProfilePollResult(url: string, hadNewPosts: boolean): void
   const normalized = normalizeProfileUrl(url);
   const p = store.profiles.find(p => p.url === normalized);
   if (!p) return;
+  p.lastCheckedAt = new Date().toISOString();
   if (hadNewPosts) {
     p.lastSeenPostAt = new Date().toISOString();
-    p.consecutiveDryPolls = 0;
-  } else {
-    p.consecutiveDryPolls = (p.consecutiveDryPolls ?? 0) + 1;
   }
   saveProfiles(store);
+}
+
+/** Returns profiles sorted by priority for checking. Higher priority = checked first.
+ *  Priority = hoursSinceLastChecked + frequencyBonus - recentCommentPenalty.
+ *  Limited to `maxProfiles` to bound runtime. */
+export function getProfilesByPriority(maxProfiles: number = 15): OutboundProfile[] {
+  const profiles = getActiveProfiles();
+  const now = Date.now();
+
+  const scored = profiles.map(p => {
+    const lastChecked = p.lastCheckedAt ? new Date(p.lastCheckedAt).getTime() : 0;
+    const hoursSinceChecked = lastChecked === 0 ? 999 : (now - lastChecked) / 3_600_000;
+
+    // Frequency bonus: profiles that have posted recently are more likely to have new content
+    const lastSeen = p.lastSeenPostAt ? new Date(p.lastSeenPostAt).getTime() : 0;
+    const daysSincePost = lastSeen === 0 ? 30 : (now - lastSeen) / (1000 * 60 * 60 * 24);
+    const frequencyBonus = daysSincePost < 2 ? 10 : daysSincePost < 7 ? 5 : 0;
+
+    // Comment cooldown penalty: if we commented on this profile recently, deprioritize checking
+    const commentCooldown = hoursSinceLastComment(p.url);
+    const commentPenalty = commentCooldown < 72 ? (72 - commentCooldown) * 0.5 : 0; // 3-day cooldown
+
+    const priority = hoursSinceChecked + frequencyBonus - commentPenalty;
+    return { profile: p, priority };
+  });
+
+  scored.sort((a, b) => b.priority - a.priority);
+  return scored.slice(0, maxProfiles).map(s => s.profile);
 }
 
 export function updateProfileName(url: string, name: string): void {
