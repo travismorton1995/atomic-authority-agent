@@ -51,7 +51,7 @@ interface Candidate extends ScrapedPost {
 }
 
 const MAX_PROFILES_PER_POLL = 15;
-const COMMENT_COOLDOWN_HOURS = 72; // 3 days — won't queue a comment for a profile within this window
+const COMMENT_COOLDOWN_HOURS = 24; // 1 day — won't queue a comment for a profile within this window
 
 export async function runOutboundPoll(): Promise<void> {
   const allProfiles = getActiveProfiles();

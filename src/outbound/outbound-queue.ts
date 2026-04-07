@@ -143,7 +143,7 @@ export function getProfilesByPriority(maxProfiles: number = 15): OutboundProfile
 
     // Comment cooldown penalty: if we commented on this profile recently, deprioritize checking
     const commentCooldown = hoursSinceLastComment(p.url);
-    const commentPenalty = commentCooldown < 72 ? (72 - commentCooldown) * 0.5 : 0; // 3-day cooldown
+    const commentPenalty = commentCooldown < 24 ? (24 - commentCooldown) * 0.5 : 0; // 1-day cooldown
 
     const priority = hoursSinceChecked + frequencyBonus - commentPenalty;
     return { profile: p, priority };
