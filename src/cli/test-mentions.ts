@@ -14,7 +14,6 @@ import { MENTIONS, removeMentionEntry } from '../poster/mentions.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 const LINKEDIN_FEED = 'https://www.linkedin.com/feed/';
-const MENTIONS_PATH = path.resolve('src/poster/mentions.ts');
 
 function prompt(question: string): Promise<string> {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -66,15 +65,36 @@ async function testEntry(page: import('playwright').Page, searchTerm: string): P
 }
 
 async function markVerified(name: string): Promise<void> {
-  let src = fs.readFileSync(MENTIONS_PATH, 'utf8');
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`('${escaped}'\\s*:\\s*\\{[^}]*?)verified:\\s*false`, 's');
-  if (re.test(src)) {
-    src = src.replace(re, '$1verified: true');
-    fs.writeFileSync(MENTIONS_PATH, src, 'utf8');
+  if (MENTIONS[name]) {
+    MENTIONS[name].verified = true;
+    const { readFileSync, writeFileSync } = await import('fs');
+    const { resolve } = await import('path');
+    const MENTIONS_FILE = resolve(process.cwd(), 'src/poster/mentions.ts');
+    let src = readFileSync(MENTIONS_FILE, 'utf8').replace(/\r\n/g, '\n');
+    const startMarker = 'export const MENTIONS: Record<string, MentionEntry> = {';
+    const startIdx = src.indexOf(startMarker);
+    const endIdx = src.indexOf('\n};\n', startIdx);
+    if (startIdx === -1 || endIdx === -1) { console.warn('Could not rewrite mentions file.'); return; }
+
+    const entries = Object.entries(MENTIONS);
+    const verified = entries.filter(([, v]) => v.verified).sort(([a], [b]) => a.localeCompare(b));
+    const unverified = entries.filter(([, v]) => !v.verified).sort(([a], [b]) => a.localeCompare(b));
+    const sorted = [...verified, ...unverified];
+
+    let block = '';
+    for (const [n, entry] of sorted) {
+      const safe = n.replace(/'/g, "\\'");
+      const searchSafe = entry.searchTerm.replace(/'/g, "\\'");
+      const pad = Math.max(1, 42 - safe.length);
+      const searchPad = Math.max(1, 27 - searchSafe.length);
+      block += `  '${safe}':${' '.repeat(pad)}{ searchTerm: '${searchSafe}',${' '.repeat(searchPad)}verified: ${entry.verified} },\n`;
+    }
+
+    src = src.slice(0, startIdx + startMarker.length + 1) + block + src.slice(endIdx + 1);
+    writeFileSync(MENTIONS_FILE, src, 'utf8');
     console.log(`  Marked "${name}" as verified.`);
   } else {
-    console.warn(`  Could not find unverified entry for "${name}" in source file.`);
+    console.warn(`  Could not find entry for "${name}".`);
   }
 }
 
