@@ -550,9 +550,19 @@ export function startBot(): void {
         const scraped = await scrapePostByUrl(postUrl);
         console.log(`[ad-hoc comment] Scraped: "${scraped.text.slice(0, 60)}..." by ${scraped.authorName}`);
 
-        // Mark the post as seen so the outbound poll won't suggest it again
+        // Mark the post as seen so the outbound poll won't suggest it again.
+        // Extract activity ID from both URL formats:
+        //   /feed/update/urn:li:activity:1234567890/
+        //   /posts/username_slug-activity-1234567890-xxxx
         const urnMatch = postUrl.match(/(urn:li:activity:\d+)/);
-        if (urnMatch) markPostSeen(urnMatch[1]);
+        const activityMatch = postUrl.match(/activity[:-](\d{15,})/);
+        if (urnMatch) {
+          markPostSeen(urnMatch[1]);
+        } else if (activityMatch) {
+          markPostSeen(`urn:li:activity:${activityMatch[1]}`);
+        }
+        // Also mark the URL itself as a fallback
+        markPostSeen(postUrl);
 
         // Resolve profile URL from the post page so cooldown tracking works.
         // For /posts/ URLs the profile slug is embedded; for /feed/update/ we use the author name.

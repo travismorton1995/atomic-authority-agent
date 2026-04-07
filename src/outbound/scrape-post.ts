@@ -86,7 +86,11 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
     return {
       text: result.text,
       authorName: result.authorName || 'Unknown',
-      profileUrl: result.profileUrl ? `https://www.linkedin.com${result.profileUrl.replace(/\/$/, '')}/` : '',
+      profileUrl: result.profileUrl
+        ? (result.profileUrl.startsWith('http')
+          ? result.profileUrl.replace(/\/$/, '') + '/'
+          : `https://www.linkedin.com${result.profileUrl.replace(/\/$/, '')}/`)
+        : '',
       url: postUrl,
     };
   } finally {
