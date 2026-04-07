@@ -324,7 +324,7 @@ Write the LinkedIn post now. You have the full article text above — use specif
       role: 'user',
       content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Output the comment text only — do not include the URL.
 
-${item.source && item.source !== 'Manual' ? `Format: Sourced from [Source Name]. [One simple question.]
+${item.source && item.source !== 'Manual' && item.source !== 'Daily Notes' ? `Format: Sourced from [Source Name]. [One simple question.]
 
 Rules:
 - "Sourced from [Source Name]" uses the publication name (e.g. "Sourced from World Nuclear News", "Sourced from Bruce Power", "Sourced from IAEA")
