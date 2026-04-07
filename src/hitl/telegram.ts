@@ -9,9 +9,9 @@ import { renewSession } from '../poster/index.js';
 import { getPendingComment, updateCommentStatus, addProfile, incrementDailyCount, popFallbackCandidate, addPendingComment, markPostSeen, type PendingComment } from '../outbound/outbound-queue.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
 
-// Escape Telegram Markdown V1 special characters in dynamic text to prevent parse errors.
+// Escape text for Telegram HTML parse mode.
 function esc(text: string): string {
-  return text.replace(/([_*\[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
@@ -365,7 +365,7 @@ export function startBot(): void {
         await ctx.answerCbQuery();
         await ctx.editMessageText(
           formatCommentMessage(reply),
-          { parse_mode: 'Markdown', reply_markup: buildCommentKeyboard(reply) },
+          { parse_mode: 'HTML', reply_markup: buildCommentKeyboard(reply) },
         );
       }
 
@@ -447,7 +447,7 @@ export function startBot(): void {
         await ctx.answerCbQuery();
         await ctx.editMessageText(
           formatOutboundMessage(comment),
-          { parse_mode: 'Markdown', reply_markup: buildOutboundKeyboard(comment) },
+          { parse_mode: 'HTML', reply_markup: buildOutboundKeyboard(comment) },
         );
       }
 
@@ -771,22 +771,22 @@ function buildCommentKeyboard(reply: PendingReply) {
 function formatCommentMessage(reply: PendingReply): string {
   const threadLabel = reply.isReply ? 'reply-to-reply' : 'comment';
   const reasoningSection = reply.reasoning
-    ? `\n*AI reasoning:* _${esc(reply.reasoning)}_\n`
+    ? `\n<b>AI reasoning:</b> <i>${esc(reply.reasoning)}</i>\n`
     : '';
 
-  return `💬 *New ${threadLabel}* | ${reply.postType}
+  return `💬 <b>New ${threadLabel}</b> | ${reply.postType}
 ${reply.postUrl}
-_"${esc(reply.postSnippet)}…"_
+<i>"${esc(reply.postSnippet)}…"</i>
 
-*From:* ${esc(reply.commentAuthor)} _(${esc(reply.commentType)})_
+<b>From:</b> ${esc(reply.commentAuthor)} <i>(${esc(reply.commentType)})</i>
 "${esc(reply.commentText)}"
 ${reasoningSection}
-*Reply options:*
-1. ⭐ _${esc(reply.replyLabels?.[0] ?? 'option 1')}:_ ${esc(reply.replyOptions[0])}${reply.recommendationReason ? `\n   _↳ ${esc(reply.recommendationReason)}_` : ''}
+<b>Reply options:</b>
+1. ⭐ <i>${esc(reply.replyLabels?.[0] ?? 'option 1')}:</i> ${esc(reply.replyOptions[0])}${reply.recommendationReason ? `\n   <i>↳ ${esc(reply.recommendationReason)}</i>` : ''}
 
-2. _${esc(reply.replyLabels?.[1] ?? 'option 2')}:_ ${esc(reply.replyOptions[1])}
+2. <i>${esc(reply.replyLabels?.[1] ?? 'option 2')}:</i> ${esc(reply.replyOptions[1])}
 
-3. _${esc(reply.replyLabels?.[2] ?? 'option 3')}:_ ${esc(reply.replyOptions[2])}`;
+3. <i>${esc(reply.replyLabels?.[2] ?? 'option 3')}:</i> ${esc(reply.replyOptions[2])}`;
 }
 
 // --- Outbound comment notification ---
@@ -806,17 +806,17 @@ function formatOutboundMessage(comment: PendingComment): string {
     ? `${comment.postAgeHours.toFixed(1)}h ago`
     : 'unknown age';
   const goldenWindow = comment.postAgeHours !== null && comment.postAgeHours !== undefined && comment.postAgeHours < 2;
-  const summarySection = comment.postSummary ? `\n*Post:* _${esc(comment.postSummary)}_\n` : '';
-  const whySection = comment.reasoning ? `\n*Why:* _${esc(comment.reasoning)}_\n` : '';
+  const summarySection = comment.postSummary ? `\n<b>Post:</b> <i>${esc(comment.postSummary)}</i>\n` : '';
+  const whySection = comment.reasoning ? `\n<b>Why:</b> <i>${esc(comment.reasoning)}</i>\n` : '';
 
-  return `📤 *Outbound comment* | ${esc(comment.profileName)} | _${ageLabel}${goldenWindow ? ' ⚡' : ''}_
+  return `📤 <b>Outbound comment</b> | ${esc(comment.profileName)} | <i>${ageLabel}${goldenWindow ? ' ⚡' : ''}</i>
 ${comment.postUrl}
-_"${esc(comment.postSnippet)}…"_
+<i>"${esc(comment.postSnippet)}…"</i>
 ${summarySection}${whySection}
-*Comment options:*
-1. ⭐ _${esc(comment.commentLabels[0])}:_ ${esc(comment.commentOptions[0])}${comment.recommendationReason ? `\n   _↳ ${esc(comment.recommendationReason)}_` : ''}
+<b>Comment options:</b>
+1. ⭐ <i>${esc(comment.commentLabels[0])}:</i> ${esc(comment.commentOptions[0])}${comment.recommendationReason ? `\n   <i>↳ ${esc(comment.recommendationReason)}</i>` : ''}
 
-2. _${esc(comment.commentLabels[1])}:_ ${esc(comment.commentOptions[1])}`;
+2. <i>${esc(comment.commentLabels[1])}:</i> ${esc(comment.commentOptions[1])}`;
 }
 
 export async function notifyOutboundComment(comment: PendingComment): Promise<void> {
@@ -828,7 +828,7 @@ export async function notifyOutboundComment(comment: PendingComment): Promise<vo
   }
   const sender = new Telegraf(token);
   await sender.telegram.sendMessage(chatId, formatOutboundMessage(comment), {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
     reply_markup: buildOutboundKeyboard(comment),
   });
 }
@@ -842,7 +842,7 @@ export async function notifyCommentReply(reply: PendingReply): Promise<void> {
   }
   const sender = new Telegraf(token);
   await sender.telegram.sendMessage(chatId, formatCommentMessage(reply), {
-    parse_mode: 'Markdown',
+    parse_mode: 'HTML',
     reply_markup: buildCommentKeyboard(reply),
   });
 }
