@@ -17,7 +17,7 @@ import {
   type OutboundProfile,
   type PendingComment,
 } from '../outbound/outbound-queue.js';
-import { notifyOutboundComment } from './telegram.js';
+import { notifyOutboundComment, sendMessage } from './telegram.js';
 
 // Hashtags to monitor for commenting opportunities — scraped alongside curated profiles
 // DISABLED: LinkedIn search results use anti-scraping measures that prevent reliable extraction.
@@ -148,6 +148,7 @@ export async function runOutboundPoll(): Promise<void> {
 
   if (candidates.length === 0) {
     console.log('No new posts found. Nothing queued.');
+    await sendMessage(`📤 Outbound poll complete — ${profilesChecked} profile(s) checked, no new posts found.`).catch(() => {});
     recordOutboundPoll();
     return;
   }
@@ -190,6 +191,7 @@ export async function runOutboundPoll(): Promise<void> {
   });
   if (eligible.length === 0) {
     console.log(`  ${scored.length} candidate(s) found but none were eligible. Nothing queued.`);
+    await sendMessage(`📤 Outbound poll complete — ${profilesChecked} profile(s) checked, ${scored.length} candidate(s) found, 0 eligible (cooldown). Nothing queued.`).catch(() => {});
     recordOutboundPoll();
     return;
   }
