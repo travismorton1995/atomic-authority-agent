@@ -2,12 +2,22 @@ export type PostType = 'bridge' | 'contrarian' | 'change-management' | 'explaine
 
 export const POST_TYPE_WEIGHTS: Record<PostType, number> = {
   bridge: 30,
-  'change-management': 20,
-  explainer: 15,
+  'change-management': 15,
+  explainer: 20,
   contrarian: 15,
   'myth-busting': 10,
   prediction: 7,
   'hot-take': 8,
+};
+
+export const WORD_COUNT_TARGETS: Record<PostType, { min: number; max: number; reviseMin: number; reviseMax: number }> = {
+  'hot-take':          { min: 90,  max: 150, reviseMin: 100, reviseMax: 140 },
+  contrarian:          { min: 90,  max: 150, reviseMin: 100, reviseMax: 140 },
+  bridge:              { min: 150, max: 220, reviseMin: 160, reviseMax: 210 },
+  explainer:           { min: 150, max: 220, reviseMin: 160, reviseMax: 210 },
+  'change-management': { min: 120, max: 180, reviseMin: 130, reviseMax: 170 },
+  prediction:          { min: 120, max: 180, reviseMin: 130, reviseMax: 170 },
+  'myth-busting':      { min: 120, max: 180, reviseMin: 130, reviseMax: 170 },
 };
 
 export function pickPostType(exclude?: PostType): PostType {
@@ -57,7 +67,7 @@ READABILITY RULE:
 - Always include at least one industry-specific term from this list: ALARA, SMR, CANDU, Defense-in-Depth, CNSC, IAEA, probabilistic risk assessment, nuclear grade, safety case, licensing basis, deterministic safety analysis, or similar.
 
 FORMAT RULES:
-- Target 150–170 words for the post body. Hard max 200 words. Shorter is better — leave the reader wanting slightly more, not fully satisfied.
+- Post length varies by type. Follow the WORD COUNT target specified in the prompt below. Shorter is better — leave the reader wanting slightly more, not fully satisfied.
 - Use a 2:1 paragraph rhythm: two single-sentence paragraphs followed by one paragraph of 2 sentences. This creates white space that reduces scroll-past on mobile. Occasional variation is fine, but never write a paragraph longer than 3 sentences.
 - Never use em dashes (—). Use a comma, period, or rewrite the sentence instead.
 - No bullet points unless they genuinely add clarity
@@ -81,10 +91,10 @@ POST TYPES — write according to the type specified:
 
 export const POST_TYPE_INSTRUCTIONS: Record<PostType, string> = {
   bridge: 'Write a Bridge post. Connect the news item to a specific AI application in the nuclear sector. Be concrete — name the mechanism (e.g., LLM-assisted documentation, anomaly detection, digital twin validation) and give a plausible efficiency or safety benefit.',
-  contrarian: 'Write a Contrarian post. Use the nuclear sector\'s engineering culture to push back on a mainstream AI assumption (e.g., "move fast," "iterate in production," "fail fast"). The nuclear frame should be the argument, not just the backdrop.',
+  contrarian: 'Write a Contrarian post. Pick a specific mainstream AI belief and argue that the nuclear sector proves it wrong. Be blunt. Name the belief directly (e.g., "move fast and break things," "ship an MVP," "fail fast") and explain why it would get someone fired, fined, or worse in nuclear. Use your Bruce Power experience to make it personal, not abstract. The reader should feel slightly uncomfortable agreeing with you. Do not hedge with "to be fair" or "that said" — commit to the position. If nobody would disagree, the post is too safe.',
   'change-management': 'Write a Change Management post. Focus on the human side: why do nuclear engineers resist trusting black-box models? What does effective AI adoption look like in a zero-failure-tolerance culture? Ground it in the news item.',
   explainer: 'Write an Explainer post. Pick one concept from the news item and build a clear bridge — either explaining a nuclear concept to an AI audience, or an AI concept to a nuclear audience. Make the analogy precise, not fluffy.',
   'myth-busting': 'Write a Myth-Busting post. Identify a specific, widespread misconception about either nuclear energy or AI — especially ones that show up when the two fields interact. State the myth plainly and present the strongest version of it fairly, then dismantle it with a specific, verifiable claim.',
-  prediction: 'Write a Prediction post. Based on the news item, make a specific, time-bounded claim about where nuclear AI is heading. Vary the timeline — do NOT default to "18 months" or "12-24 months." Pick a natural-sounding deadline tied to the subject matter (e.g., "before the next NRC review cycle," "by end of 2027," "within three budget cycles"). Avoid vague optimism — name a concrete outcome, who it affects, and what needs to happen first. It\'s okay to be wrong; what matters is that the reasoning is defensible.',
-  'hot-take': 'Write a Hot Take post. Keep it under 120 words. Be direct and pointed. It\'s okay to express frustration or strong disagreement with a trend, decision, or statement in the news item. This should feel like a real human reaction, not a press release.',
+  prediction: 'Write a Prediction post. Make a specific, falsifiable claim — name the company, regulator, or technology, state what will happen, and give a concrete deadline. Do NOT use "12-24 months" or "18 months" — pick a real date ("before the next CNSC licence renewal cycle," "by Q2 2027," "before the OPG SMR goes critical"). State what happens if you are right AND what it means if you are wrong. Hedged predictions ("it is possible that...") are worthless — make a call and defend it. The best predictions make people screenshot and save them. Your reasoning should be tight enough that even someone who disagrees respects the logic.',
+  'hot-take': 'Write a Hot Take post. Keep it under 120 words. Say something that would make a conference panel moderator nervous. Express genuine frustration, disagreement, or skepticism about something in the news item. Name names where appropriate (companies, initiatives, policies) — vague hot takes are just complaints. One strong claim, stated plainly, with one piece of evidence or experience backing it up. No qualifiers, no "I could be wrong," no both-sides balance. If the take could appear in a press release, rewrite it.',
 };

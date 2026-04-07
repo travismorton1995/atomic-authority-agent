@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, existsSync } from 'fs';
 import { FeedItem } from './rss.js';
-import { PostType, SYSTEM_PROMPT, POST_TYPE_INSTRUCTIONS } from './persona.js';
+import { PostType, SYSTEM_PROMPT, POST_TYPE_INSTRUCTIONS, WORD_COUNT_TARGETS } from './persona.js';
 import { verifiedMentions } from '../poster/mentions.js';
 
 const client = new Anthropic();
@@ -42,6 +42,7 @@ export interface DraftPost {
   generatedAt: string;
   imageUrl?: string;
   generatedImagePath?: string; // local path to AI-generated image file
+  wordCount?: number;          // word count of final post content
 }
 
 const HOOK_THRESHOLD = 7;
@@ -279,6 +280,7 @@ ${articleContent}
 
 POST TYPE: ${postType}
 INSTRUCTION: ${POST_TYPE_INSTRUCTIONS[postType]}
+WORD COUNT: Target ${WORD_COUNT_TARGETS[postType].reviseMin}–${WORD_COUNT_TARGETS[postType].reviseMax} words. Hard limits: min ${WORD_COUNT_TARGETS[postType].min}, max ${WORD_COUNT_TARGETS[postType].max}.
 ${ageRule ? `TEMPORAL RULE: ${ageRule}\n` : ''}${hookConstraint}${hashtagGuidance}
 Write the LinkedIn post now. You have the full article text above — use specific facts, figures, quotes, or details from it where they strengthen the post. Output only the post text — no preamble, no "here is your post," no quotation marks wrapping the whole thing.`;
 
@@ -296,16 +298,17 @@ Write the LinkedIn post now. You have the full article text above — use specif
     .replace(/\bA ([AEIOUaeiou])/g, 'An $1')
     .replace(/\ban ([^AEIOUaeiouAEIOUaeiou\s])/g, 'a $1');
 
-  // Word count enforcement: revise if < 80 or > 250 words
+  // Word count enforcement: revise if outside per-type range
+  const targets = WORD_COUNT_TARGETS[postType];
   const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
-  if (wordCount < 80 || wordCount > 250) {
-    console.log(`Word count ${wordCount} — ${wordCount < 80 ? 'too short, expanding' : 'too long, trimming'}...`);
+  if (wordCount < targets.min || wordCount > targets.max) {
+    console.log(`Word count ${wordCount} outside ${targets.min}-${targets.max} for ${postType} — revising...`);
     const reviseMsg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 600,
       messages: [{
         role: 'user',
-        content: `This LinkedIn post is ${wordCount} words, which is ${wordCount < 80 ? 'too short (minimum 80 words)' : 'too long (maximum 250 words)'}. Revise it to be between 130–200 words. Preserve the opening line, the key insight, and all hashtags. Output only the revised post — no preamble.\n\n${rawContent}`,
+        content: `This LinkedIn post is ${wordCount} words, which is ${wordCount < targets.min ? `too short (minimum ${targets.min})` : `too long (maximum ${targets.max})`}. Revise it to be between ${targets.reviseMin}–${targets.reviseMax} words. Preserve the opening line, the key insight, and all hashtags. Output only the revised post — no preamble.\n\n${rawContent}`,
       }],
     });
     rawContent = reviseMsg.content[0].type === 'text' ? reviseMsg.content[0].text.trim() : rawContent;
@@ -347,6 +350,8 @@ Rules:
   const commentText = commentMessage.content[0].type === 'text' ? commentMessage.content[0].text.trim() : '';
   const firstComment = item.link ? `${commentText}\n\n${item.link}` : commentText;
 
+  const finalWordCount = content.split(/\s+/).filter(Boolean).length;
+
   return {
     content,
     firstComment,
@@ -357,5 +362,6 @@ Rules:
     sourceFeed: item.source,
     generatedAt: new Date().toISOString(),
     imageUrl: item.imageUrl,
+    wordCount: finalWordCount,
   };
 }

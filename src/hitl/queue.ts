@@ -20,6 +20,7 @@ export interface PendingPost {
   linkedInPostUrl?: string; // permalink to the live LinkedIn post (for metrics)
   publishFailures?: number; // consecutive publish attempt failures
   imageChoice?: 'ai' | 'og' | 'none'; // which image to use when posting
+  wordCount?: number;        // word count of final post content
 }
 
 function readFile<T>(path: string, fallback: T): T {
@@ -70,6 +71,7 @@ export function addPendingPost(draft: DraftPost, screening: ScreeningResult): Pe
     finalContent,
     status: 'pending',
     createdAt: new Date().toISOString(),
+    wordCount: finalContent.split(/\s+/).filter(Boolean).length,
   };
 
   posts.push(post);

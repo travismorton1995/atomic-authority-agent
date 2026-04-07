@@ -770,7 +770,9 @@ function formatMessage(post: PendingPost): string {
 
   const displayContent = post.finalContent.replace(/\[\[MENTION:([^\]]+)\]\]/g, '*$1*');
 
-  return `*New draft ready* | ${post.draft.postType} | ${cringeNote}
+  const wc = post.wordCount ?? post.finalContent.split(/\s+/).filter(Boolean).length;
+
+  return `*New draft ready* | ${post.draft.postType} | ${wc} words | ${cringeNote}
 
 ${sourceNote}${metaLine ? `\n${metaLine}` : ''}
 

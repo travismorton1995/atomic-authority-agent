@@ -249,6 +249,14 @@ export async function runWeeklyReport(): Promise<void> {
   const overallEngRate = totalImpressions > 0 ? ((totalEng / totalImpressions) * 100).toFixed(1) : 'n/a';
   const avgScore = posts.length > 0 ? withScore.reduce((s, { score }) => s + score, 0) / posts.length : 0;
 
+  // Word count stats
+  const wordCounts = posts
+    .map((p: any) => p.wordCount ?? p.finalContent?.split(/\s+/).filter(Boolean).length ?? 0)
+    .filter((n: number) => n > 0);
+  const avgWordCount = wordCounts.length > 0
+    ? Math.round(wordCounts.reduce((a: number, b: number) => a + b, 0) / wordCounts.length)
+    : null;
+
   // Helper: rank by avg composite score
   function rankBy(items: PostWithScore[], extract: (p: any) => string | string[]) {
     const map = new Map<string, { total: number; count: number }>();
@@ -332,7 +340,7 @@ export async function runWeeklyReport(): Promise<void> {
 *Engagement rate:* ${overallEngRate}%
 *Reactions:* ${totalReactions} | *Comments:* ${totalComments} | *Reposts:* ${totalReposts}
 *Saves:* ${totalSaves} | *New followers:* ${totalNewFollowers}
-*Avg composite score:* ${fmt(avgScore)}
+*Avg composite score:* ${fmt(avgScore)}${avgWordCount ? ` | *Avg words:* ${avgWordCount}` : ''}
 ${photoLine ? `\n*Photo vs no photo:*\n${photoLine}` : ''}
 
 *Post types:*
