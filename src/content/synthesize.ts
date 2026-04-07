@@ -112,19 +112,25 @@ Return ONLY a valid JSON array (no markdown, no extra text):
 
     const rawText = response.content[0].type === 'text' ? response.content[0].text.trim() : '[]';
     const arrayMatch = rawText.match(/\[[\s\S]*\]/);
-    if (!arrayMatch) continue;
+    if (!arrayMatch) {
+      console.warn(`Hook round ${round + 1}: no JSON array in response — skipping.`);
+      continue;
+    }
 
     try {
       const hooks = JSON.parse(arrayMatch[0]) as Array<{ hook: string; score: number }>;
+      let rejected = 0;
       for (const h of hooks) {
         // Hard reject hooks over 140 chars — mobile truncation limit
-        if (h.hook.length > 140) continue;
+        if (h.hook.length > 140) { rejected++; continue; }
         if (h.score > bestScore) {
           bestScore = h.score;
           bestHook = h.hook;
         }
       }
+      if (rejected > 0) console.log(`Hook round ${round + 1}: rejected ${rejected} hook(s) over 140 chars.`);
     } catch {
+      console.warn(`Hook round ${round + 1}: JSON parse failed — skipping.`);
       continue;
     }
 

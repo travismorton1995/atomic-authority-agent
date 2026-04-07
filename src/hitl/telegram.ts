@@ -583,8 +583,8 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
   if (hasOgImage) {
     try {
       await sender.telegram.sendPhoto(chatId, post.draft.imageUrl!, { caption: 'Article image (og:image)' });
-    } catch {
-      // Non-fatal — some image URLs may be inaccessible to Telegram's servers
+    } catch (err: any) {
+      console.warn('Failed to send og:image to Telegram (non-fatal):', err?.message ?? err);
     }
   }
 
@@ -592,8 +592,8 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
     try {
       const { createReadStream } = await import('fs');
       await sender.telegram.sendPhoto(chatId, { source: createReadStream(post.draft.generatedImagePath!) }, { caption: 'AI-generated image' });
-    } catch {
-      // Non-fatal
+    } catch (err: any) {
+      console.warn('Failed to send AI image to Telegram (non-fatal):', err?.message ?? err);
     }
   }
 

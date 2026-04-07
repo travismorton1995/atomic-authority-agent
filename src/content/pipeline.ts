@@ -210,10 +210,14 @@ async function generateContentTags(content: string): Promise<ContentTag[]> {
     });
     const raw = response.content[0].type === 'text' ? response.content[0].text : '[]';
     const match = raw.match(/\[[\s\S]*\]/);
-    if (!match) return [];
+    if (!match) {
+      console.warn('Content tagger returned no JSON array — skipping tags.');
+      return [];
+    }
     const tags = JSON.parse(match[0]) as string[];
     return tags.filter((t): t is ContentTag => (CONTENT_TAGS as readonly string[]).includes(t));
-  } catch {
+  } catch (err: any) {
+    console.warn('Content tagging failed:', err?.message ?? err);
     return [];
   }
 }
@@ -230,7 +234,10 @@ async function extractAndRegisterMentions(content: string): Promise<void> {
     });
     const raw = response.content[0].type === 'text' ? response.content[0].text : '[]';
     const match = raw.match(/\[[\s\S]*\]/);
-    if (!match) return;
+    if (!match) {
+      console.warn('Mention extractor returned no JSON array — skipping.');
+      return;
+    }
     const names = JSON.parse(match[0]) as string[];
     addUnverifiedMentions(names);
   } catch {
@@ -427,8 +434,14 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
 
     while (nextIndex < store.candidates.length) {
       const c = store.candidates[nextIndex++];
-      if (c.item.link && excludedUrls.includes(c.item.link)) continue;
-      if (excludedTitles.some(t => t.toLowerCase() === c.item.title.toLowerCase())) continue;
+      if (c.item.link && excludedUrls.includes(c.item.link)) {
+        console.log(`Skipping cached candidate "${c.item.title.slice(0, 50)}" — URL already used.`);
+        continue;
+      }
+      if (excludedTitles.some(t => t.toLowerCase() === c.item.title.toLowerCase())) {
+        console.log(`Skipping cached candidate "${c.item.title.slice(0, 50)}" — title already used.`);
+        continue;
+      }
       chosen = c;
       break;
     }

@@ -30,7 +30,9 @@ function getDailyUsage(): DailyUsage {
       const data = JSON.parse(readFileSync(USAGE_FILE, 'utf-8')) as DailyUsage;
       if (data.date === getTodayUTC()) return data;
     }
-  } catch {}
+  } catch (err: any) {
+    console.warn('Could not read image usage file — resetting to 0:', err?.message ?? err);
+  }
   return { date: getTodayUTC(), count: 0 };
 }
 
