@@ -324,6 +324,8 @@ async function fetchAndFinalize(candidate: ScoredCandidate): Promise<PendingPost
       if (fetched.imageUrl) {
         candidate.item.imageUrl = fetched.imageUrl;
         console.log(`Image found: ${fetched.imageUrl}`);
+      } else {
+        console.log('No og:image found on article page.');
       }
     } catch {
       console.warn('Could not fetch full article text — will use RSS summary only.');
