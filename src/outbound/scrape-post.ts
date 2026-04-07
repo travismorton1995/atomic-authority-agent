@@ -6,6 +6,7 @@ const USER_DATA_DIR = path.resolve('user_data');
 export interface ScrapedPost {
   text: string;
   authorName: string;
+  profileUrl: string; // author's LinkedIn profile URL (for cooldown tracking)
   url: string;
 }
 
@@ -66,7 +67,16 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
       );
       const authorName = authorEl?.textContent?.trim() ?? '';
 
-      return { text, authorName };
+      // Author profile URL — from the first /in/ or /company/ link near the author name
+      const authorLink = document.querySelector(
+        '.update-components-actor__container a[href*="/in/"], ' +
+        '.update-components-actor__container a[href*="/company/"], ' +
+        'a[href*="/in/"][data-tracking-control-name*="actor"], ' +
+        'a[href*="/company/"][data-tracking-control-name*="actor"]'
+      );
+      const profileUrl = authorLink?.getAttribute('href')?.split('?')[0] ?? '';
+
+      return { text, authorName, profileUrl };
     });
 
     if (!result.text || result.text.length < 20) {
@@ -76,6 +86,7 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
     return {
       text: result.text,
       authorName: result.authorName || 'Unknown',
+      profileUrl: result.profileUrl ? `https://www.linkedin.com${result.profileUrl.replace(/\/$/, '')}/` : '',
       url: postUrl,
     };
   } finally {

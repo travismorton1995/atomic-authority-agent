@@ -550,15 +550,35 @@ export function startBot(): void {
         const scraped = await scrapePostByUrl(postUrl);
         console.log(`[ad-hoc comment] Scraped: "${scraped.text.slice(0, 60)}..." by ${scraped.authorName}`);
 
+        // Mark the post as seen so the outbound poll won't suggest it again
+        const urnMatch = postUrl.match(/(urn:li:activity:\d+)/);
+        if (urnMatch) markPostSeen(urnMatch[1]);
+
+        // Resolve profile URL from the post page so cooldown tracking works.
+        // For /posts/ URLs the profile slug is embedded; for /feed/update/ we use the author name.
+        const { normalizeProfileUrl } = await import('../outbound/outbound-queue.js');
+        let profileUrl = '';
+        if (scraped.profileUrl) {
+          profileUrl = normalizeProfileUrl(scraped.profileUrl);
+        }
+
+        // Check if this profile is already tracked — use insider/colleague flags if so
+        const existingProfiles = (await import('../outbound/outbound-queue.js')).getActiveProfiles();
+        const tracked = existingProfiles.find(p => p.url === profileUrl);
+
         const { generateOutboundComment } = await import('../outbound/generate-comment.js');
         const generated = await generateOutboundComment(
           { text: scraped.text, authorName: scraped.authorName, url: postUrl },
-          { stranger: true },
+          {
+            insider: tracked?.insider ?? false,
+            colleague: tracked?.colleague ?? false,
+            stranger: !tracked,
+          },
         );
 
         const comment: PendingComment = {
           id: `oc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-          profileUrl: '',
+          profileUrl,
           profileName: scraped.authorName,
           postUrl,
           postSnippet: scraped.text.split('\n')[0].slice(0, 100),
@@ -574,7 +594,7 @@ export function startBot(): void {
 
         addPendingComment(comment);
         await notifyOutboundComment(comment);
-        console.log(`[ad-hoc comment] Comment options sent for ${scraped.authorName}`);
+        console.log(`[ad-hoc comment] Comment options sent for ${scraped.authorName} (profile: ${profileUrl || 'unknown'})`);
       } catch (err: any) {
         console.error('[ad-hoc comment] Failed:', err);
         await ctx.reply(`Failed to generate comment: ${err.message}`).catch(() => {});
