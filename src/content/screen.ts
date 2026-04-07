@@ -32,10 +32,11 @@ READABILITY CHECK:
 - If the post reads like a white paper rather than a knowledgeable colleague talking, bump the cringe score and rewrite toward conversational.
 
 HOOK QUALITY (evaluate the opening line specifically):
-- A strong hook makes a specific, surprising, or tension-creating claim in the first sentence. It earns the scroll.
-- A weak hook: starts with "I" followed by a generic statement, opens with "In [year]...", opens with a definition, or restates the article headline without adding a perspective.
+- Must be under 140 characters (mobile truncation). If over, bump cringe score and trim in revision.
+- A strong hook creates genuine curiosity or tension. It makes someone stop scrolling. Techniques: tension gap ("Only two projects qualify for $350M"), unexpected number, contrast/irony, consequence lead (skip the news, state what it means), or a mildly provocative claim.
+- A weak hook: starts with "I", opens with "In [year]...", opens with a definition, restates the headline, or uses "[Entity] just [did thing]" as its structure.
+- The "[Entity] just..." pattern is overused. If the hook follows this formula, bump score by 1 and rewrite with a more engaging entry point in the revision.
 - If the hook is weak, the cringe score should reflect it (bump by at least 2 points) and the revised version must open with a stronger line.
-- Strong hook patterns: a counterintuitive fact, a specific number or date that signals something changed, a short declarative that creates tension, or dropping the reader directly into the implication of the news.
 
 Also review the FIRST COMMENT separately. Always preserve the URL on its own line at the end unchanged.
 

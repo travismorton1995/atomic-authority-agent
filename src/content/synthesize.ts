@@ -87,23 +87,43 @@ Content snippet: ${articleSnippet}
 Post type: ${postType}
 ${ageRule ? `\nTEMPORAL RULE: ${ageRule}` : ''}
 
-HARD CONSTRAINT: Each hook must be under 140 characters. This is the mobile "See More" truncation point — the full hook must be visible before the fold on all devices. If a hook exceeds 140 characters, score it 0 regardless of quality.
+HARD CONSTRAINT: Each hook must be under 140 characters. Score 0 if over 140 chars.
 
-Rules for a strong hook (score 7-10):
-- Under 140 characters (mandatory)
-- Makes a specific, surprising, or tension-creating claim
-- Drops the reader directly into the implication — does NOT restate the headline
-- Uses a counterintuitive fact, a specific number/date, or a short declarative that creates tension
-- Does NOT start with "I", "In [year]", or a rhetorical question
-- Does NOT open with a definition
+HOOK TECHNIQUES (use one per candidate — try different techniques across the 3 candidates):
 
-Rules for a weak hook (score 1-5):
-- Over 140 characters
-- Generic or restates the article headline
-- Starts with "I followed by a bland statement"
-- Opens with "In [year], ..." or a definition
-- Asks a rhetorical question
-- Violates the TEMPORAL RULE above
+1. TENSION GAP — state a fact that creates an obvious "wait, why?" reaction
+   "Only two projects in all of Texas qualify for the state's $350M nuclear fund."
+   "The DOE's AI tool wrote 208 pages in 24 hours. A reviewer called it production-ready."
+
+2. UNEXPECTED NUMBER — lead with a specific stat that feels wrong or surprising
+   "Nuclear energy just hit a 20-year confidence peak."
+   "50 GW of fusion by 2035. That's France's entire nuclear fleet."
+
+3. CONTRAST/IRONY — juxtapose two things that shouldn't go together
+   "Alaska is building microreactors while New York is banning them."
+   "The bottleneck isn't physics. It's paperwork."
+
+4. CONSEQUENCE LEAD — skip the news, go straight to what it means
+   "Every advanced reactor developer just got a new licensing shortcut."
+   "Nuclear cyber defense just went international."
+
+5. PROVOCATIVE CLAIM — say something mildly bold that earns the scroll
+   "Most nuclear AI announcements won't survive first contact with operations."
+   "The companies moving fastest in nuclear are the ones that moved slowest first."
+
+RULES:
+- Under 140 characters (mandatory — score 0 if over)
+- Each candidate must use a DIFFERENT technique from the list above
+- Do NOT restate the article headline — find the buried insight, the implication, or the tension
+- Do NOT start with "I", "In [year]", a rhetorical question, or a definition
+- Do NOT use "just" as the second word (e.g. "[Company] just...") — find a more engaging entry point
+- The hook should make someone stop scrolling and want to know more
+
+SCORING:
+- 9-10: Makes you stop scrolling. Creates genuine curiosity or tension. Under 100 chars.
+- 7-8: Strong hook with clear tension or surprise. Under 140 chars.
+- 4-6: Informative but doesn't create urgency to read more.
+- 1-3: Headline restatement, generic, or over 140 chars.
 
 Return ONLY a valid JSON array (no markdown, no extra text):
 [{"hook": "<opening line>", "score": <1-10>}, ...]`,
