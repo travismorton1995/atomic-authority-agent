@@ -68,7 +68,7 @@ export async function runOutboundPoll(): Promise<void> {
   const candidates: Candidate[] = [];
   const seenIds = new Set<string>(); // deduplicate across profiles and hashtags
 
-  const { context, page } = await openScrapeContext();
+  const { context, page, release } = await openScrapeContext();
   const scrapeStart = Date.now();
   let profilesChecked = 0;
 
@@ -144,6 +144,7 @@ export async function runOutboundPoll(): Promise<void> {
     }
   } finally {
     await context.close();
+    release();
   }
 
   if (candidates.length === 0) {

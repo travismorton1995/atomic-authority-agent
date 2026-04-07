@@ -1,6 +1,7 @@
 import { chromium, type BrowserContext, type Page } from 'playwright';
 import path from 'path';
 import crypto from 'crypto';
+import { acquireBrowserLock } from '../poster/browser-lock.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 
@@ -104,6 +105,7 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
   const isCompany = profileUrl.includes('/company/');
   const activityUrl = profileUrl.replace(/\/$/, '') + (isCompany ? '/posts/' : '/recent-activity/shares/');
 
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -114,18 +116,21 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
     return await scrapePagePosts(page, activityUrl);
   } finally {
     await context.close();
+    release();
   }
 }
 
 // Opens a shared browser context for scraping multiple profiles in one session.
-export async function openScrapeContext(): Promise<{ context: BrowserContext; page: Page }> {
+// Caller MUST call release() after closing the context.
+export async function openScrapeContext(): Promise<{ context: BrowserContext; page: Page; release: () => void }> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
     locale: 'en-US',
   });
   const page = context.pages()[0] ?? await context.newPage();
-  return { context, page };
+  return { context, page, release };
 }
 
 // Scrapes a single profile using an already-open page — no context launch/teardown overhead.

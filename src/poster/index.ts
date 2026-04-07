@@ -3,6 +3,7 @@ import path from 'path';
 import { tmpdir } from 'os';
 import { writeFileSync, unlinkSync, readFileSync } from 'fs';
 import { MENTIONS } from './mentions.js';
+import { acquireBrowserLock } from './browser-lock.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 const LINKEDIN_FEED = 'https://www.linkedin.com/feed/';
@@ -49,6 +50,7 @@ async function downloadImageToTemp(imageUrl: string): Promise<string | null> {
 // Opens a headed browser and waits for the user to log in manually.
 // Returns true on success, false on timeout or error.
 export async function renewSession(): Promise<boolean> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: false,
@@ -77,6 +79,7 @@ export async function renewSession(): Promise<boolean> {
     return false;
   } finally {
     await context.close();
+    release();
   }
 }
 
@@ -89,6 +92,7 @@ export function isSessionExpiredUrl(url: string): boolean {
 }
 
 export async function pingSession(): Promise<boolean> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: true,
@@ -110,12 +114,14 @@ export async function pingSession(): Promise<boolean> {
     return false;
   } finally {
     await context.close();
+    release();
   }
 }
 
 export async function postToLinkedIn(content: string, options: PostOptions = {}): Promise<string | null> {
   const headless = options.forceHeaded ? false : process.env.LINKEDIN_HEADLESS === 'true';
 
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless,
@@ -339,6 +345,7 @@ export async function postToLinkedIn(content: string, options: PostOptions = {})
     return null;
   } finally {
     await context.close();
+    release();
   }
 }
 

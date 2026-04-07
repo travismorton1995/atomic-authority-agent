@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import path from 'path';
 import crypto from 'crypto';
 import { isSessionExpiredUrl } from './index.js';
+import { acquireBrowserLock } from './browser-lock.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 
@@ -13,6 +14,7 @@ export interface ScrapedComment {
 }
 
 export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -83,6 +85,7 @@ export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]>
     }));
   } finally {
     await context.close();
+    release();
   }
 }
 
@@ -91,6 +94,7 @@ export async function postCommentReply(
   commentId: string,
   replyText: string
 ): Promise<void> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -166,6 +170,7 @@ export async function postCommentReply(
     console.log(`Comment reply: submitted successfully.`);
   } finally {
     await context.close();
+    release();
   }
 }
 
@@ -173,6 +178,7 @@ export async function postOutboundComment(
   postUrl: string,
   commentText: string,
 ): Promise<void> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -212,5 +218,6 @@ export async function postOutboundComment(
     console.log(`Outbound comment: submitted successfully.`);
   } finally {
     await context.close();
+    release();
   }
 }

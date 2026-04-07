@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import path from 'path';
 import { sendMessage } from '../hitl/telegram.js';
+import { acquireBrowserLock } from '../poster/browser-lock.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 const HISTORY_FILE = 'posted_history.json';
@@ -162,6 +163,7 @@ export async function runMetricsFetch() {
 
   console.log(`Fetching metrics for ${postsWithUrl.length} post(s) (last 90 days)...`);
 
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: true,
@@ -192,6 +194,7 @@ export async function runMetricsFetch() {
     }
   } finally {
     await context.close();
+    release();
   }
 
   const raw = JSON.stringify(history, null, 2);

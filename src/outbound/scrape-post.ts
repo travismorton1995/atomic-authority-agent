@@ -1,5 +1,6 @@
 import { chromium } from 'playwright';
 import path from 'path';
+import { acquireBrowserLock } from '../poster/browser-lock.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 
@@ -12,6 +13,7 @@ export interface ScrapedPost {
 
 // Scrapes a single LinkedIn post URL and returns the post text and author name.
 export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -95,5 +97,6 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
     };
   } finally {
     await context.close();
+    release();
   }
 }
