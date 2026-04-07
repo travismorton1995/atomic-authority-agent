@@ -211,8 +211,8 @@ cron.schedule('45 16 * * *', async () => {
   }
 }, { timezone: 'America/Toronto' });
 
-// Weekly insider post assembly — Monday 10am ET (before the evening generate)
-cron.schedule('0 10 * * 1', async () => {
+// Weekly insider post assembly — Monday 9am ET
+cron.schedule('0 9 * * 1', async () => {
   const notes = assembleAndClear();
   if (!notes) {
     console.log('[insider] No notes to assemble this week.');
