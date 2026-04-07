@@ -37,9 +37,17 @@ async function openComposer(page: import('playwright').Page): Promise<void> {
   }
 
   await startPostBtn.click();
+  await page.waitForTimeout(1000);
 
   const textArea = page.locator('.share-box-v2__modal div[contenteditable="true"], div[role="textbox"], .ql-editor').first();
-  await textArea.waitFor({ state: 'visible', timeout: 20000 });
+  try {
+    await textArea.waitFor({ state: 'visible', timeout: 20000 });
+  } catch {
+    // Retry — sometimes the first click doesn't open the composer
+    console.log('Composer did not open, retrying...');
+    await startPostBtn.click();
+    await textArea.waitFor({ state: 'visible', timeout: 20000 });
+  }
   await page.waitForTimeout(500);
   await textArea.click();
 }
@@ -98,6 +106,11 @@ async function markVerified(name: string): Promise<void> {
     locale: 'en-US',
     timezoneId: 'America/Toronto',
     viewport: { width: 1280, height: 800 },
+    permissions: ['clipboard-read', 'clipboard-write'],
+  });
+
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
   });
 
   const page = context.pages()[0] ?? await context.newPage();
