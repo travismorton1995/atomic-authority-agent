@@ -6,8 +6,8 @@ import type { PostType } from './persona.js';
 const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const IMAGE_DIR = path.resolve('generated_images');
-const WIDTH = 1200;
-const HEIGHT = 672; // 16:9, divisible by 8 for FLUX models
+const WIDTH = 1024;
+const HEIGHT = 1024; // 1:1 square — more feed space on mobile, native FLUX resolution
 
 // Model selection: FLUX.2 Dev for first image of the day, FLUX.1 Schnell after that.
 // Tracks daily usage via a small state file that resets at midnight UTC.
