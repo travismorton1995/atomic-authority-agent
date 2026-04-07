@@ -111,6 +111,10 @@ ${postContent}`,
 }
 
 export async function generateImage(postContent: string, postType: PostType = 'bridge'): Promise<string | null> {
+  if (process.env.DISABLE_IMAGE_GEN === 'true') {
+    console.log('Image generation disabled (DISABLE_IMAGE_GEN=true).');
+    return null;
+  }
   if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_TOKEN) {
     console.log('Cloudflare AI not configured — skipping image generation.');
     return null;
