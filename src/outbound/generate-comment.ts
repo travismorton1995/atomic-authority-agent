@@ -36,6 +36,7 @@ Hard constraints — any violation is a rewrite trigger:
 - No hollow openers: "Great post", "Thanks for sharing", "Interesting point", or starting with "I"
 - No validation phrases: "what you are describing is real", "this is spot on", "you nailed it"
 - No stacked adjectives before nouns
+- Avoid "bottleneck" — use constraint, chokepoint, limiting factor, sticking point, friction, barrier, or describe the problem directly
 - Never reference your own posts, content, or experience directly
 - Never be self-promotional
 `.trim();

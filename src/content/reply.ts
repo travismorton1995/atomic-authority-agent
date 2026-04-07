@@ -37,6 +37,7 @@ Hard constraints — any violation is a rewrite trigger:
 - No hollow openers: "Great question", "Thanks for", "Interesting point", or starting with "I"
 - No validation phrases: "what you are describing is real", "this is spot on", "you nailed it"
 - No stacked adjectives before nouns
+- Avoid "bottleneck" — use constraint, chokepoint, limiting factor, sticking point, friction, barrier, or describe the problem directly
 `.trim();
 
 const RECOMMENDATION_CRITERIA = `
