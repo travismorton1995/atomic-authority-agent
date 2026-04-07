@@ -50,7 +50,7 @@ interface Candidate extends ScrapedPost {
   sourceLabel: string;             // profile name or #hashtag
 }
 
-const MAX_PROFILES_PER_POLL = 15;
+const POLL_TIME_LIMIT_MS = 2 * 60 * 1000; // 2 minutes — hard cutoff for profile scraping
 const COMMENT_COOLDOWN_HOURS = 24; // 1 day — won't queue a comment for a profile within this window
 
 export async function runOutboundPoll(): Promise<void> {
@@ -60,16 +60,18 @@ export async function runOutboundPoll(): Promise<void> {
     return;
   }
 
-  // Select top profiles by priority (bounds runtime to ~2 min regardless of list size)
-  const pollProfiles = getProfilesByPriority(MAX_PROFILES_PER_POLL);
-  const skipped = allProfiles.length - pollProfiles.length;
+  // All profiles sorted by priority — check as many as fit within the time limit
+  const pollProfiles = getProfilesByPriority(allProfiles.length);
 
-  console.log(`Outbound poll: checking ${pollProfiles.length} profile(s)${skipped > 0 ? ` (${skipped} deferred)` : ''} + ${HASHTAGS.length} hashtag(s)...`);
+  console.log(`Outbound poll: checking up to ${pollProfiles.length} profile(s) (${POLL_TIME_LIMIT_MS / 1000}s limit) + ${HASHTAGS.length} hashtag(s)...`);
 
   const candidates: Candidate[] = [];
   const seenIds = new Set<string>(); // deduplicate across profiles and hashtags
 
   const { context, page } = await openScrapeContext();
+  const scrapeStart = Date.now();
+  let profilesChecked = 0;
+
   try {
     // Verify LinkedIn session before scraping
     await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: 15000 });
@@ -79,8 +81,14 @@ export async function runOutboundPoll(): Promise<void> {
       return;
     }
 
-    // --- Scrape curated profiles ---
+    // --- Scrape curated profiles (time-bounded) ---
     for (const profile of pollProfiles) {
+      if (Date.now() - scrapeStart > POLL_TIME_LIMIT_MS) {
+        const deferred = pollProfiles.length - profilesChecked;
+        console.log(`  Time limit reached (${POLL_TIME_LIMIT_MS / 1000}s) — ${deferred} profile(s) deferred to next poll.`);
+        break;
+      }
+
       let posts;
       try {
         posts = await scrapeProfilePostsWithPage(profile.url, page);
@@ -88,6 +96,7 @@ export async function runOutboundPoll(): Promise<void> {
         console.warn(`  Failed to scrape ${profile.name}: ${(err as Error).message}`);
         continue;
       }
+      profilesChecked++;
 
       const ownerName = (posts.length > 0 && posts[0].authorName)
         ? posts[0].authorName

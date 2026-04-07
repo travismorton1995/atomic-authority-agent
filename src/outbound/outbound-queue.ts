@@ -127,8 +127,8 @@ export function recordProfilePollResult(url: string, hadNewPosts: boolean): void
 
 /** Returns profiles sorted by priority for checking. Higher priority = checked first.
  *  Priority = hoursSinceLastChecked + frequencyBonus - recentCommentPenalty.
- *  Limited to `maxProfiles` to bound runtime. */
-export function getProfilesByPriority(maxProfiles: number = 15): OutboundProfile[] {
+ *  Pass maxProfiles to limit results, or omit to get all. */
+export function getProfilesByPriority(maxProfiles?: number): OutboundProfile[] {
   const profiles = getActiveProfiles();
   const now = Date.now();
 
@@ -150,7 +150,8 @@ export function getProfilesByPriority(maxProfiles: number = 15): OutboundProfile
   });
 
   scored.sort((a, b) => b.priority - a.priority);
-  return scored.slice(0, maxProfiles).map(s => s.profile);
+  const limited = maxProfiles ? scored.slice(0, maxProfiles) : scored;
+  return limited.map(s => s.profile);
 }
 
 export function updateProfileName(url: string, name: string): void {
