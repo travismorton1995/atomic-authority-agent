@@ -246,9 +246,11 @@ export function startBot(): void {
                 ...(hasOgImage ? [[{ text: '🖼 Use article image', callback_data: `img_og:${post.id}` }]] : []),
                 ...(hasAiImage ? [[{ text: '🤖 Use AI image', callback_data: `img_ai:${post.id}` }]] : []),
                 [{ text: '🚫 No image', callback_data: `img_none:${post.id}` }],
+                [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
               ]
             : [
                 [{ text: '🚫 No image (none available)', callback_data: `img_none:${post.id}` }],
+                [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
               ];
 
           await sender.telegram.sendMessage(chatId!, 'Text approved. Choose an image option:', {
