@@ -164,24 +164,29 @@ Return ONLY a valid JSON array (no markdown, no extra text):
 // Wraps verified company names in post text with [[MENTION:Name]] markers.
 // Matches only whole-word occurrences; skips if already wrapped.
 // Longer names are matched first to avoid partial replacements (e.g. "CNL" inside "Canadian Nuclear Laboratories").
+// Mentions are NOT injected into the hook (first paragraph) to keep it concise and readable.
+// If a name appears in the hook, the next occurrence in the body gets the mention marker instead.
 function injectMentionMarkers(text: string): string {
   const verified = verifiedMentions();
   if (Object.keys(verified).length === 0) return text;
 
+  // Split into hook (first paragraph) and body (rest)
+  const firstBreak = text.indexOf('\n\n');
+  const hook = firstBreak >= 0 ? text.slice(0, firstBreak) : text;
+  const body = firstBreak >= 0 ? text.slice(firstBreak) : '';
+
   // Sort by length descending so longer names match before shorter abbreviations
   const names = Object.keys(verified).sort((a, b) => b.length - a.length);
-  let result = text;
+  let result = body;
 
   for (const name of names) {
     const marker = `[[MENTION:${name}]]`;
-    // Skip if already marked (first occurrence already captured)
     if (result.includes(marker)) continue;
-    // Replace only the first whole-word occurrence not preceded by #
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     result = result.replace(new RegExp(`(?<!#)\\b${escaped}\\b`), marker);
   }
 
-  return result;
+  return hook + result;
 }
 
 // Computes hashtag performance from posted_history.json.
