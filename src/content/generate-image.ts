@@ -55,7 +55,7 @@ function pickModel(): { model: string; steps: number; label: string } {
 const client = new Anthropic();
 
 const POST_TYPE_VISUAL_DIRECTION: Record<PostType, string> = {
-  bridge: 'Split or layered composition showing two worlds connected. An industrial nuclear facility on one side and a digital/data element on the other, linked visually. Clean, optimistic, warm lighting. The connection between the two should feel tangible, not abstract.',
+  bridge: 'Layered composition showing two worlds connected. An industrial nuclear facility in the background with a digital/data element in the foreground, linked visually through depth. Or a top-bottom split. Clean, optimistic, warm lighting. The connection between the two should feel tangible, not abstract.',
   contrarian: 'Grounded and serious. Heavy industrial environments, weathered infrastructure, real-world scale. Convey weight, permanence, and deliberate engineering. No futuristic overlays. The mood should feel sobering, like standing next to something massive and consequential.',
   'change-management': 'People-centric. Workers in meetings, at control panels, walking through plant corridors, reviewing documents together. Human scale, not facility scale. Natural indoor lighting. The focus is on people navigating complex systems, not on the systems themselves.',
   explainer: 'Clear and well-lit with a single strong focal point. The specific technology, facility, or concept being explained, shown simply and directly. Educational composition. Think textbook photography or a well-shot facility tour. One subject, clearly presented.',
@@ -89,6 +89,8 @@ ANTI-AI RULES (things that make images look obviously AI-generated):
 - NO clean, sterile environments with perfect lighting. Real facilities have dust, wear, and imperfect lighting
 - NO stock photo clichés: handshakes, glowing brains, light bulbs, puzzle pieces
 - NO people looking at transparent floating data. People look at real screens, real paper, real equipment
+
+COMPOSITION: The image is SQUARE (1:1 aspect ratio). Do not describe wide panoramic or ultra-wide scenes. Favor vertical depth (foreground/background layering), centered subjects, and tight framing that works in a square crop.
 
 OUTPUT: Write ONLY the image prompt (3-4 sentences). No preamble, no explanation, no quotes.`;
 
