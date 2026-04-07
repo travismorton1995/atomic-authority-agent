@@ -1,6 +1,6 @@
 import { Telegraf } from 'telegraf';
 import { readFileSync, existsSync } from 'fs';
-import { approvePost, rejectPost, cancelPost, clearPostImage, setImageChoice } from './queue.js';
+import { approvePost, rejectPost, cancelPost, clearPostImage, setImageChoice, setGeneratedImagePath, getPendingPosts } from './queue.js';
 import { pickScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
@@ -174,32 +174,84 @@ export function startBot(): void {
     const payload = data.slice(firstColon + 1);
 
     try {
+      // --- Step 1: Text approved → generate images and show Step 2 ---
       if (action === 'approve') {
-        const scheduledFor = pickScheduledTime();
-        const post = approvePost(payload, scheduledFor);
+        const post = getPendingPosts().find((p: any) => p.id === payload);
         if (!post) {
           await ctx.answerCbQuery('Post not found or already actioned.');
           return;
         }
-        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
-          timeZone: 'America/Toronto',
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          timeZoneName: 'short',
-        });
-        await ctx.answerCbQuery('Approved!');
+        await ctx.answerCbQuery('Text approved — generating image options...');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-        await ctx.reply(`Post approved. Scheduled for ${scheduledStr}.`);
-        pendingResolutions.get(payload)?.('approved');
-        pendingResolutions.delete(payload);
+
+        // Generate images in the background, then send Step 2 message
+        (async () => {
+          const sender = new Telegraf(token!);
+
+          // Generate AI image (non-fatal)
+          let generatedImagePath: string | null = null;
+          try {
+            const { generateImage } = await import('../content/generate-image.js');
+            const postType = (post.draft.postType ?? 'bridge') as any;
+            const cleanContent = post.finalContent.replace(/\[\[MENTION:[^\]]+\]\]/g, (m: string) => m.replace(/\[\[MENTION:|\]\]/g, ''));
+            generatedImagePath = await generateImage(cleanContent, postType);
+            if (generatedImagePath) {
+              setGeneratedImagePath(payload, generatedImagePath);
+            }
+          } catch (err: any) {
+            console.warn('Image generation failed (non-fatal):', err?.message ?? err);
+          }
+
+          // Send og:image preview if available
+          const hasOgImage = !!post.draft.imageUrl;
+          if (hasOgImage) {
+            try {
+              await sender.telegram.sendPhoto(chatId!, post.draft.imageUrl!, { caption: 'Article image (og:image)' });
+            } catch (err: any) {
+              console.warn('Failed to send og:image to Telegram (non-fatal):', err?.message ?? err);
+            }
+          }
+
+          // Send AI image preview if generated
+          const hasAiImage = !!generatedImagePath;
+          if (hasAiImage) {
+            try {
+              const { createReadStream } = await import('fs');
+              await sender.telegram.sendPhoto(chatId!, { source: createReadStream(generatedImagePath!) }, { caption: '🤖 AI-generated image' });
+            } catch (err: any) {
+              console.warn('Failed to send AI image to Telegram (non-fatal):', err?.message ?? err);
+            }
+          }
+
+          // Build Step 2 keyboard
+          const hasAnyImage = hasOgImage || hasAiImage;
+          const imgKeyboard = hasAnyImage
+            ? [
+                ...(hasOgImage ? [[{ text: '🖼 Use article image', callback_data: `img_og:${post.id}` }]] : []),
+                ...(hasAiImage ? [[{ text: '🤖 Use AI image', callback_data: `img_ai:${post.id}` }]] : []),
+                [{ text: '🚫 No image', callback_data: `img_none:${post.id}` }],
+              ]
+            : [
+                [{ text: '🚫 No image (none available)', callback_data: `img_none:${post.id}` }],
+              ];
+
+          await sender.telegram.sendMessage(chatId!, 'Text approved. Choose an image option:', {
+            reply_markup: { inline_keyboard: imgKeyboard },
+          });
+        })().catch(err => {
+          console.error('[Step 2 image selection] Error:', err);
+          ctx.reply('Failed to generate image options. Use `npm run approve` to approve manually.').catch(() => {});
+        });
       }
 
-      if (action === 'approve_og' || action === 'approve_ai') {
-        const choice = action === 'approve_og' ? 'og' : 'ai';
-        setImageChoice(payload, choice);
+      // --- Step 2: Image selected → schedule the post ---
+      if (action === 'img_og' || action === 'img_ai' || action === 'img_none') {
+        const choice = action === 'img_og' ? 'og' : action === 'img_ai' ? 'ai' : 'none';
+        if (choice === 'none') {
+          clearPostImage(payload);
+        } else {
+          setImageChoice(payload, choice);
+        }
         const scheduledFor = pickScheduledTime();
         const post = approvePost(payload, scheduledFor);
         if (!post) {
@@ -215,34 +267,10 @@ export function startBot(): void {
           minute: '2-digit',
           timeZoneName: 'short',
         });
-        const label = choice === 'og' ? 'article image' : 'AI image';
+        const label = choice === 'og' ? 'article image' : choice === 'ai' ? 'AI image' : 'text only';
         await ctx.answerCbQuery(`Approved (${label})!`);
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
         await ctx.reply(`Post approved (${label}). Scheduled for ${scheduledStr}.`);
-        pendingResolutions.get(payload)?.('approved');
-        pendingResolutions.delete(payload);
-      }
-
-      if (action === 'approve_no_image') {
-        clearPostImage(payload);
-        const scheduledFor = pickScheduledTime();
-        const post = approvePost(payload, scheduledFor);
-        if (!post) {
-          await ctx.answerCbQuery('Post not found or already actioned.');
-          return;
-        }
-        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
-          timeZone: 'America/Toronto',
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          timeZoneName: 'short',
-        });
-        await ctx.answerCbQuery('Approved (no image)!');
-        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-        await ctx.reply(`Post approved (text only). Scheduled for ${scheduledStr}.`);
         pendingResolutions.get(payload)?.('approved');
         pendingResolutions.delete(payload);
       }
@@ -660,51 +688,17 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
   const MAX_RETRIES = 3;
   const RETRY_DELAY_MS = 15 * 1000;
 
-  // Send image previews (non-fatal if they fail)
-  const hasOgImage = !!post.draft.imageUrl;
-  const hasAiImage = !!post.draft.generatedImagePath;
-
-  if (hasOgImage) {
-    try {
-      await sender.telegram.sendPhoto(chatId, post.draft.imageUrl!, { caption: 'Article image (og:image)' });
-    } catch (err: any) {
-      console.warn('Failed to send og:image to Telegram (non-fatal):', err?.message ?? err);
-    }
-  }
-
-  if (hasAiImage) {
-    try {
-      const { createReadStream } = await import('fs');
-      await sender.telegram.sendPhoto(chatId, { source: createReadStream(post.draft.generatedImagePath!) }, { caption: 'AI-generated image' });
-    } catch (err: any) {
-      console.warn('Failed to send AI image to Telegram (non-fatal):', err?.message ?? err);
-    }
-  }
-
-  const hasAnyImage = hasOgImage || hasAiImage;
-  const keyboard = hasAnyImage
-    ? [
-        ...(hasOgImage && hasAiImage
-          ? [[{ text: '✅ Approve (article image)', callback_data: `approve_og:${post.id}` }],
-             [{ text: '✅ Approve (🤖 AI image)', callback_data: `approve_ai:${post.id}` }]]
-          : hasOgImage
-          ? [[{ text: '✅ Approve (with image)', callback_data: `approve_og:${post.id}` }]]
-          : [[{ text: '✅ Approve (🤖 AI image)', callback_data: `approve_ai:${post.id}` }]]),
-        [{ text: '🚫 Approve (no image)', callback_data: `approve_no_image:${post.id}` }],
-        [{ text: '🔄 Rewrite', callback_data: `rewrite:${post.id}` }],
-        [{ text: '❌ Reject', callback_data: `reject:${post.id}` }],
-        [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
-      ]
-    : [
-        [
-          { text: '✅ Approve', callback_data: `approve:${post.id}` },
-          { text: '🔄 Rewrite', callback_data: `rewrite:${post.id}` },
-        ],
-        [
-          { text: '❌ Reject', callback_data: `reject:${post.id}` },
-          { text: '🗑 Cancel', callback_data: `cancel:${post.id}` },
-        ],
-      ];
+  // Step 1: Text approval only — no images shown yet
+  const keyboard = [
+    [
+      { text: '✅ Approve text', callback_data: `approve:${post.id}` },
+      { text: '🔄 Rewrite', callback_data: `rewrite:${post.id}` },
+    ],
+    [
+      { text: '❌ Reject', callback_data: `reject:${post.id}` },
+      { text: '🗑 Cancel', callback_data: `cancel:${post.id}` },
+    ],
+  ];
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {

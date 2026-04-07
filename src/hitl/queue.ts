@@ -176,6 +176,14 @@ export function setImageChoice(id: string, choice: 'ai' | 'og' | 'none'): void {
   writeFile(PENDING_FILE, posts);
 }
 
+export function setGeneratedImagePath(id: string, imagePath: string): void {
+  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const post = posts.find(p => p.id === id);
+  if (!post) return;
+  post.draft.generatedImagePath = imagePath;
+  writeFile(PENDING_FILE, posts);
+}
+
 export function clearPostImage(id: string): void {
   setImageChoice(id, 'none');
 }
