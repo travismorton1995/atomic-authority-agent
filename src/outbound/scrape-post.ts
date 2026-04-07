@@ -28,7 +28,11 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
   const page = context.pages()[0] ?? await context.newPage();
 
   try {
-    await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    try {
+      await page.goto(postUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    } catch (navErr: any) {
+      throw new Error(`Page failed to load within 30s: ${postUrl}`);
+    }
     await page.waitForTimeout(3000);
 
     // Click "see more" if present to expand truncated post
