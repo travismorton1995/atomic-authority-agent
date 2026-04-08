@@ -101,7 +101,7 @@ HOOK TECHNIQUES (use one per candidate — try different techniques across the 3
 
 3. CONTRAST/IRONY — juxtapose two things that shouldn't go together
    "Alaska is building microreactors while New York is banning them."
-   "The bottleneck isn't physics. It's paperwork."
+   "The constraint isn't physics. It's paperwork."
 
 4. CONSEQUENCE LEAD — skip the news, go straight to what it means
    "Every advanced reactor developer just got a new licensing shortcut."
