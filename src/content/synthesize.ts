@@ -120,7 +120,7 @@ RULES:
 - The hook should make someone stop scrolling and want to know more
 
 SCORING:
-- 9-10: Makes you stop scrolling. Creates genuine curiosity or tension. Under 100 chars.
+- 9-10: Makes you stop scrolling. Creates genuine curiosity or tension. Under 140 chars.
 - 7-8: Strong hook with clear tension or surprise. Under 140 chars.
 - 4-6: Informative but doesn't create urgency to read more.
 - 1-3: Headline restatement, generic, or over 140 chars.
@@ -210,8 +210,12 @@ export async function synthesizePost(item: FeedItem, postType: PostType): Promis
     : '';
 
   // Build hashtag guidance from historical performance (confidence-weighted)
+  // Build unified hashtag selection instructions — analytics first, curated fallback second.
+  // One clear instruction block, no ambiguity.
   const hashtagPerf = getConfidenceWeightedHashtagPerformance();
-  let hashtagGuidance = '';
+  let hashtagGuidance = '\nHASHTAG SELECTION (follow these rules exactly — this is your only source for hashtag decisions):\n';
+  hashtagGuidance += 'Use the PYRAMID structure: 1 broad tag + 2-3 niche tags + 1 optional branded tag. Never exceed 5 total.\n';
+
   if (hashtagPerf.length > 0) {
     const globalAvg = robustAverage(hashtagPerf.map(h => h.score));
     const above = hashtagPerf.filter(h => h.score >= globalAvg);
@@ -224,14 +228,22 @@ export async function synthesizePost(item: FeedItem, postType: PostType): Promis
 
     console.log(`Hashtag performance (avg ${globalAvg.toFixed(1)}): ${hashtagPerf.map(h => `${h.hashtag} ${h.score.toFixed(1)}`).join(', ')}`);
 
-    hashtagGuidance = `\nHASHTAG PERFORMANCE (from past posts — average score across all hashtags: ${globalAvg.toFixed(1)}):
-${above.length > 0 ? `\nAbove average — prefer these when relevant:\n${above.map(formatLine).join('\n')}` : ''}
-${below.length > 0 ? `\nBelow average — avoid unless the topic specifically demands them:\n${below.map(formatLine).join('\n')}` : ''}
-
-When choosing hashtags, prefer high-performing ones from this list IF they are relevant to the post topic. Avoid below-average hashtags when a better-performing alternative exists for the same topic. Do not force irrelevant hashtags just because they performed well. Relevance always comes first.\n`;
+    hashtagGuidance += `\nPERFORMANCE DATA (use this to decide — above-average hashtags first, avoid below-average when a better alternative exists):
+${above.length > 0 ? `Above average:\n${above.map(formatLine).join('\n')}` : ''}
+${below.length > 0 ? `Below average:\n${below.map(formatLine).join('\n')}` : ''}
+`;
   } else {
     console.log('Hashtag performance: no eligible hashtags yet (need 2+ posts each).');
   }
+
+  hashtagGuidance += `\nCURATED FALLBACK LIST (use these ONLY when no performance data exists for a relevant topic):
+Broad: #NuclearEnergy, #CleanEnergy, #AI, #ArtificialIntelligence
+Nuclear niche: #SMR, #NuclearInnovation, #NuclearTechnology, #NetZero, #AdvancedReactors, #NuclearSafety, #EnergyTransition, #Decarbonization
+AI niche: #GenerativeAI, #AIAutomation, #MachineLearning, #FutureOfWork, #LLM, #AIGovernance
+Regulatory: #NRC, #LicensingReform, #EnergyPolicy, #CriticalInfrastructure
+Branded: #NPX (only when directly relevant to NPX work)
+
+PRIORITY ORDER: Performance data > Curated list > Relevance judgment. Never force an irrelevant hashtag just because it performed well.\n`;
 
   // Build correlation insights for synthesis guidance
   const corrInsights = getCorrelationInsights();
