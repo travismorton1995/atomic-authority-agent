@@ -54,8 +54,10 @@ export interface PostAnalyticsRecord {
 }
 
 function getTimeWindow(hour: number): string {
-  if (hour >= 7 && hour < 9) return 'Morning (7-9am)';
-  if (hour >= 12 && hour < 13) return 'Noon (12-1pm)';
+  if (hour >= 7 && hour < 10) return 'Early morning (7-10am)';
+  if (hour >= 10 && hour < 12) return 'Late morning (10am-12pm)';
+  if (hour >= 12 && hour < 14) return 'Midday (12-2pm)';
+  if (hour >= 14 && hour < 17) return 'Afternoon (2-5pm)';
   if (hour >= 17 && hour < 19) return 'Evening (5-7pm)';
   return 'Other';
 }
