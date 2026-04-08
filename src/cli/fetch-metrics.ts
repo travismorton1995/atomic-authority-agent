@@ -197,13 +197,13 @@ export async function runWeeklyReport(): Promise<void> {
   const { generateReportData, formatReportMessage } = await import('../analytics/report.js');
   const { loadPostsWithMetrics } = await import('../analytics/post-data.js');
 
-  const posts = loadPostsWithMetrics(30);
+  const posts = loadPostsWithMetrics();
   if (posts.length === 0) {
-    console.log('No posts in the last 30 days — skipping weekly report.');
+    console.log('No published posts with metrics — skipping report.');
     return;
   }
 
-  const data = generateReportData(30);
+  const data = generateReportData();
   const message = formatReportMessage(data);
 
   console.log('Sending weekly report to Telegram...');

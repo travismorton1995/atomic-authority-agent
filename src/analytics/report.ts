@@ -1,4 +1,5 @@
 // Enhanced weekly report generation using statistical analysis.
+// All-time data for rankings + recent trend comparison.
 
 import {
   groupStats, trendLine, detectOutliers, bucketCompare,
@@ -16,9 +17,9 @@ export interface RankEntry {
 }
 
 export interface ReportData {
+  // All-time
   postCount: number;
-  dateRange: { start: string; end: string };
-  // Aggregates
+  firstPostDate: string;
   totalImpressions: number;
   totalReactions: number;
   totalComments: number;
@@ -28,26 +29,30 @@ export interface ReportData {
   avgImpressions: number;
   overallEngRate: string;
   avgWordCount: number | null;
-  // Statistical summary
   scoreStats: GroupStats;
-  // Trend
   trend: TrendResult;
-  // Correlations
   correlations: CorrelationInsight[];
-  // Rankings
+  // Rankings (all-time)
   typeRanking: RankEntry[];
   tagRanking: RankEntry[];
   hashtagRanking: RankEntry[];
   feedRanking: RankEntry[];
   dayRanking: RankEntry[];
   windowRanking: RankEntry[];
-  // Comparisons
   photoComparison: { withPhoto: GroupStats | null; noPhoto: GroupStats | null } | null;
   wordCountBuckets: Record<string, { stats: GroupStats; significant: boolean }> | null;
-  // Outliers
   outliers: Array<{ snippet: string; score: number; sigma: number }>;
-  // Best post
   bestPost: { snippet: string; postType: string; score: number; impressions: number } | null;
+  // Recent period comparison
+  recent: {
+    postCount: number;
+    periodDays: number;
+    avgScore: number;
+    avgImpressions: number;
+    totalNewFollowers: number;
+    engRate: string;
+  } | null;
+  allTimeAvgScore: number;
 }
 
 function rankBy(posts: PostAnalyticsRecord[], extract: (p: PostAnalyticsRecord) => string | string[]): RankEntry[] {
@@ -67,16 +72,17 @@ function rankBy(posts: PostAnalyticsRecord[], extract: (p: PostAnalyticsRecord) 
     .sort((a, b) => b.avg - a.avg);
 }
 
-export function generateReportData(maxAgeDays = 30): ReportData {
-  const posts = loadPostsWithMetrics(maxAgeDays);
+export function generateReportData(): ReportData {
+  // All-time data for rankings and totals
+  const posts = loadPostsWithMetrics();
   const scores = posts.map(p => p.compositeScore);
 
-  const now = new Date();
-  const cutoff = new Date(now.getTime() - maxAgeDays * 24 * 60 * 60 * 1000);
-  const dateRange = {
-    start: cutoff.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' }),
-    end: now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' }),
-  };
+  if (posts.length === 0) {
+    return emptyReport();
+  }
+
+  const firstPostDate = posts.reduce((min, p) => p.publishedAt < min ? p.publishedAt : min, posts[0].publishedAt)
+    .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' });
 
   // Aggregates
   const totalImpressions = posts.reduce((s, p) => s + p.impressions, 0);
@@ -86,23 +92,18 @@ export function generateReportData(maxAgeDays = 30): ReportData {
   const totalSaves = posts.reduce((s, p) => s + p.saves, 0);
   const totalNewFollowers = posts.reduce((s, p) => s + p.newFollowers, 0);
   const totalEng = totalReactions + totalComments + totalReposts;
-  const avgImpressions = posts.length > 0 ? Math.round(totalImpressions / posts.length) : 0;
+  const avgImpressions = Math.round(totalImpressions / posts.length);
   const overallEngRate = totalImpressions > 0 ? ((totalEng / totalImpressions) * 100).toFixed(1) : 'n/a';
 
-  // Word counts
   const wordCounts = posts.map(p => p.wordCount).filter(n => n > 0);
   const avgWordCount = wordCounts.length > 0 ? Math.round(robustAverage(wordCounts)) : null;
 
-  // Statistical summary
   const scoreStats = groupStats(scores);
-
-  // Trend over time
+  const allTimeAvgScore = scoreStats.mean;
   const trend = trendLine(posts.map(p => ({ x: p.dayIndex, y: p.compositeScore })));
-
-  // Correlations
   const correlations = getCorrelationInsights();
 
-  // Rankings
+  // Rankings (all-time)
   const typeRanking = rankBy(posts, p => p.postType);
   const tagRanking = rankBy(posts, p => p.contentTags).slice(0, 5);
   const hashtagRanking = rankBy(posts, p => p.hashtags).slice(0, 5);
@@ -134,35 +135,65 @@ export function generateReportData(maxAgeDays = 30): ReportData {
   const outlierResult = detectOutliers(scores);
   const outliers = outlierResult.outlierIndices.map(i => {
     const p = posts[i];
-    const mean = scoreStats.mean;
     const sd = scoreStats.stddev;
-    const sigma = sd > 0 ? (p.compositeScore - mean) / sd : 0;
+    const sigma = sd > 0 ? (p.compositeScore - scoreStats.mean) / sd : 0;
     return { snippet: p.postSnippet, score: p.compositeScore, sigma };
   });
 
   // Best post
   const bestIdx = scores.indexOf(Math.max(...scores));
-  const bestPost = posts.length > 0
-    ? {
-        snippet: posts[bestIdx].postSnippet,
-        postType: posts[bestIdx].postType,
-        score: posts[bestIdx].compositeScore,
-        impressions: posts[bestIdx].impressions,
-      }
-    : null;
+  const bestPost = {
+    snippet: posts[bestIdx].postSnippet,
+    postType: posts[bestIdx].postType,
+    score: posts[bestIdx].compositeScore,
+    impressions: posts[bestIdx].impressions,
+  };
+
+  // Recent period (last 14 days) for trend comparison
+  const recentCutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
+  const recentPosts = posts.filter(p => p.publishedAt.getTime() >= recentCutoff);
+  let recent: ReportData['recent'] = null;
+  if (recentPosts.length > 0) {
+    const rImpressions = recentPosts.reduce((s, p) => s + p.impressions, 0);
+    const rEng = recentPosts.reduce((s, p) => s + p.reactions + p.comments + p.reposts, 0);
+    recent = {
+      postCount: recentPosts.length,
+      periodDays: 14,
+      avgScore: robustAverage(recentPosts.map(p => p.compositeScore)),
+      avgImpressions: Math.round(rImpressions / recentPosts.length),
+      totalNewFollowers: recentPosts.reduce((s, p) => s + p.newFollowers, 0),
+      engRate: rImpressions > 0 ? ((rEng / rImpressions) * 100).toFixed(1) : 'n/a',
+    };
+  }
 
   return {
-    postCount: posts.length, dateRange,
+    postCount: posts.length, firstPostDate,
     totalImpressions, totalReactions, totalComments, totalReposts,
     totalSaves, totalNewFollowers, avgImpressions, overallEngRate,
-    avgWordCount, scoreStats, trend, correlations,
+    avgWordCount, scoreStats, trend, correlations, allTimeAvgScore,
     typeRanking, tagRanking, hashtagRanking, feedRanking,
     dayRanking, windowRanking,
-    photoComparison, wordCountBuckets, outliers, bestPost,
+    photoComparison, wordCountBuckets, outliers, bestPost, recent,
+  };
+}
+
+function emptyReport(): ReportData {
+  const empty = groupStats([]);
+  return {
+    postCount: 0, firstPostDate: '',
+    totalImpressions: 0, totalReactions: 0, totalComments: 0, totalReposts: 0,
+    totalSaves: 0, totalNewFollowers: 0, avgImpressions: 0, overallEngRate: 'n/a',
+    avgWordCount: null, scoreStats: empty, trend: { slope: 0, intercept: 0, rSquared: 0, predict: () => 0, direction: 'flat' },
+    correlations: [], allTimeAvgScore: 0,
+    typeRanking: [], tagRanking: [], hashtagRanking: [], feedRanking: [],
+    dayRanking: [], windowRanking: [],
+    photoComparison: null, wordCountBuckets: null, outliers: [], bestPost: null, recent: null,
   };
 }
 
 export function formatReportMessage(d: ReportData): string {
+  if (d.postCount === 0) return '📊 No published posts with metrics yet.';
+
   const fmt = (n: number) => n.toFixed(1);
   const medals = ['🥇', '🥈', '🥉'];
 
@@ -172,11 +203,22 @@ export function formatReportMessage(d: ReportData): string {
     return `${medal} \`${r.label}\` — ${fmt(r.avg)} score (${r.count} post${r.count !== 1 ? 's' : ''})${conf}`;
   };
 
-  // Trend emoji
+  // Trend
   const trendEmoji = d.trend.direction === 'improving' ? '📈' : d.trend.direction === 'declining' ? '📉' : '➡️';
   const trendStr = d.trend.direction === 'flat'
     ? `${trendEmoji} Flat`
     : `${trendEmoji} ${d.trend.direction.charAt(0).toUpperCase() + d.trend.direction.slice(1)} — ${d.trend.slope > 0 ? '+' : ''}${fmt(d.trend.slope * 7)} score/week (R²=${fmt(d.trend.rSquared)})`;
+
+  // Recent comparison
+  let recentSection = '';
+  if (d.recent && d.recent.postCount > 0) {
+    const scoreDelta = d.recent.avgScore - d.allTimeAvgScore;
+    const deltaEmoji = scoreDelta > 5 ? '🔼' : scoreDelta < -5 ? '🔽' : '➡️';
+    recentSection = `\n*Last ${d.recent.periodDays} days* (${d.recent.postCount} posts):
+Avg score: ${fmt(d.recent.avgScore)} ${deltaEmoji} (all-time: ${fmt(d.allTimeAvgScore)})
+Avg impressions: ${d.recent.avgImpressions.toLocaleString()}/post | Eng rate: ${d.recent.engRate}%
+New followers: ${d.recent.totalNewFollowers}`;
+  }
 
   // Correlations
   const corrLines = d.correlations
@@ -215,7 +257,7 @@ export function formatReportMessage(d: ReportData): string {
     if (parts.length > 0) photoLine = `\n*Photo vs no photo:*\n${parts.join(' | ')}`;
   }
 
-  return `📊 *Monthly Report* (${d.dateRange.start}–${d.dateRange.end})
+  return `📊 *Performance Report* — All-time (since ${d.firstPostDate})
 
 *Posts published:* ${d.postCount}
 *Impressions:* ${d.totalImpressions.toLocaleString()} (avg ${d.avgImpressions.toLocaleString()}/post)
@@ -227,6 +269,7 @@ export function formatReportMessage(d: ReportData): string {
 
 *Performance trend:*
 ${trendStr}
+${recentSection}
 ${corrLines ? `\n*What correlates with performance:*\n${corrLines}` : ''}
 *Post types:*
 ${d.typeRanking.map(rankLine).join('\n')}
