@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { readFileSync, existsSync } from 'fs';
 import { FeedItem } from './rss.js';
 import { PostType, SYSTEM_PROMPT, POST_TYPE_INSTRUCTIONS, WORD_COUNT_TARGETS } from './persona.js';
 import { verifiedMentions } from '../poster/mentions.js';
@@ -192,48 +191,9 @@ function injectMentionMarkers(text: string): string {
 
 // Computes hashtag performance from posted_history.json.
 // Returns a ranked list of hashtags with avg engagement, sorted best-first.
-// Only hashtags appearing in 2+ posts are eligible.
-// Weighted composite performance score — inlined to avoid async import.
-// Must stay in sync with SCORE_WEIGHTS in fetch-metrics.ts.
-function compositeScore(m: any): number {
-  if (!m) return 0;
-  return (m.newFollowers ?? 0) * 10
-       + (m.reposts ?? 0)      * 5
-       + (m.sends ?? 0)        * 5
-       + (m.comments ?? 0)     * 3
-       + (m.saves ?? 0)        * 3
-       + (m.reactions ?? 0)    * 1
-       + (m.impressions ?? 0)  * 0.01;
-}
-
-function getHashtagPerformance(): Array<{ hashtag: string; posts: number; avgEngagement: number }> {
-  if (!existsSync('posted_history.json')) return [];
-  try {
-    const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
-    const scores: Record<string, number[]> = {};
-    for (const p of history) {
-      if (!p.metrics) continue;
-      const score = compositeScore(p.metrics);
-      const content: string = p.finalContent ?? '';
-      const hashtags = content.match(/#\w+/g) ?? [];
-      for (const ht of hashtags) {
-        const key = ht; // preserve original casing
-        if (!scores[key]) scores[key] = [];
-        scores[key].push(score);
-      }
-    }
-    return Object.entries(scores)
-      .filter(([, vals]) => vals.length >= 2)
-      .map(([hashtag, vals]) => ({
-        hashtag,
-        posts: vals.length,
-        avgEngagement: vals.reduce((a, b) => a + b, 0) / vals.length,
-      }))
-      .sort((a, b) => b.avgEngagement - a.avgEngagement);
-  } catch {
-    return [];
-  }
-}
+// Hashtag performance and correlation insights now use the analytics module.
+import { getConfidenceWeightedHashtagPerformance, getCorrelationInsights } from '../analytics/feedback.js';
+import { robustAverage } from '../analytics/stats.js';
 
 export async function synthesizePost(item: FeedItem, postType: PostType): Promise<DraftPost> {
   const articleContent = item.fullText
@@ -249,26 +209,42 @@ export async function synthesizePost(item: FeedItem, postType: PostType): Promis
     ? `\nOPENING LINE (use this exact sentence as your first line — do not alter it):\n${bestHook}\n`
     : '';
 
-  // Build hashtag guidance from historical performance
-  const hashtagPerf = getHashtagPerformance();
+  // Build hashtag guidance from historical performance (confidence-weighted)
+  const hashtagPerf = getConfidenceWeightedHashtagPerformance();
   let hashtagGuidance = '';
   if (hashtagPerf.length > 0) {
-    const globalAvg = hashtagPerf.reduce((a, h) => a + h.avgEngagement, 0) / hashtagPerf.length;
-    const above = hashtagPerf.filter(h => h.avgEngagement >= globalAvg);
-    const below = hashtagPerf.filter(h => h.avgEngagement < globalAvg);
+    const globalAvg = robustAverage(hashtagPerf.map(h => h.score));
+    const above = hashtagPerf.filter(h => h.score >= globalAvg);
+    const below = hashtagPerf.filter(h => h.score < globalAvg);
 
-    const formatLine = (h: typeof hashtagPerf[0]) =>
-      `${h.hashtag} (${h.posts} posts, avg ${h.avgEngagement.toFixed(1)} engagement)`;
+    const formatLine = (h: typeof hashtagPerf[0]) => {
+      const conf = h.confidence === 'low' ? ' (low confidence)' : '';
+      return `${h.hashtag} (${h.n} posts, avg ${h.score.toFixed(1)} score${conf})`;
+    };
 
-    console.log(`Hashtag performance (avg ${globalAvg.toFixed(1)}): ${hashtagPerf.map(h => `${h.hashtag} ${h.avgEngagement.toFixed(1)}`).join(', ')}`);
+    console.log(`Hashtag performance (avg ${globalAvg.toFixed(1)}): ${hashtagPerf.map(h => `${h.hashtag} ${h.score.toFixed(1)}`).join(', ')}`);
 
-    hashtagGuidance = `\nHASHTAG PERFORMANCE (from past posts — average engagement across all hashtags: ${globalAvg.toFixed(1)}):
+    hashtagGuidance = `\nHASHTAG PERFORMANCE (from past posts — average score across all hashtags: ${globalAvg.toFixed(1)}):
 ${above.length > 0 ? `\nAbove average — prefer these when relevant:\n${above.map(formatLine).join('\n')}` : ''}
 ${below.length > 0 ? `\nBelow average — avoid unless the topic specifically demands them:\n${below.map(formatLine).join('\n')}` : ''}
 
 When choosing hashtags, prefer high-performing ones from this list IF they are relevant to the post topic. Avoid below-average hashtags when a better-performing alternative exists for the same topic. Do not force irrelevant hashtags just because they performed well. Relevance always comes first.\n`;
   } else {
     console.log('Hashtag performance: no eligible hashtags yet (need 2+ posts each).');
+  }
+
+  // Build correlation insights for synthesis guidance
+  const corrInsights = getCorrelationInsights();
+  let corrGuidance = '';
+  const significantCorrs = corrInsights.filter(c => c.significant);
+  if (significantCorrs.length > 0) {
+    const lines = significantCorrs.map(c => {
+      if (c.attribute === 'Word count' && c.r < 0) return 'DATA INSIGHT: Your shorter posts have historically performed better. Aim for the lower end of the word count range.';
+      if (c.attribute === 'Word count' && c.r > 0) return 'DATA INSIGHT: Your longer posts have historically performed better. Aim for the upper end of the word count range.';
+      if (c.attribute === 'Cringe score' && c.r < 0) return 'DATA INSIGHT: Posts with lower cringe scores (cleaner, less AI-sounding) perform significantly better.';
+      return null;
+    }).filter(Boolean);
+    if (lines.length > 0) corrGuidance = '\n' + lines.join('\n') + '\n';
   }
 
   const userPrompt = `NEWS ITEM:
@@ -281,7 +257,7 @@ ${articleContent}
 POST TYPE: ${postType}
 INSTRUCTION: ${POST_TYPE_INSTRUCTIONS[postType]}
 WORD COUNT: Target ${WORD_COUNT_TARGETS[postType].reviseMin}–${WORD_COUNT_TARGETS[postType].reviseMax} words. Hard limits: min ${WORD_COUNT_TARGETS[postType].min}, max ${WORD_COUNT_TARGETS[postType].max}.
-${ageRule ? `TEMPORAL RULE: ${ageRule}\n` : ''}${hookConstraint}${hashtagGuidance}
+${ageRule ? `TEMPORAL RULE: ${ageRule}\n` : ''}${hookConstraint}${hashtagGuidance}${corrGuidance}
 Write the LinkedIn post now. You have the full article text above — use specific facts, figures, quotes, or details from it where they strengthen the post. Output only the post text — no preamble, no "here is your post," no quotation marks wrapping the whole thing.`;
 
   const message = await client.messages.create({

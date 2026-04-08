@@ -148,61 +148,9 @@ function getTypeBalanceMultipliers(lookback = 14): Partial<Record<PostType, numb
   return multipliers as Record<PostType, number>;
 }
 
-// Weighted composite performance score — inlined to avoid async import.
-// Must stay in sync with SCORE_WEIGHTS in fetch-metrics.ts.
-function compositeScore(m: any): number {
-  if (!m) return 0;
-  return (m.newFollowers ?? 0) * 10
-       + (m.reposts ?? 0)      * 5
-       + (m.sends ?? 0)        * 5
-       + (m.comments ?? 0)     * 3
-       + (m.saves ?? 0)        * 3
-       + (m.reactions ?? 0)    * 1
-       + (m.impressions ?? 0)  * 0.01;
-}
-
-// Returns average composite performance score per content tag across all posts with metrics.
-// Uses the weighted composite score (followers × 10, reposts × 5, comments × 3, etc.)
-// to capture audience growth potential, not just raw engagement.
-function getTagEngagementScores(): Record<string, number> {
-  const scores: Record<string, number[]> = {};
-
-  if (existsSync('posted_history.json')) {
-    try {
-      const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
-      for (const p of history) {
-        const tags: string[] = p.draft?.contentTags ?? [];
-        if (!p.metrics || tags.length === 0) continue;
-        const score = compositeScore(p.metrics);
-        for (const tag of tags) {
-          if (!scores[tag]) scores[tag] = [];
-          scores[tag].push(score);
-        }
-      }
-    } catch {}
-  }
-
-  const averages: Record<string, number> = {};
-  for (const [tag, vals] of Object.entries(scores)) {
-    if (vals.length < 2) continue; // require at least 2 posts before a tag is eligible
-    averages[tag] = vals.reduce((a, b) => a + b, 0) / vals.length;
-  }
-  return averages;
-}
-
-// Given an article's suggested tags and historical tag scores, returns a
-// 1.0–1.25 post-content feedback multiplier. Articles whose tags historically
-// perform above average get a boost; no penalty for below average.
-// Falls back to 1.0 when there is no data yet.
-function computePostContentFeedback(tags: string[], tagScores: Record<string, number>): number {
-  if (tags.length === 0 || Object.keys(tagScores).length === 0) return 1.0;
-  const globalAvg = Object.values(tagScores).reduce((a, b) => a + b, 0) / Object.values(tagScores).length;
-  if (globalAvg === 0) return 1.0;
-  const matched = tags.filter(t => tagScores[t] !== undefined);
-  if (matched.length === 0) return 1.0;
-  const avgScore = matched.reduce((a, t) => a + tagScores[t], 0) / matched.length;
-  return Math.min(1.25, Math.max(1.0, avgScore / globalAvg));
-}
+// Tag scoring and post-content feedback now use the analytics module
+// with confidence-weighted scoring instead of naive averages.
+import { getConfidenceWeightedTagScores } from '../analytics/feedback.js';
 
 
 async function generateContentTags(content: string): Promise<ContentTag[]> {
@@ -501,7 +449,7 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
   if (ranked.length === 0) throw new Error('No eligible articles after filtering pending/approved sources.');
 
   const balanceMultipliers = getTypeBalanceMultipliers();
-  const tagScores = getTagEngagementScores();
+  const { computeMultiplier: computeTagMultiplier } = getConfidenceWeightedTagScores();
 
   const now = Date.now();
   const scored: ScoredCandidate[] = ranked
@@ -512,7 +460,7 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
         ? suggested
         : pickPostType(lastPostType);
       const balanceMultiplier = balanceMultipliers[postType] ?? 1.0;
-      const postContentFeedback = computePostContentFeedback(r.suggestedTags, tagScores);
+      const postContentFeedback = computeTagMultiplier(r.suggestedTags);
 
       const parsedMs = r.item.pubDate ? new Date(r.item.pubDate).getTime() : NaN;
       const ageDays = isNaN(parsedMs) ? null : Math.floor((now - parsedMs) / (1000 * 60 * 60 * 24));
