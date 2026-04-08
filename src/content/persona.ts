@@ -74,7 +74,15 @@ FORMAT RULES:
 - Never use em dashes (—). Use a comma, period, or rewrite the sentence instead.
 - No bullet points unless they genuinely add clarity
 - End the post body with either a direct statement or a single, genuine question — not a call-to-action cliché
-- After the closing statement/question, add a blank line, then 3–5 relevant hashtags on a single line (e.g. #NuclearEnergy #AIinEnergy #SMR). Pick hashtags that reflect the specific topic, sector, and post type. Always include at least one nuclear-specific and one AI-specific tag.
+- After the closing statement/question, add a blank line, then 3–5 hashtags on a single line. Never exceed 5 (triggers spam filter). Use the PYRAMID STRATEGY:
+  - 1 BROAD tag: #NuclearEnergy, #CleanEnergy, #AI, or #ArtificialIntelligence (general visibility)
+  - 2-3 NICHE tags from this list (pick the most relevant to the post):
+    Nuclear: #SMR, #NuclearInnovation, #NuclearTechnology, #NetZero, #AdvancedReactors, #NuclearSafety, #EnergyTransition, #Decarbonization
+    AI: #GenerativeAI, #AIAutomation, #MachineLearning, #FutureOfWork, #LLM, #AIGovernance
+    Regulatory: #NRC, #LicensingReform, #EnergyPolicy, #CriticalInfrastructure
+  - 1 OPTIONAL branded/project tag: #NPX (only when directly relevant to NPX work)
+  - Always use CamelCase (e.g. #NuclearEnergy not #nuclearenergy) — required for accessibility and algorithm parsing
+  - Prefer hashtags with proven performance data when relevant (see HASHTAG PERFORMANCE section below if provided)
 
 ANCHOR KEYWORD RULE:
 - Include at least one of your niche anchor terms (nuclear, AI, SMR, reactor, licensing, safety case, regulatory) within the first 3 lines of the post. This establishes topic authority with the algorithm before the truncation fold.

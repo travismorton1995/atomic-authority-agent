@@ -43,7 +43,7 @@ Also review the FIRST COMMENT separately. Always preserve the URL on its own lin
 
 FORMATTING RULE (applies to both post and comment): Never use em dashes (—). Replace with a comma, period, or rewrite the sentence.
 
-HASHTAG RULE: Count all hashtags in the post. If there are more than 5, the revised version must trim to the 3–5 most relevant. Fewer is better — 3–4 is ideal. A post with 6+ hashtags should have its score bumped by at least 1 point.
+HASHTAG RULE: Count all hashtags in the post. If there are more than 5, the revised version must trim to the 3–5 most relevant. Fewer is better — 3–4 is ideal. A post with 6+ hashtags should have its score bumped by at least 1 point. All hashtags must use CamelCase (e.g. #NuclearEnergy not #nuclearenergy). Fix any lowercase-only hashtags in the revision.
 
 PARAGRAPH LENGTH: Each paragraph must be 1–2 sentences maximum. If any paragraph is 3 or more sentences, treat it as a wall of text — bump the cringe score and reformat it in the revised version. Split at natural subject boundaries: if a paragraph contains more than one distinct point, each point gets its own paragraph. Do not lose any substance — every sentence must survive the split, just reorganized.
 
