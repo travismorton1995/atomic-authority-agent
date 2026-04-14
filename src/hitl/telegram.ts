@@ -235,7 +235,7 @@ export function startBot(): void {
 
     const firstColon = data.indexOf(':');
     const action = firstColon === -1 ? data : data.slice(0, firstColon);
-    const payload = firstColon === -1 ? '' : data.slice(firstColon + 1);
+    let payload = firstColon === -1 ? '' : data.slice(firstColon + 1);
     console.log(`[callback] action="${action}" payload="${payload.slice(0, 40)}"`);
 
     try {
@@ -267,13 +267,20 @@ export function startBot(): void {
             console.warn('Image generation failed (non-fatal):', err?.message ?? err);
           }
 
-          // Send og:image preview if available
-          const hasOgImage = !!post.draft.imageUrl;
-          if (hasOgImage) {
+          // Send og:image preview if available and reachable
+          let hasOgImage = false;
+          if (post.draft.imageUrl) {
             try {
-              await sender.telegram.sendPhoto(chatId!, post.draft.imageUrl!, { caption: 'Article image (og:image)' });
+              const headRes = await fetch(post.draft.imageUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+              const contentType = headRes.headers.get('content-type') ?? '';
+              if (headRes.ok && contentType.startsWith('image/')) {
+                await sender.telegram.sendPhoto(chatId!, post.draft.imageUrl, { caption: 'Article image (og:image)' });
+                hasOgImage = true;
+              } else {
+                console.log(`[og:image] Skipped — HEAD returned ${headRes.status}, content-type: ${contentType}`);
+              }
             } catch (err: any) {
-              console.warn('Failed to send og:image to Telegram (non-fatal):', err?.message ?? err);
+              console.log(`[og:image] Skipped — not reachable: ${err?.message ?? err}`);
             }
           }
 
@@ -288,10 +295,44 @@ export function startBot(): void {
             }
           }
 
+          // Search for stock photos — up to 3 options (non-fatal)
+          let stockCount = 0;
+          try {
+            const { searchStockImages } = await import('../content/stock-image.js');
+            const cleanContent = post.finalContent.replace(/\[\[MENTION:[^\]]+\]\]/g, (m: string) => m.replace(/\[\[MENTION:|\]\]/g, ''));
+            const stockResults = await searchStockImages(cleanContent, 3);
+
+            if (stockResults.length > 0) {
+              const { setStockImage } = await import('./queue.js');
+              const allOptions = stockResults.map(s => ({ url: s.url, photographer: s.photographer, downloadUrl: s.downloadUrl, description: s.description }));
+              // Store first as primary, plus all options for callback selection
+              setStockImage(payload, stockResults[0].url, stockResults[0].photographer, stockResults[0].downloadUrl, allOptions);
+
+              for (let i = 0; i < stockResults.length; i++) {
+                try {
+                  await sender.telegram.sendPhoto(chatId!, stockResults[i].url, {
+                    caption: `📸 Stock ${i + 1} — "${stockResults[i].description.slice(0, 80)}" by ${stockResults[i].photographer} (Unsplash)`,
+                  });
+                  stockCount++;
+                } catch (err: any) {
+                  console.warn(`Failed to send stock image ${i + 1} to Telegram (non-fatal):`, err?.message ?? err);
+                }
+              }
+            }
+          } catch (err: any) {
+            console.warn('Stock image search failed (non-fatal):', err?.message ?? err);
+          }
+
           // Build Step 2 keyboard
+          const stockButtons = [];
+          for (let i = 0; i < stockCount; i++) {
+            stockButtons.push([{ text: `📸 Stock photo ${i + 1}`, callback_data: `img_stock:${post.id}:${i}` }]);
+          }
+
           const imgKeyboard = [
             ...(hasOgImage ? [[{ text: '🖼 Use article image', callback_data: `img_og:${post.id}` }]] : []),
             ...(hasAiImage ? [[{ text: '🤖 Use AI image', callback_data: `img_ai:${post.id}` }]] : []),
+            ...stockButtons,
             [{ text: '📷 Upload your own', callback_data: `img_upload:${post.id}` }],
             [{ text: '🚫 No image', callback_data: `img_none:${post.id}` }],
             [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
@@ -315,8 +356,23 @@ export function startBot(): void {
       }
 
       // --- Step 2: Image selected → schedule or publish immediately ---
-      if (action === 'img_og' || action === 'img_ai' || action === 'img_none') {
-        const choice = action === 'img_og' ? 'og' : action === 'img_ai' ? 'ai' : 'none';
+      if (action === 'img_og' || action === 'img_ai' || action === 'img_stock' || action === 'img_none') {
+        const choice = action === 'img_og' ? 'og' : action === 'img_ai' ? 'ai' : action === 'img_stock' ? 'stock' : 'none' as const;
+
+        // For stock photos, payload is "postId:index" — select the right option
+        if (action === 'img_stock') {
+          const lastColon = payload.lastIndexOf(':');
+          const postId = payload.slice(0, lastColon);
+          const stockIdx = parseInt(payload.slice(lastColon + 1));
+          const pendingPost = getPendingPosts().find(p => p.id === postId);
+          if (pendingPost?.draft.stockImageOptions && stockIdx >= 0 && stockIdx < pendingPost.draft.stockImageOptions.length) {
+            const selected = pendingPost.draft.stockImageOptions[stockIdx];
+            const { setStockImage } = await import('./queue.js');
+            setStockImage(postId, selected.url, selected.photographer, selected.downloadUrl, pendingPost.draft.stockImageOptions);
+          }
+          // Override payload to just the postId for the rest of the flow
+          payload = postId;
+        }
         if (choice === 'none') {
           clearPostImage(payload);
         } else {

@@ -10,6 +10,7 @@ One post per day max, always requires human approval before posting.
 - `node-cron` for scheduling
 - `playwright` (raw, no stealth plugin needed — account has natural human activity)
 - Telegram bot for HITL notifications and approvals
+- Unsplash API for stock photo search (optional, free tier)
 
 ## Persona
 **Voice:** 60% strategist / 40% practitioner
@@ -89,6 +90,15 @@ All posts follow a strict character-count-based 2:1 structure for mobile dwell t
 3. Human approves (with image choice) or rejects via Telegram buttons
 4. On approve: scheduled for next available time window (or Sunday for insider)
 5. Scheduler publishes when scheduled time arrives, archives to `posted_history.json`
+
+## Image Options
+On approval, up to 5 image sources are offered via Telegram:
+- **Article image (og:image):** Extracted from source article. Validated with HEAD check before showing.
+- **AI-generated image:** FLUX model via Cloudflare Workers AI. Post-type-specific visual directions.
+- **Stock photos (x3):** Unsplash API search with 3 diverse angles per post (setting / people / metaphor). Each angle searches independently, filters clichés and previously-used images, then LLM picks the best from each search's top 5. Requires `UNSPLASH_ACCESS_KEY` env var.
+- **Upload your own:** Send a photo directly in Telegram.
+- **No image:** Text-only post.
+Analytics track engagement by image type (og, ai, custom, stock, none).
 
 ## Content Sources
 - **11 RSS feeds:** CNSC, World Nuclear News, Canadian Nuclear Association, ANS Newswire, IAEA, Bruce Power, Power Magazine, Canadian Nuclear Society, Canadian Nuclear Laboratories, Utility Dive, Power Engineering

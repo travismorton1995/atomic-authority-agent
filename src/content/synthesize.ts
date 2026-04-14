@@ -41,6 +41,10 @@ export interface DraftPost {
   generatedAt: string;
   imageUrl?: string;
   generatedImagePath?: string; // local path to AI-generated image file
+  stockImageUrl?: string;      // Unsplash stock photo URL (selected option)
+  stockImagePhotographer?: string; // Unsplash photographer credit
+  stockImageDownloadUrl?: string;  // Unsplash download tracking URL
+  stockImageOptions?: Array<{ url: string; photographer: string; downloadUrl: string; description: string }>; // all stock candidates
   wordCount?: number;          // word count of final post content
 }
 

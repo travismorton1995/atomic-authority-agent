@@ -124,6 +124,13 @@ async function publishDuePosts() {
       const imageOpts: Record<string, string | undefined> = {};
       if ((post.imageChoice === 'ai' || post.imageChoice === 'custom') && post.draft.generatedImagePath) {
         imageOpts.generatedImagePath = post.draft.generatedImagePath;
+      } else if (post.imageChoice === 'stock' && post.draft.stockImageUrl) {
+        imageOpts.imageUrl = post.draft.stockImageUrl;
+        // Track Unsplash download and mark as used for deduplication
+        import('../content/stock-image.js').then(m => {
+          if (post.draft.stockImageDownloadUrl) m.trackUnsplashDownload(post.draft.stockImageDownloadUrl);
+          m.markImageUsed(post.draft.stockImageUrl!);
+        }).catch(() => {});
       } else if (post.imageChoice === 'og' && post.draft.imageUrl) {
         imageOpts.imageUrl = post.draft.imageUrl;
       } else if (!post.imageChoice && post.draft.imageUrl) {

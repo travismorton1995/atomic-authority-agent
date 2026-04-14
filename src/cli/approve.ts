@@ -6,7 +6,7 @@ const args = process.argv.slice(2);
 const idFlagIndex = args.indexOf('--id');
 const id = idFlagIndex !== -1 ? args[idFlagIndex + 1] : null;
 const imageFlagIndex = args.indexOf('--image');
-const imageChoice = imageFlagIndex !== -1 ? args[imageFlagIndex + 1] as 'ai' | 'og' | 'none' | 'custom' : undefined;
+const imageChoice = imageFlagIndex !== -1 ? args[imageFlagIndex + 1] as 'ai' | 'og' | 'none' | 'custom' | 'stock' : undefined;
 
 const pending = getPendingPosts();
 

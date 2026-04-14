@@ -39,7 +39,7 @@ export interface ReportData {
   feedRanking: RankEntry[];
   dayRanking: RankEntry[];
   windowRanking: RankEntry[];
-  photoComparison: { ogPhoto: GroupStats | null; aiPhoto: GroupStats | null; customPhoto: GroupStats | null; noPhoto: GroupStats | null } | null;
+  photoComparison: { ogPhoto: GroupStats | null; aiPhoto: GroupStats | null; customPhoto: GroupStats | null; stockPhoto: GroupStats | null; noPhoto: GroupStats | null } | null;
   wordCountBuckets: Record<string, { stats: GroupStats; significant: boolean }> | null;
   outliers: Array<{ snippet: string; score: number; sigma: number }>;
   bestPost: { snippet: string; postType: string; score: number; impressions: number } | null;
@@ -111,16 +111,18 @@ export function generateReportData(): ReportData {
   const dayRanking = rankBy(posts, p => p.dayOfWeek);
   const windowRanking = rankBy(posts, p => p.timeWindow);
 
-  // Photo comparison — OG, AI-generated, custom, none
+  // Photo comparison — OG, AI-generated, custom, stock, none
   const ogPhotoScores = posts.filter(p => p.imageChoice === 'og').map(p => p.compositeScore);
   const aiPhotoScores = posts.filter(p => p.imageChoice === 'ai').map(p => p.compositeScore);
   const customPhotoScores = posts.filter(p => p.imageChoice === 'custom').map(p => p.compositeScore);
+  const stockPhotoScores = posts.filter(p => p.imageChoice === 'stock').map(p => p.compositeScore);
   const noPhotoScores = posts.filter(p => p.imageChoice === 'none').map(p => p.compositeScore);
-  const photoComparison = (ogPhotoScores.length > 0 || aiPhotoScores.length > 0 || customPhotoScores.length > 0 || noPhotoScores.length > 0)
+  const photoComparison = (ogPhotoScores.length > 0 || aiPhotoScores.length > 0 || customPhotoScores.length > 0 || stockPhotoScores.length > 0 || noPhotoScores.length > 0)
     ? {
         ogPhoto: ogPhotoScores.length > 0 ? groupStats(ogPhotoScores) : null,
         aiPhoto: aiPhotoScores.length > 0 ? groupStats(aiPhotoScores) : null,
         customPhoto: customPhotoScores.length > 0 ? groupStats(customPhotoScores) : null,
+        stockPhoto: stockPhotoScores.length > 0 ? groupStats(stockPhotoScores) : null,
         noPhoto: noPhotoScores.length > 0 ? groupStats(noPhotoScores) : null,
       }
     : null;
@@ -259,6 +261,7 @@ New followers: ${d.recent.totalNewFollowers}`;
     if (d.photoComparison.ogPhoto) parts.push(`🖼️ OG photo (${d.photoComparison.ogPhoto.n}): median ${fmt(d.photoComparison.ogPhoto.median)} score`);
     if (d.photoComparison.aiPhoto) parts.push(`🤖 AI photo (${d.photoComparison.aiPhoto.n}): median ${fmt(d.photoComparison.aiPhoto.median)} score`);
     if (d.photoComparison.customPhoto) parts.push(`📷 Custom photo (${d.photoComparison.customPhoto.n}): median ${fmt(d.photoComparison.customPhoto.median)} score`);
+    if (d.photoComparison.stockPhoto) parts.push(`📸 Stock photo (${d.photoComparison.stockPhoto.n}): median ${fmt(d.photoComparison.stockPhoto.median)} score`);
     if (d.photoComparison.noPhoto) parts.push(`🚫 no image (${d.photoComparison.noPhoto.n}): median ${fmt(d.photoComparison.noPhoto.median)} score`);
     if (parts.length > 0) photoLine = `\n*Image breakdown:*\n${parts.join(' | ')}`;
   }

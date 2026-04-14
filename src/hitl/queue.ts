@@ -19,7 +19,7 @@ export interface PendingPost {
   publishedAt?: string;   // ISO timestamp — set after successful LinkedIn post
   linkedInPostUrl?: string; // permalink to the live LinkedIn post (for metrics)
   publishFailures?: number; // consecutive publish attempt failures
-  imageChoice?: 'ai' | 'og' | 'none' | 'custom'; // which image to use when posting
+  imageChoice?: 'ai' | 'og' | 'none' | 'custom' | 'stock'; // which image to use when posting
   wordCount?: number;        // word count of final post content
 }
 
@@ -170,7 +170,7 @@ export function markPublished(id: string, linkedInPostUrl?: string | null): Pend
   return post;
 }
 
-export function setImageChoice(id: string, choice: 'ai' | 'og' | 'none' | 'custom'): void {
+export function setImageChoice(id: string, choice: 'ai' | 'og' | 'none' | 'custom' | 'stock'): void {
   const posts = readFile<PendingPost[]>(PENDING_FILE, []);
   const post = posts.find(p => p.id === id);
   if (!post) return;
@@ -183,6 +183,17 @@ export function setGeneratedImagePath(id: string, imagePath: string): void {
   const post = posts.find(p => p.id === id);
   if (!post) return;
   post.draft.generatedImagePath = imagePath;
+  writeFile(PENDING_FILE, posts);
+}
+
+export function setStockImage(id: string, url: string, photographer: string, downloadUrl: string, allOptions?: Array<{ url: string; photographer: string; downloadUrl: string; description: string }>): void {
+  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const post = posts.find(p => p.id === id);
+  if (!post) return;
+  post.draft.stockImageUrl = url;
+  post.draft.stockImagePhotographer = photographer;
+  post.draft.stockImageDownloadUrl = downloadUrl;
+  if (allOptions) post.draft.stockImageOptions = allOptions;
   writeFile(PENDING_FILE, posts);
 }
 
