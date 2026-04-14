@@ -1,48 +1,48 @@
 [
   {
-    "id": "post_1775338488892",
+    "id": "post_1775867705804",
     "draft": {
-      "content": "The [[MENTION:NRC]] just greenlit the first major step toward deploying microreactors at scale, and the implications for AI infrastructure, industrial sites, and remote grids are enormous.\n\nBut here's what I keep thinking about. Nano Nuclear's Kronos design emphasizes \"autonomous operation\" and \"walk-away safety.\" Those are engineering claims. Earning operator trust in those claims is a completely different problem.\n\nI worked at [[MENTION:Bruce Power]]. Nuclear culture is built on the premise that every system needs a qualified human verifying its behavior. The safety case (the documented argument that a reactor can operate without unacceptable risk) depends on traceable, auditable reasoning at every level.\n\nNow imagine telling that culture: \"The AI handles it autonomously.\"\n\nThe 15 MW Kronos reactor uses TRISO fuel and helium coolant, which genuinely reduce failure modes. The physics helps. But the humans staffing, licensing, and operating these units will still need to understand every automated decision the system makes, and why.\n\nIf microreactor vendors want fleet-scale deployment by the late 2020s, the AI governance framework matters as much as the CPA filing. Explainability isn't a feature request. It's a licensing prerequisite.\n\nWho's building that layer?\n\n#NuclearEnergy #Microreactors #AIGovernance #NRC",
-      "firstComment": "Via Oil Price. If autonomous microreactor licensing requires operator-understandable explainability, does that transparency requirement become a cost barrier that effectively favors larger reactor operators?\n\nhttps://oilprice.com/Energy/Energy-General/Kronos-Microreactor-Just-Cleared-Its-Biggest-Regulatory-Hurdle-Yet.html",
-      "postType": "change-management",
-      "sourceTitle": "Kronos Microreactor Just Cleared Its Biggest Regulatory Hurdle Yet",
-      "sourceUrl": "https://oilprice.com/Energy/Energy-General/Kronos-Microreactor-Just-Cleared-Its-Biggest-Regulatory-Hurdle-Yet.html",
-      "sourceDate": "2026-04-03T03:00:00.000Z",
-      "sourceFeed": "NewsData: Oil Price",
-      "generatedAt": "2026-04-04T21:34:32.593Z",
-      "imageUrl": "https://d32r1sh890xpii.cloudfront.net/article/1200x675/2026-04-02_eg16ql0oap.jpg",
-      "combinedScore": 9.36,
+      "content": "While regulators debate microreactor safety, the DOE is already funding the validation frameworks to prove them.\n\nNANO Nuclear just received a GAIN voucher for exactly this work.\n\nOak Ridge National Laboratory will run the analysis.\n\nThe collaboration applies ORNL's SCALE/TSUNAMI code suite to quantify how nuclear data uncertainties, modeling assumptions, and operational parameters affect the KRONOS MMR (Micro Modular Reactor) design. Reactivity, power distribution, temperature coefficients. The outputs feed directly into deterministic safety analysis, the method regulators use to verify a reactor stays safe under worst-case conditions.\n\nHere is where AI enters the picture.\n\nUncertainty quantification at this scale generates massive datasets.\n\nOnce you have a validated UQ framework producing structured, [[MENTION:NRC]]-recognized sensitivity data, you have the training foundation for AI-driven digital twin validation. An ML model trained on ORNL's physics outputs could flag design margin erosion in real time as parameters shift during future operation, catching problems that periodic manual reviews would miss entirely.\n\nThe GAIN voucher funds the lab work. It does not fund the AI layer. But the data architecture it creates is precisely what makes that AI layer possible. Someone still has to build it.\n\n#NuclearEnergy #AI #AdvancedReactors #EnergyPolicy",
+      "firstComment": "Sourced from The Kingston Whig Standard.\n\nAre any of you already working with digital twins in your reactor operations?",
+      "postType": "bridge",
+      "sourceTitle": "NANO Nuclear Granted U.S. Department of Energy's GAIN Voucher Award in Collaboration with Oak Ridge National Laboratory to Develop a Validated UQ Framework Tailored to the KRONOS MMR Energy System",
+      "sourceUrl": "https://www.thewhig.com/newsfile/291593-nano-nuclear-granted-u-s-department-of-energys-gain-voucher-award-in-collaboration-with-oak-ridge-national-laboratory-to-develop-a-validated-uq-framework-tailored-to-the-kronos-mmr-energy-syst",
+      "sourceDate": "2026-04-09T16:02:14.000Z",
+      "sourceFeed": "NewsData: The Kingston Whig Standard",
+      "generatedAt": "2026-04-11T00:34:49.562Z",
+      "wordCount": 193,
+      "combinedScore": 6.240000000000001,
       "scoreBreakdown": {
-        "intersection": 2,
+        "intersection": 3,
         "novelty": 2,
         "geography": 1,
-        "npx": 1
+        "npx": 0
       },
-      "balanceMultiplier": 1.2,
+      "balanceMultiplier": 0.8,
       "recencyMultiplier": 1.3,
       "postContentFeedback": 1,
       "contentTags": [
         "smr",
-        "nrc",
         "reactor-design",
         "safety-case",
-        "licensing",
+        "doe",
+        "nrc",
+        "regulatory",
         "machine-learning",
-        "explainability",
-        "trust",
-        "adoption",
-        "workforce",
-        "canada"
+        "digital-twin",
+        "anomaly-detection",
+        "usa"
       ]
     },
     "screening": {
-      "cringeScore": 4,
-      "reasoning": "The post has real substance and credible domain knowledge (Bruce Power experience, TRISO fuel, safety case definition). The hook is decent but not great — it opens with a news summary rather than a specific tension-creating claim. Several issues: 'But here's what I keep thinking about' is filler, 'Explainability isn't a feature request. It's a licensing prerequisite.' is a contrasting reframe that triggers an automatic rewrite, 'Who's building that layer?' is a slightly hollow closing question, and one paragraph in the middle runs to 3 sentences. The first comment question is strong but the source attribution format needs fixing.",
-      "revisedContent": "The [[MENTION:NRC]] just approved the first Construction Permit Application for a microreactor designed to run autonomously. That word, \"autonomously,\" is where things get complicated.\n\nNano Nuclear's 15 MW Kronos design emphasizes \"walk-away safety\" and minimal operator intervention. Those are engineering claims. Earning operator trust in those claims is a completely different problem.\n\nI worked at [[MENTION:Bruce Power]]. Nuclear culture is built on the premise that every system needs a qualified human verifying its behavior.\n\nThe safety case (the documented argument that a reactor can operate without unacceptable risk) depends on traceable, auditable reasoning at every level.\n\nNow imagine telling that culture: \"The AI handles it autonomously.\"\n\nKronos uses TRISO fuel and helium coolant, which genuinely reduce failure modes. The physics helps.\n\nBut the humans staffing, licensing, and operating these units will still need to understand every automated decision the system makes, and why.\n\nIf microreactor vendors want fleet-scale deployment by the late 2020s, the AI governance framework matters as much as the CPA filing. Explainability will be a licensing prerequisite before it's ever a feature request.\n\nWho's building that layer?\n\n#NuclearEnergy #Microreactors #AIGovernance",
-      "revisedFirstComment": "Via Oil Price. If autonomous microreactor licensing requires operator-understandable explainability, does that transparency requirement become a cost barrier that effectively favors larger reactor operators?\n\nhttps://oilprice.com/Energy/Energy-General/Kronos-Microreactor-Just-Cleared-Its-Biggest-Regulatory-Hurdle-Yet.html"
+      "cringeScore": 5,
+      "reasoning": "The hook is decent but slightly over 140 characters. The post has several unexpanded acronyms (DOE, GAIN, ORNL, SCALE/TSUNAMI, UQ, NRC, MMR, ML) which bumps the score significantly. The scannability structure violates the 2:1 pattern — multiple one-liners in a row and mini-paragraphs that don't alternate correctly. The content itself is strong and substantive, with real technical depth, but it reads more like a white paper than a conversational post. The contrasting reframe 'It does not fund the AI layer. But the data architecture it creates is precisely what makes that AI layer possible' is borderline but not a structural 'It's not X, it's Y' pattern. Multiple domain-specific terms used without explanation make this inaccessible to someone expert in only one field.",
+      "revisedContent": "Regulators are still debating microreactor safety. The DOE (Department of Energy) is already funding the proof.\n\nNANO Nuclear just received a GAIN (Gateway for Accelerated Innovation in Nuclear) voucher for this work.\n\nOak Ridge National Laboratory will run the analysis. Their SCALE/TSUNAMI code suite, a set of nuclear simulation tools, will quantify how data uncertainties, modeling assumptions, and operational parameters affect the KRONOS Micro Modular Reactor design. Reactivity, power distribution, temperature coefficients. The outputs feed directly into deterministic safety analysis, the method regulators use to verify a reactor stays safe under worst-case conditions.\n\nHere is where AI enters the picture.\n\nUncertainty quantification at this scale generates massive datasets.\n\nOnce you have a validated framework producing structured, [[MENTION:NRC]] (Nuclear Regulatory Commission)-recognized sensitivity data, you have the training foundation for AI-driven digital twin validation. A machine learning model trained on Oak Ridge's physics outputs could flag design margin erosion in real time as parameters shift during operation, catching problems that periodic manual reviews would miss entirely.\n\nThe GAIN voucher funds the lab work, not the AI layer.\n\nBut the data architecture it creates is precisely what makes that AI layer possible. Someone still has to build it.\n\n#NuclearEnergy #AI #AdvancedReactors #EnergyPolicy",
+      "revisedFirstComment": null
     },
-    "finalContent": "The [[MENTION:NRC]] just approved the first Construction Permit Application for a microreactor designed to run autonomously. That word, \"autonomously,\" is where things get complicated.\n\nNano Nuclear's 15 MW Kronos design emphasizes \"walk-away safety\" and minimal operator intervention. Those are engineering claims. Earning operator trust in those claims is a completely different problem.\n\nI worked at [[MENTION:Bruce Power]]. Nuclear culture is built on the premise that every system needs a qualified human verifying its behavior.\n\nThe safety case (the documented argument that a reactor can operate without unacceptable risk) depends on traceable, auditable reasoning at every level.\n\nNow imagine telling that culture: \"The AI handles it autonomously.\"\n\nKronos uses TRISO fuel and helium coolant, which genuinely reduce failure modes. The physics helps.\n\nBut the humans staffing, licensing, and operating these units will still need to understand every automated decision the system makes, and why.\n\nIf microreactor vendors want fleet-scale deployment by the late 2020s, the AI governance framework matters as much as the CPA filing. Explainability will be a licensing prerequisite before it's ever a feature request.\n\nWho's building that layer?\n\n#NuclearEnergy #Microreactors #AIGovernance",
+    "finalContent": "Regulators are still debating microreactor safety. The DOE (Department of Energy) is already funding the proof.\n\nNANO Nuclear just received a GAIN (Gateway for Accelerated Innovation in Nuclear) voucher for this work.\n\nOak Ridge National Laboratory will run the analysis. Their SCALE/TSUNAMI code suite, a set of nuclear simulation tools, will quantify how data uncertainties, modeling assumptions, and operational parameters affect the KRONOS Micro Modular Reactor design. Reactivity, power distribution, temperature coefficients. The outputs feed directly into deterministic safety analysis, the method regulators use to verify a reactor stays safe under worst-case conditions.\n\nHere is where AI enters the picture.\n\nUncertainty quantification at this scale generates massive datasets.\n\nOnce you have a validated framework producing structured, [[MENTION:NRC]] (Nuclear Regulatory Commission)-recognized sensitivity data, you have the training foundation for AI-driven digital twin validation. A machine learning model trained on Oak Ridge's physics outputs could flag design margin erosion in real time as parameters shift during operation, catching problems that periodic manual reviews would miss entirely.\n\nThe GAIN voucher funds the lab work, not the AI layer.\n\nBut the data architecture it creates is precisely what makes that AI layer possible. Someone still has to build it.\n\n#NuclearEnergy #AI #AdvancedReactors #EnergyPolicy",
     "status": "pending",
-    "createdAt": "2026-04-04T21:34:48.892Z"
+    "createdAt": "2026-04-11T00:35:05.804Z",
+    "wordCount": 199
   }
 ]

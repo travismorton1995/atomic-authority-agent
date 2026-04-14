@@ -9,11 +9,12 @@ export interface ScrapedPost {
   authorName: string;
   profileUrl: string; // author's LinkedIn profile URL (for cooldown tracking)
   url: string;
+  isRepost: boolean;
 }
 
 // Scrapes a single LinkedIn post URL and returns the post text and author name.
 export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(30_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -82,7 +83,14 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
       );
       const profileUrl = authorLink?.getAttribute('href')?.split('?')[0] ?? '';
 
-      return { text, authorName, profileUrl };
+      // Detect reposts — LinkedIn shows "reposted this" or a reshare header
+      const isRepost = !!document.querySelector(
+        '.update-components-header__text-view, ' +
+        '[data-test-id="reshared-update"], ' +
+        '.feed-shared-header'
+      )?.textContent?.toLowerCase().match(/repost|reshare|shared/);
+
+      return { text, authorName, profileUrl, isRepost };
     });
 
     if (!result.text || result.text.length < 20) {
@@ -98,6 +106,7 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
           : `https://www.linkedin.com${result.profileUrl.replace(/\/$/, '')}/`)
         : '',
       url: postUrl,
+      isRepost: result.isRepost ?? false,
     };
   } finally {
     await context.close();

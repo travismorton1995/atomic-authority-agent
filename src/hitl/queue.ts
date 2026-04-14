@@ -19,7 +19,7 @@ export interface PendingPost {
   publishedAt?: string;   // ISO timestamp — set after successful LinkedIn post
   linkedInPostUrl?: string; // permalink to the live LinkedIn post (for metrics)
   publishFailures?: number; // consecutive publish attempt failures
-  imageChoice?: 'ai' | 'og' | 'none'; // which image to use when posting
+  imageChoice?: 'ai' | 'og' | 'none' | 'custom'; // which image to use when posting
   wordCount?: number;        // word count of final post content
 }
 
@@ -170,7 +170,7 @@ export function markPublished(id: string, linkedInPostUrl?: string | null): Pend
   return post;
 }
 
-export function setImageChoice(id: string, choice: 'ai' | 'og' | 'none'): void {
+export function setImageChoice(id: string, choice: 'ai' | 'og' | 'none' | 'custom'): void {
   const posts = readFile<PendingPost[]>(PENDING_FILE, []);
   const post = posts.find(p => p.id === id);
   if (!post) return;

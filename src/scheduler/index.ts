@@ -54,8 +54,8 @@ function alreadyPostedToday(): boolean {
 }
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
 import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler, setOnMetricsHandler, setOnRewriteHandler } from '../hitl/telegram.js';
-import { runPipeline, rewritePost, runInsiderPipeline } from '../content/pipeline.js';
-import { sendDailyPrompt, assembleAndClear } from '../hitl/daily-notes.js';
+import { runPipeline, rewritePost } from '../content/pipeline.js';
+import { sendDailyPrompt, sendFridayPrompt } from '../hitl/daily-notes.js';
 import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
 import { runCommentPoll, type CommentPollOptions, type CommentPollStats } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
@@ -67,7 +67,7 @@ const GENERATE_MAX_RETRIES = 3;
 
 let isGenerating = false;
 
-async function runGenerate(): Promise<'started' | 'already_running'> {
+async function runGenerate(articleUrl?: string): Promise<'started' | 'already_running'> {
   if (isGenerating) {
     console.log('Pipeline already running — ignoring duplicate trigger.');
     return 'already_running';
@@ -77,7 +77,7 @@ async function runGenerate(): Promise<'started' | 'already_running'> {
   try {
     for (let attempt = 1; attempt <= GENERATE_MAX_RETRIES; attempt++) {
       try {
-        await runPipeline();
+        await runPipeline(articleUrl ? { url: articleUrl } : {});
         return 'started';
       } catch (err: any) {
         const isOverloaded = err?.status === 529 || err?.error?.error?.type === 'overloaded_error';
@@ -122,7 +122,7 @@ async function publishDuePosts() {
     try {
       // Resolve which image to use based on approval choice
       const imageOpts: Record<string, string | undefined> = {};
-      if (post.imageChoice === 'ai' && post.draft.generatedImagePath) {
+      if ((post.imageChoice === 'ai' || post.imageChoice === 'custom') && post.draft.generatedImagePath) {
         imageOpts.generatedImagePath = post.draft.generatedImagePath;
       } else if (post.imageChoice === 'og' && post.draft.imageUrl) {
         imageOpts.imageUrl = post.draft.imageUrl;
@@ -137,6 +137,10 @@ async function publishDuePosts() {
         ...imageOpts,
       });
       markPublished(post.id, linkedInPostUrl);
+      if (post.draft.postType === 'insider') {
+        const { clearNotes } = await import('../hitl/daily-notes.js');
+        clearNotes();
+      }
       console.log(`Post ${post.id} marked as published.`);
       const urlLine = linkedInPostUrl ? `\n${linkedInPostUrl}` : '';
       await sendMessage(`✅ *Published* | ${post.draft.postType}\n_${post.draft.sourceTitle}_${urlLine}`).catch(() => {});
@@ -202,28 +206,17 @@ cron.schedule('0 19 * * 1,2,3', async () => {
   await runGenerate();
 }, { timezone: 'America/Toronto' });
 
-// Daily notes prompt at 4:45pm ET — capture what the user worked on today
-cron.schedule('45 16 * * *', async () => {
+// Daily notes prompt at 4:45pm ET Mon–Fri. Friday sends the weekly insider check-in.
+cron.schedule('45 16 * * 1,2,3,4,5', async () => {
   try {
-    await sendDailyPrompt();
+    const isFriday = new Date().getDay() === 5;
+    if (isFriday) {
+      await sendFridayPrompt();
+    } else {
+      await sendDailyPrompt();
+    }
   } catch (err) {
     console.error('[daily-notes] Failed to send prompt:', err);
-  }
-}, { timezone: 'America/Toronto' });
-
-// Weekly insider post assembly — Monday 9am ET
-cron.schedule('0 9 * * 1', async () => {
-  const notes = assembleAndClear();
-  if (!notes) {
-    console.log('[insider] No notes to assemble this week.');
-    return;
-  }
-  try {
-    console.log('[insider] Assembling weekly insider post...');
-    await runInsiderPipeline(notes);
-  } catch (err: any) {
-    console.error('[insider] Assembly failed:', err);
-    await sendAlert(`Insider post assembly failed: ${err?.message ?? err}`).catch(() => {});
   }
 }, { timezone: 'America/Toronto' });
 
@@ -349,8 +342,22 @@ cron.schedule('0 8,20 * * 6,0', async () => {
 
 let outboundPollRunning = false;
 
-// Weekdays at 10am and 2pm ET — finds fresh posts on curated profiles and queues comment options
-cron.schedule('0 10,14 * * 1-5', async () => {
+// Outbound engagement polls:
+// Weekdays: 8am, 11am, 2pm, 5pm ET
+// Weekends: 9am, 5pm ET
+cron.schedule('0 8,11,14,17 * * 1-5', async () => {
+  if (outboundPollRunning) return;
+  outboundPollRunning = true;
+  try {
+    await runOutboundPoll();
+  } catch (err) {
+    console.error('Outbound poll failed (non-fatal):', err);
+  } finally {
+    outboundPollRunning = false;
+  }
+}, { timezone: 'America/Toronto' });
+
+cron.schedule('0 9,17 * * 0,6', async () => {
   if (outboundPollRunning) return;
   outboundPollRunning = true;
   try {

@@ -9,7 +9,7 @@ One post per day max, always requires human approval before posting.
 - `@anthropic-ai/sdk` for all LLM calls (Claude)
 - `node-cron` for scheduling
 - `playwright` (raw, no stealth plugin needed — account has natural human activity)
-- Discord webhook for HITL notifications
+- Telegram bot for HITL notifications and approvals
 
 ## Persona
 **Voice:** 60% strategist / 40% practitioner
@@ -19,48 +19,98 @@ One post per day max, always requires human approval before posting.
   - AI developers curious about the nuclear/regulated sector
   - Executives and decision-makers in energy
 
-## Post Types (rotate through these)
-- **The Bridge:** Connect a specific regulatory update (CNSC, NRC) to an AI capability. Concrete, data-anchored.
-- **The Contrarian:** Challenge mainstream AI culture through the nuclear lens. "Move fast, simulate 10,000 times."
-- **The Change Management:** AI implementation is 10% code, 90% org change. Human/trust angle.
-- **The Explainer:** Break down a nuclear concept (ALARA, SMR, CANDU, Defense-in-Depth) for an AI audience, or vice versa.
-- **The Hot Take:** Infrequent. Frustrated or pointed. Designed for engagement/clicks.
+## Post Types (rotate through these, weighted random selection with balance multipliers)
+- **The Bridge (30%):** Connect a specific regulatory update (CNSC, NRC) to an AI capability. Concrete, data-anchored.
+- **The Explainer (20%):** Break down a nuclear concept for an AI audience, or vice versa.
+- **The Contrarian (15%):** Challenge mainstream AI culture through the nuclear lens.
+- **The Change Management (15%):** AI implementation is 10% code, 90% org change. Human/trust angle.
+- **The Myth-Busting (10%):** Identify and dismantle a misconception about nuclear or AI.
+- **The Hot Take (8%):** Infrequent. Frustrated or pointed. Designed for engagement/clicks.
+- **The Prediction (7%):** Specific, falsifiable, time-bounded claims about nuclear AI.
+- **The Insider:** Weekly firsthand dispatch from NPX. Not in random rotation — triggered via daily notes/Friday check-in.
 
 ## Tone Rules
 - Default: Engaging, optimistic, measured confidence
 - Occasionally (~1 in 5 posts): Contrarian or frustrated — makes the feed more human and clickable
-- ALWAYS: Avoid pure AI-isms ("transformative," "revolutionary," "dive in," "delve," "game-changer")
-- ALWAYS: Include at least one industry-specific term per post (ALARA, SMR, CANDU, Defense-in-Depth, CNSC, IAEA, probabilistic risk assessment, etc.)
-- Max post length: ~200 words for feed posts
+- ALWAYS: Avoid AI-isms ("transformative," "revolutionary," "dive in," "delve," "game-changer," "and it matters," etc.)
+- ALWAYS: Include at least one industry-specific term per post
+- Acronyms: Common ones (AI, NRC, CNSC, IAEA, SMR, DOE, OPG) need no expansion. Uncommon ones must be expanded in brackets or replaced with plain language.
+
+## Post Structure — Scannability Protocol
+All posts follow a strict character-count-based 2:1 structure for mobile dwell time:
+- **Hook:** < 140 characters, no emojis
+- **One-Liner:** 80–120 characters, single sentence
+- **Mini-Paragraph:** 250–350 characters, 2–3 sentences
+- **Pattern:** Hook → One-Liner → One-Liner → Mini-Para → One-Liner → One-Liner → Mini-Para → ...
+- Never two Mini-Paragraphs back-to-back
+
+## First Comment Format
+- **Sourced posts:** "Sourced from [Source Name].\n\n[Question?]" — no URL
+- **Insider posts:** Question only — no source line, no URL
+- Questions must be addressed to the audience (not the author), under 20 words
 
 ## Posting Schedule Rules
 - Max 1 post per day
-- Best days: Tuesday, Wednesday, Thursday (prefer these)
-- Best time windows (Eastern): 7:30–9:00am, 12:00–1:00pm, 5:00–6:30pm
-- Add random variance (±15 min) to avoid robotic patterns
+- **Regular posts:** Tuesday, Wednesday, Thursday — 5 experimental time windows (7:30am, 10:30am, 12pm, 3pm, 5pm ET), least-used bucket selected
+- **Insider posts:** Sunday 7:00–8:00pm ET
 - Location: Stratford, ON (Eastern timezone)
+
+## Insider Post Flow
+1. **Mon–Thu 4:45pm ET:** Daily notes prompt via Telegram
+2. **Fri 4:45pm ET:** Weekly insider check-in prompt (triggers generation when 2+ notes collected)
+3. On approval: scheduled for Sunday 7–8pm ET
+4. Strategic guardrails filter: Aggressive Incrementalism, Deterministic Guardrails, Cognitive Exoskeleton, Regulatory Testing Tax
+5. No external links in post body. Hook grounded in weekly friction points.
+
+## Outbound Comment System
+- **Polls:** Weekdays 8am, 11am, 2pm, 5pm ET; Weekends 9am, 5pm ET
+- **Candidate scoring:** LLM relevance (70%) + recency (15%) + diversity (15%) + profile bonus
+- **Keyword pre-filter** gates candidates before LLM scoring (zero-hit = skip)
+- **24-hour scrape window** for post discovery
+- **24-hour cooldown** per profile to prevent spam
+- **Repost detection** on both poll and ad-hoc paths
+- **Comment rules:** 1–2 sentences, max 45 words, senior-professional level (not domain-expert)
+- **Relationship modes:** insider, colleague, stranger (affects approach selection)
+- **Ad-hoc:** Paste a LinkedIn post URL in Telegram to generate comment options
+
+## Telegram Commands
+- `/generate` — Run content pipeline (normal RSS ranking)
+- `/generate <url>` — Generate post from a specific article URL
+- `/insider` — Generate insider post from accumulated notes (min 1 note)
+- `/notes <text>` — Add a daily note
+- `/outbound` — Run outbound engagement poll manually
+- `/poll` — Check for new comments on published posts
+- `/metrics` — Fetch engagement metrics
+- `/login` — Renew LinkedIn session
 
 ## HITL Workflow
 1. Agent generates draft → saves to `pending_posts.json`
-2. Discord webhook fires with draft content
-3. Human runs `npm run approve` or `npm run reject` to act on it
-4. On approve: agent posts to LinkedIn and archives to `posted_history.json`
+2. Telegram notification with draft, cringe score, and image options
+3. Human approves (with image choice) or rejects via Telegram buttons
+4. On approve: scheduled for next available time window (or Sunday for insider)
+5. Scheduler publishes when scheduled time arrives, archives to `posted_history.json`
 
-## Content Sources (RSS)
-- World Nuclear News: https://www.world-nuclear-news.org/rss
-- CNSC News: https://www.cnsc-ccsn.gc.ca/eng/resources/news/
-- Canadian Nuclear Association: https://cna.ca/feed/
+## Content Sources
+- **11 RSS feeds:** CNSC, World Nuclear News, Canadian Nuclear Association, ANS Newswire, IAEA, Bruce Power, Power Magazine, Canadian Nuclear Society, Canadian Nuclear Laboratories, Utility Dive, Power Engineering
+- **NewsData API:** Supplementary articles
+- **Manual:** `/generate <url>` for specific articles
 
 ## File Structure
 ```
 src/
-  content/        # RSS fetcher, synthesis prompt, screening agent
-  hitl/           # pending_posts.json manager, Discord notifier
-  scheduler/      # cron logic, time window picker
-  poster/         # LinkedIn browser automation
-  cli/            # approve/reject/generate CLI commands
+  content/        # RSS fetcher, synthesis, screening, ranking, persona, image generation
+  hitl/           # Telegram bot, daily notes, comment queue, outbound poll
+  scheduler/      # cron jobs, time window picker
+  poster/         # LinkedIn browser automation, browser lock, comments, mentions
+  outbound/       # Profile scraping, comment generation, relevance scoring
+  cli/            # approve/reject/generate/post-now CLI commands
+  analytics/      # Post data tracking, performance reports
 pending_posts.json
 posted_history.json
+outbound_state.json
+outbound_profiles.json
+candidates.json
+daily_notes.json
 user_data/          # LinkedIn session persistence (gitignored)
 .env                # API keys (gitignored)
 ```
@@ -70,3 +120,4 @@ user_data/          # LinkedIn session persistence (gitignored)
 - Never store credentials in code — use .env only
 - All state is local files, no cloud DB
 - `user_data/` and `.env` are always gitignored
+- Browser lock ensures only one Playwright context at a time (all acquisitions have timeouts)

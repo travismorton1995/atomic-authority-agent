@@ -146,7 +146,7 @@ export async function runMetricsFetch() {
 
   console.log(`Fetching metrics for ${postsWithUrl.length} post(s) (last 90 days)...`);
 
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(60_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: true,

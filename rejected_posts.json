@@ -857,5 +857,298 @@
     "status": "rejected",
     "createdAt": "2026-04-04T23:52:48.926Z",
     "actedAt": "2026-04-04T23:54:05.741Z"
+  },
+  {
+    "id": "post_1775437737613",
+    "draft": {
+      "content": "[[MENTION:OPG]] recently applied for a 20-year operating licence for the BWRX-300 SMR at Darlington, and the [[MENTION:CNSC]] lifted the first regulatory hold point, clearing civil construction of the reactor building. This is a nuclear project moving at real pace toward a 2030 grid connection.\n\nBut here's what I keep thinking about from my time at [[MENTION:Bruce Power]].\n\nThe engineering culture that makes nuclear safe is the same culture that will resist AI adoption inside these facilities. Every system that touches operations has to be traceable, auditable, and explainable. That's not a preference. It's baked into the licensing basis, the set of assumptions and analyses that regulators require before a reactor can operate.\n\nBlack-box AI models fail that test immediately. You can't tell an operator or a regulator \"the model says so.\" They need to see the reasoning chain.\n\nEffective AI adoption in nuclear won't come from executive announcements. It'll come from the small number of engineers and operators who see a tool that respects their safety culture and actually reduces burden instead of adding process. Winning over those people, one at a time, is the real work.\n\nFour BWRX-300 units means four sets of commissioning, operations, and maintenance teams who will eventually interact with digital tools. The organizations building those tools need to understand that trust in nuclear is earned through demonstrated rigor, not demos.\n\n#NuclearEnergy #AI #CNSC #Darlington",
+      "firstComment": "Sourced from World Nuclear News. Have you seen AI tools actually gain traction in nuclear operations yet?\n\nhttps://www.world-nuclear-news.org/articles/opg-applies-for-operating-licence-for-bwrx-300-smr",
+      "postType": "change-management",
+      "sourceTitle": "OPG applies for operating licence for BWRX-300 SMR",
+      "sourceUrl": "https://www.world-nuclear-news.org/articles/opg-applies-for-operating-licence-for-bwrx-300-smr",
+      "sourceDate": "2026-04-02T15:03:03.000Z",
+      "sourceFeed": "World Nuclear News",
+      "generatedAt": "2026-04-06T01:08:39.921Z",
+      "imageUrl": "https://world-nuclear-news.org/images/articles/10thDec25_OPG_DarlingtonSMR_730_OPG_69293.jpg",
+      "combinedScore": 9,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1,
+      "postContentFeedback": 1.25,
+      "contentTags": [
+        "smr",
+        "licensing",
+        "cnsc",
+        "canada",
+        "new-build",
+        "machine-learning",
+        "explainability",
+        "digital-twin",
+        "trust",
+        "adoption",
+        "regulatory",
+        "safety-case",
+        "reactor-design",
+        "workforce"
+      ]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The post has solid nuclear-specific content and real credibility from Bruce Power experience. However, it hits several flags: 'But here's what I keep thinking about' is a mild pivot filler pattern, 'That's not a preference. It's baked into the licensing basis' is a contrasting reframe ('not X, it's Y'), and the hook is weak — it opens with a factual summary of the article headline without a perspective or tension in the first sentence. The body is strong but those structural issues push it to a 4.",
+      "revisedContent": "Four BWRX-300 units at Darlington could be grid-connected by 2030, and nobody's talking about the AI problem that comes with them.\n\n[[MENTION:OPG]] recently applied for a 20-year operating licence for the BWRX-300 SMR, and the [[MENTION:CNSC]] (Canada's nuclear regulator) lifted the first regulatory hold point, clearing civil construction of the reactor building. This is a nuclear project moving at real pace.\n\nFrom my time at [[MENTION:Bruce Power]], I saw how the engineering culture that makes nuclear safe will also resist AI adoption inside these facilities. Every system that touches operations has to be traceable, auditable, and explainable. That standard is baked into the licensing basis, the set of assumptions and analyses regulators require before a reactor can operate.\n\nBlack-box AI models fail that test immediately. You can't tell an operator or a regulator \"the model says so.\" They need to see the reasoning chain.\n\nEffective AI adoption in nuclear won't come from executive announcements. It'll come from the small number of engineers and operators who see a tool that respects their safety culture and actually reduces burden instead of adding process.\n\nWinning over those people, one at a time, is the real work.\n\nFour units means four sets of commissioning, operations, and maintenance teams who will eventually interact with digital tools. The organizations building those tools need to understand that trust in nuclear is earned through demonstrated rigor, not demos.\n\n#NuclearEnergy #AI #CNSC #Darlington",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Four BWRX-300 units at Darlington could be grid-connected by 2030, and nobody's talking about the AI problem that comes with them.\n\n[[MENTION:OPG]] recently applied for a 20-year operating licence for the BWRX-300 SMR, and the [[MENTION:CNSC]] (Canada's nuclear regulator) lifted the first regulatory hold point, clearing civil construction of the reactor building. This is a nuclear project moving at real pace.\n\nFrom my time at [[MENTION:Bruce Power]], I saw how the engineering culture that makes nuclear safe will also resist AI adoption inside these facilities. Every system that touches operations has to be traceable, auditable, and explainable. That standard is baked into the licensing basis, the set of assumptions and analyses regulators require before a reactor can operate.\n\nBlack-box AI models fail that test immediately. You can't tell an operator or a regulator \"the model says so.\" They need to see the reasoning chain.\n\nEffective AI adoption in nuclear won't come from executive announcements. It'll come from the small number of engineers and operators who see a tool that respects their safety culture and actually reduces burden instead of adding process.\n\nWinning over those people, one at a time, is the real work.\n\nFour units means four sets of commissioning, operations, and maintenance teams who will eventually interact with digital tools. The organizations building those tools need to understand that trust in nuclear is earned through demonstrated rigor, not demos.\n\n#NuclearEnergy #AI #CNSC #Darlington",
+    "status": "rejected",
+    "createdAt": "2026-04-06T01:08:57.613Z",
+    "actedAt": "2026-04-06T01:09:27.835Z"
+  },
+  {
+    "id": "post_1775585337907",
+    "draft": {
+      "content": "Canada's medical isotope output just doubled—without building a new reactor. Here's how.\n\n[[MENTION:Bruce Power]] just harvested cobalt-60 from Unit 8 using innovative heavy adjuster rods, a first-of-its-kind approach that increases isotope production without impacting reactor operations. Canada already supplies a massive share of the world's medical isotopes, and Ontario wants to double that by 2030.\n\nHere's what caught my attention as someone building AI tools for nuclear operations.\n\nThat harvest happened during a planned outage. Outages are the most documentation-heavy, schedule-critical windows in a CANDU reactor's life. Every task is sequenced against the station's licensing basis, the set of safety commitments that define how the plant is allowed to operate.\n\nNow imagine a LLM-assisted outage planning system that cross-references isotope harvest schedules against maintenance work packages in real time. You could flag conflicts days earlier, compress critical path timelines, and reduce the risk of a harvest getting bumped by a scheduling collision.\n\nBruce Power has been producing cobalt-60 for 40 years. The innovation side is clearly working. The coordination side is where AI earns its place.\n\nWhat's the biggest scheduling bottleneck you've seen during a planned outage?\n\n#NuclearEnergy #MedicalIsotopes #ArtificialIntelligence #BrucePower",
+      "firstComment": "Sourced from Saugeen Times. Has outage scheduling gotten noticeably tighter at your site?\n\nhttps://saugeentimes.com/bruce-power-significant-cobalt-60-harvest-builds-on-innovation-and-partnerships/",
+      "postType": "bridge",
+      "sourceTitle": "Bruce Power – significant cobalt-60 harvest builds on innovation and partnerships",
+      "sourceUrl": "https://saugeentimes.com/bruce-power-significant-cobalt-60-harvest-builds-on-innovation-and-partnerships/",
+      "sourceDate": "2026-04-06T15:40:59.000Z",
+      "sourceFeed": "NewsData: Saugeen Times",
+      "generatedAt": "2026-04-07T18:08:39.748Z",
+      "imageUrl": "https://saugeentimes.com/wp-content/uploads/2026/04/Bruce-Power-CobaltHarvest-2048x1368-1.jpeg",
+      "combinedScore": 7.738095238095238,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 1,
+        "geography": 2,
+        "npx": 1
+      },
+      "balanceMultiplier": 0.9523809523809523,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.25,
+      "contentTags": ["canada", "candu", "llm", "document-automation", "adoption", "reactor-design"]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook uses the '[Entity] just [did thing]' pattern with an em dash, bumping the score. The post has a solid nuclear angle with real terminology (CANDU, licensing basis, cobalt-60), but the AI application paragraph stacks three gerund-led outcomes ('flag conflicts... compress... reduce') in classic AI-list fashion, and the pivot sentence 'Here's what caught my attention' is filler. The contrasting reframe 'The innovation side is clearly working. The coordination side is where AI earns its place' skirts the pattern but is close enough to flag. The closing question is a hollow CTA disguised as engagement bait. Readability is good for a mixed audience, though 'licensing basis' is explained inline, which is solid.",
+      "revisedContent": "Canada's medical isotope output just doubled, and no one built a new reactor.\n\n[[MENTION:Bruce Power]] harvested cobalt-60 from Unit 8 using innovative heavy adjuster rods. It's a first-of-its-kind approach that increases isotope production without impacting reactor operations.\n\nCanada already supplies a massive share of the world's medical isotopes. Ontario wants to double that by 2030.\n\nThat harvest happened during a planned outage. Outages are the most documentation-heavy, schedule-critical windows in a CANDU reactor's life.\n\nEvery task is sequenced against the station's licensing basis, the set of safety commitments that define how the plant is allowed to operate.\n\nBruce Power has been producing cobalt-60 for 40 years. They clearly know the production side. But coordinating a novel harvest procedure inside an already-packed outage schedule is a different problem.\n\nImagine an LLM-assisted outage planning system that cross-references isotope harvest schedules against maintenance work packages in real time. You could flag conflicts days earlier and compress critical path timelines instead of risking a harvest getting bumped by a scheduling collision.\n\nThat's the kind of narrow, high-value application where AI fits in nuclear ops.\n\n#NuclearEnergy #MedicalIsotopes #AI #BrucePower",
+      "revisedFirstComment": "Sourced from Saugeen Times. Has outage scheduling gotten noticeably tighter at your site?\n\nhttps://saugeentimes.com/bruce-power-significant-cobalt-60-harvest-builds-on-innovation-and-partnerships/"
+    },
+    "finalContent": "Canada's medical isotope output just doubled, and no one built a new reactor.\n\n[[MENTION:Bruce Power]] harvested cobalt-60 from Unit 8 using innovative heavy adjuster rods. It's a first-of-its-kind approach that increases isotope production without impacting reactor operations.\n\nCanada already supplies a massive share of the world's medical isotopes. Ontario wants to double that by 2030.\n\nThat harvest happened during a planned outage. Outages are the most documentation-heavy, schedule-critical windows in a CANDU reactor's life.\n\nEvery task is sequenced against the station's licensing basis, the set of safety commitments that define how the plant is allowed to operate.\n\nBruce Power has been producing cobalt-60 for 40 years. They clearly know the production side. But coordinating a novel harvest procedure inside an already-packed outage schedule is a different problem.\n\nImagine an LLM-assisted outage planning system that cross-references isotope harvest schedules against maintenance work packages in real time. You could flag conflicts days earlier and compress critical path timelines instead of risking a harvest getting bumped by a scheduling collision.\n\nThat's the kind of narrow, high-value application where AI fits in nuclear ops.\n\n#NuclearEnergy #MedicalIsotopes #AI #BrucePower",
+    "status": "rejected",
+    "createdAt": "2026-04-07T18:08:57.907Z",
+    "actedAt": "2026-04-07T18:09:55.879Z"
+  },
+  {
+    "id": "post_1775604428584",
+    "draft": {
+      "content": "Your country's most critical intelligence systems are now built by private companies. No government contract required.\n\nThis week's AI governance debate keeps circling the same assumption: that the companies building these models should self-regulate because they move faster than governments can.\n\nI spent two and a half years writing control programs for nuclear reactors at [[MENTION:Bruce Power]]. In that world, \"move fast\" gets people killed. Every change to a safety case goes through deterministic safety analysis, where regulators verify the reactor stays safe under worst-case conditions. The process is slow on purpose.\n\nNuclear figured out decades ago that capability without oversight is just risk you haven't priced yet. AI companies are building systems they compare to nuclear capabilities in strategic importance, then arguing they shouldn't face nuclear-grade accountability.\n\nPick one.\n\n#NuclearEnergy #AIGovernance #AIRegulation #NuclearSafety",
+      "firstComment": "Sourced from Domain-b. Are AI safety teams actually running worst-case scenario testing like nuclear does?\n\nhttps://www.domain-b.com/technology/artificial-intelligence/ai-vs-governments-control-future-intelligence",
+      "postType": "contrarian",
+      "sourceTitle": "AI vs governments: Who controls the future of intelligence?",
+      "sourceUrl": "https://www.domain-b.com/technology/artificial-intelligence/ai-vs-governments-control-future-intelligence",
+      "sourceDate": "2026-04-07T15:00:04.000Z",
+      "sourceFeed": "NewsData: Domain-b",
+      "generatedAt": "2026-04-07T23:26:55.055Z",
+      "imageUrl": "https://www.domain-b.com/Uploads/Images/ai-vs-government-control-intelligence.webp",
+      "wordCount": 135,
+      "combinedScore": 6.24,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 1,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "safety-case", "cnsc", "canada", "trust", "adoption", "llm", "machine-learning"]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "Strong hook under 140 characters that creates genuine tension. Good use of nuclear-specific terminology (deterministic safety analysis, safety case) with enough context for non-nuclear readers. The 'deterministic safety analysis' term gets an inline explanation, which is good. The closing 'Pick one.' lands well as a rhetorical move without being hollow. Clean structure, no AI-isms, no contrasting reframe patterns. Paragraph lengths are fine. Hashtag count is 4, within range. Only minor note: the third paragraph is 3 sentences, which technically triggers the wall-of-text rule, so bumping slightly and providing a reformatted version.",
+      "revisedContent": "Your country's most critical intelligence systems are now built by private companies. No government contract required.\n\nThis week's AI governance debate keeps circling the same assumption: that the companies building these models should self-regulate because they move faster than governments can.\n\nI spent two and a half years writing control programs for nuclear reactors at Bruce Power. In that world, \"move fast\" gets people killed.\n\nEvery change to a safety case goes through deterministic safety analysis, where regulators verify the reactor stays safe under worst-case conditions. The process is slow on purpose.\n\nNuclear figured out decades ago that capability without oversight is just risk you haven't priced yet. AI companies are building systems they compare to nuclear capabilities in strategic importance, then arguing they shouldn't face nuclear-grade accountability.\n\nPick one.\n\n#NuclearEnergy #AIGovernance #AIRegulation #NuclearSafety",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Your country's most critical intelligence systems are now built by private companies. No government contract required.\n\nThis week's AI governance debate keeps circling the same assumption: that the companies building these models should self-regulate because they move faster than governments can.\n\nI spent two and a half years writing control programs for nuclear reactors at [[MENTION:Bruce Power]]. In that world, \"move fast\" gets people killed. Every change to a safety case goes through deterministic safety analysis, where regulators verify the reactor stays safe under worst-case conditions. The process is slow on purpose.\n\nNuclear figured out decades ago that capability without oversight is just risk you haven't priced yet. AI companies are building systems they compare to nuclear capabilities in strategic importance, then arguing they shouldn't face nuclear-grade accountability.\n\nPick one.\n\n#NuclearEnergy #AIGovernance #AIRegulation #NuclearSafety",
+    "status": "rejected",
+    "createdAt": "2026-04-07T23:27:08.584Z",
+    "wordCount": 134,
+    "actedAt": "2026-04-07T23:28:32.854Z"
+  },
+  {
+    "id": "post_1775604703748",
+    "draft": {
+      "content": "Three barriers that blocked nuclear recycling for 50 years have shifted. Washington has months to act.\n\nHere's my call: [[MENTION:Oklo]] will submit a formal [[MENTION:NRC]] license application for its Oak Ridge recycling facility before the end of Q1 2027. They've already completed pre-application engagement and initiated a rolling readiness review. The site prework is underway. The regulatory pathway exists.\n\nWhy I'm confident: Executive Order 14302 declared recycling official U.S. policy. Pyroprocessing, the electrochemical separation technique [[MENTION:INL]] has demonstrated for 30 years, finally has credible cost estimates. A first-of-its-kind facility processing 400 metric tons per year is projected at $500M to $1B. That's a fraction of legacy PUREX plant costs.\n\nThe HALEU supply constraint makes this urgent. INL's director told the Senate that demand through 2026-2030 will far exceed production capacity. Recycled fuel from 94,000 metric tons of existing spent fuel stockpiles could serve as a stopgap.\n\nIf I'm wrong, it means NRC licensing mechanics are still too slow for the political moment, and Russia's fuel cycle dominance extends another decade.\n\n#NuclearEnergy #FuelRecycling #NuclearPolicy #AdvancedReactors",
+      "firstComment": "Sourced from Power Magazine. Does Oklo have the supply chain locked in to hit that timeline?\n\nhttps://www.powermag.com/nuclear-recycling-has-reached-a-prime-moment-and-the-u-s-may-be-running-out-of-time/",
+      "postType": "prediction",
+      "sourceTitle": "Nuclear Recycling Has Reached a Prime Moment—and the U.S. May Be Running Out of Time",
+      "sourceUrl": "https://www.powermag.com/nuclear-recycling-has-reached-a-prime-moment-and-the-u-s-may-be-running-out-of-time/",
+      "sourceDate": "2026-04-06T19:35:56.000Z",
+      "sourceFeed": "Power Magazine",
+      "generatedAt": "2026-04-07T23:31:31.240Z",
+      "imageUrl": "https://www.powermag.com/wp-content/uploads/2022/10/orano-mox.jpg",
+      "wordCount": 174,
+      "combinedScore": 6.240000000000001,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 3,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 0.8,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "licensing", "nrc", "usa", "doe", "new-build"]
+    },
+    "screening": {
+      "cringeScore": 2,
+      "reasoning": "Strong hook under 140 characters that creates urgency and tension. The post reads like a knowledgeable insider making a specific, falsifiable prediction with concrete numbers and named entities. Industry-specific terminology (pyroprocessing, HALEU, PUREX) is present but pyroprocessing gets an inline explanation. HALEU and PUREX could use brief glosses for non-nuclear readers, but only one of them (HALEU) is central to the argument, keeping it within tolerance. No AI-isms, no contrasting reframes, no hollow CTAs. Clean structure with short paragraphs. Hashtags at 4, well within range.",
+      "revisedContent": null,
+      "revisedFirstComment": null
+    },
+    "finalContent": "Three barriers that blocked nuclear recycling for 50 years have shifted. Washington has months to act.\n\nHere's my call: [[MENTION:Oklo]] will submit a formal [[MENTION:NRC]] license application for its Oak Ridge recycling facility before the end of Q1 2027. They've already completed pre-application engagement and initiated a rolling readiness review. The site prework is underway. The regulatory pathway exists.\n\nWhy I'm confident: Executive Order 14302 declared recycling official U.S. policy. Pyroprocessing, the electrochemical separation technique [[MENTION:INL]] has demonstrated for 30 years, finally has credible cost estimates. A first-of-its-kind facility processing 400 metric tons per year is projected at $500M to $1B. That's a fraction of legacy PUREX plant costs.\n\nThe HALEU supply constraint makes this urgent. INL's director told the Senate that demand through 2026-2030 will far exceed production capacity. Recycled fuel from 94,000 metric tons of existing spent fuel stockpiles could serve as a stopgap.\n\nIf I'm wrong, it means NRC licensing mechanics are still too slow for the political moment, and Russia's fuel cycle dominance extends another decade.\n\n#NuclearEnergy #FuelRecycling #NuclearPolicy #AdvancedReactors",
+    "status": "rejected",
+    "createdAt": "2026-04-07T23:31:43.748Z",
+    "wordCount": 174,
+    "actedAt": "2026-04-07T23:34:20.711Z"
+  },
+  {
+    "id": "post_1775689285622",
+    "draft": {
+      "content": "The NRC erased ALARA from its rulebook. What that means for radiation standards is still being written.\n\nBut here's what's already concrete: Part 53's final rule, affirmed March 25, makes probabilistic risk assessment (PRA) central to safety classification, emergency planning, and security planning for advanced reactors. Under the old Parts 50 and 52, PRA played a supporting role. Under Part 53, applicants propose their own risk metrics and demonstrate how their design protects public health and safety.\n\nThat shift creates a massive documentation and analysis workload. Every applicant needs to cover internal events, external hazards, multi-module effects, and risks from novel fuels and coolants.\n\nThis is exactly where LLM-assisted licensing tools earn their keep. An AI system trained on [[MENTION:NRC]] regulatory language can draft PRA-informed safety case narratives, cross-reference proposed risk performance objectives against existing precedent, and flag gaps before an applicant submits. The cognitive load of assembling a Part 53 application from scratch is staggering.\n\nAt [[MENTION:NPX]], we're building tools in this space. The regulatory framework just got more flexible, but flexibility without tooling is just more paperwork with fewer guardrails.\n\nWho's already mapping their Part 53 licensing strategy?\n\n#NRC #NuclearEnergy #AdvancedReactors #LicensingReform #NPX",
+      "firstComment": "Sourced from National Law Review. Are you planning a Part 53 application for your reactor design?\n\nhttps://natlawreview.com/article/navigating-nuclear-what-part-53-previews-future-rulemakings",
+      "postType": "bridge",
+      "sourceTitle": "Navigating Nuclear: What Part 53 Previews for Future Rulemakings",
+      "sourceUrl": "https://natlawreview.com/article/navigating-nuclear-what-part-53-previews-future-rulemakings",
+      "sourceDate": "2026-04-07T23:13:33.000Z",
+      "sourceFeed": "NewsData: National Law Review",
+      "generatedAt": "2026-04-08T23:01:10.535Z",
+      "imageUrl": "https://natlawreview.com/sites/default/files/styles/article_image/public/2026-04/nuclear%20power%20plant%20water.jpg.webp?itok=XsTi-Ona",
+      "wordCount": 195,
+      "combinedScore": 8.171428571428573,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 3,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.0476190476190477,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "licensing", "nrc", "smr", "reactor-design", "llm", "document-automation", "safety-case"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook is strong and under 140 characters. Good technical depth with inline explanations. However, 'But here's what's already concrete' is a pivot filler sentence. The three-item list pattern appears twice (paragraph 2 and paragraph 4). The closing question 'Who's already mapping their Part 53 licensing strategy?' is a soft call-to-action. The last sentence of paragraph 4 ('The cognitive load...') is disconnected from the AI tooling point. Paragraph 2 is a wall of text at 3 sentences.",
+      "revisedContent": "The NRC erased ALARA from its rulebook. What that means for radiation standards is still being written.\n\nThe concrete part: Part 53's final rule, affirmed March 25, makes probabilistic risk assessment (PRA, a method for quantifying the likelihood and impact of failure scenarios) central to safety classification, emergency planning, and security planning for advanced reactors.\n\nUnder the old Parts 50 and 52, PRA played a supporting role. Under Part 53, applicants propose their own risk metrics and demonstrate how their design protects public health and safety.\n\nThat shift creates a massive documentation and analysis workload. Every applicant needs to cover internal events, external hazards, multi-module effects, and risks from novel fuels and coolants.\n\nThis is exactly where LLM-assisted licensing tools earn their keep. An AI system trained on [[MENTION:NRC]] regulatory language can draft PRA-informed safety case narratives and cross-reference proposed risk performance objectives against existing precedent. It can flag gaps before an applicant submits, reducing weeks of manual review.\n\nAt [[MENTION:NPX]], we're building tools in this space. The regulatory framework just got more flexible, but flexibility without tooling is just more paperwork with fewer guardrails.\n\n#NRC #NuclearEnergy #AdvancedReactors #LicensingReform #NPX",
+      "revisedFirstComment": null
+    },
+    "finalContent": "The NRC erased ALARA from its rulebook. What that means for radiation standards is still being written.\n\nThe concrete part: Part 53's final rule, affirmed March 25, makes probabilistic risk assessment (PRA, a method for quantifying the likelihood and impact of failure scenarios) central to safety classification, emergency planning, and security planning for advanced reactors.\n\nUnder the old Parts 50 and 52, PRA played a supporting role. Under Part 53, applicants propose their own risk metrics and demonstrate how their design protects public health and safety.\n\nThat shift creates a massive documentation and analysis workload. Every applicant needs to cover internal events, external hazards, multi-module effects, and risks from novel fuels and coolants.\n\nThis is exactly where LLM-assisted licensing tools earn their keep. An AI system trained on [[MENTION:NRC]] regulatory language can draft PRA-informed safety case narratives and cross-reference proposed risk performance objectives against existing precedent. It can flag gaps before an applicant submits, reducing weeks of manual review.\n\nAt [[MENTION:NPX]], we're building tools in this space. The regulatory framework just got more flexible, but flexibility without tooling is just more paperwork with fewer guardrails.\n\n#NRC #NuclearEnergy #AdvancedReactors #LicensingReform #NPX",
+    "status": "rejected",
+    "createdAt": "2026-04-08T23:01:25.622Z",
+    "wordCount": 190,
+    "actedAt": "2026-04-08T23:36:02.154Z"
+  },
+  {
+    "id": "post_1775837708295",
+    "draft": {
+      "content": "Most nuclear AI announcements won't survive first contact with operations.\n\nI got a reminder of that this week. We ran our first internal feedback cycle on the change management module inside NPXai. The module uses a LLM agent to read change descriptions and propose rollout actions based on ADKAR, a structured framework for guiding people through organizational change.\n\nI expected the agent's outputs to need tuning. I didn't expect how specifically they'd fail.\n\nThe proposed actions were algorithmically reasonable. But colleagues flagged blind spots instantly, contextual gaps that a practitioner would never miss but that I couldn't see as the developer. Presenting something you've built to people who'll actually use it is nerve-wracking.\n\nAt [[MENTION:Bruce Power]], I learned that nuclear operators have a low tolerance for tools that create more cognitive work than they absorb. The safety case culture demands human approval at nearly every decision point. So the AI has to genuinely reduce load, not just redistribute it.\n\nWe're iterating next week. I still don't know exactly where that line sits.\n\n#NuclearEnergy #AI #AIGovernance #NPX",
+      "firstComment": "When you iterate next week, what's the first failure mode you're planning to tackle?",
+      "postType": "insider",
+      "sourceTitle": "Weekly insider observations from NPX",
+      "sourceUrl": "",
+      "sourceDate": "2026-04-10T16:12:38.348Z",
+      "sourceFeed": "Daily Notes",
+      "generatedAt": "2026-04-10T16:14:52.070Z",
+      "wordCount": 176
+    },
+    "screening": {
+      "cringeScore": 0,
+      "reasoning": "Screener parse error",
+      "revisedContent": null,
+      "revisedFirstComment": null
+    },
+    "finalContent": "Most nuclear AI announcements won't survive first contact with operations.\n\nI got a reminder of that this week. We ran our first internal feedback cycle on the change management module inside NPXai. The module uses a LLM agent to read change descriptions and propose rollout actions based on ADKAR, a structured framework for guiding people through organizational change.\n\nI expected the agent's outputs to need tuning. I didn't expect how specifically they'd fail.\n\nThe proposed actions were algorithmically reasonable. But colleagues flagged blind spots instantly, contextual gaps that a practitioner would never miss but that I couldn't see as the developer. Presenting something you've built to people who'll actually use it is nerve-wracking.\n\nAt [[MENTION:Bruce Power]], I learned that nuclear operators have a low tolerance for tools that create more cognitive work than they absorb. The safety case culture demands human approval at nearly every decision point. So the AI has to genuinely reduce load, not just redistribute it.\n\nWe're iterating next week. I still don't know exactly where that line sits.\n\n#NuclearEnergy #AI #AIGovernance #NPX",
+    "status": "rejected",
+    "createdAt": "2026-04-10T16:15:08.295Z",
+    "wordCount": 176,
+    "actedAt": "2026-04-10T16:16:53.839Z"
+  },
+  {
+    "id": "post_1775865671237",
+    "draft": {
+      "content": "Texas is betting $350M that the bottleneck in nuclear isn't physics—it's money.\n\nSilicon Valley would call this \"de-risking the funding valley.\" Ship fast, iterate later.\n\nExcept only two projects in the entire state meet the [[MENTION:NRC]] licensing threshold today.\n\nTANEO director Jarred Shaffer said it plainly: \"We've only got two eligible projects in the state that check that docketed box.\" $350M available, and the constraint isn't capital. It's the years of deterministic safety analysis, the method regulators use to prove a reactor stays safe under worst-case conditions, that precede a single dollar being useful. At [[MENTION:Bruce Power]], I watched funding sit idle while engineering documentation crawled through validation. Money without a licensing basis is a press release, not a project.\n\nThe nuclear sector keeps proving the same thing Silicon Valley refuses to learn.\n\nCapital doesn't accelerate what hasn't been licensed. Sequencing beats speed.\n\n#NuclearEnergy #EnergyPolicy #AdvancedReactors #AI",
+      "firstComment": "Sourced from ANS Newswire. Has licensing been the real sticking point for projects near you?\n\nhttps://www.ans.org/news/2026-04-09/article-7920/texas-opens-350m-in-nuclear-funding/",
+      "postType": "contrarian",
+      "sourceTitle": "Texas opens $350M in nuclear funding",
+      "sourceUrl": "https://www.ans.org/news/2026-04-09/article-7920/texas-opens-350m-in-nuclear-funding/",
+      "sourceDate": "2026-04-09T12:10:14.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-04-11T00:00:56.488Z",
+      "wordCount": 147,
+      "combinedScore": 7.800000000000001,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "licensing", "nrc", "new-build", "texas", "safety-case"]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook uses an em dash and contains 'bottleneck,' which is a flagged overused word. The contrasting reframe structure in the hook ('isn't physics—it's money') is an automatic rewrite trigger. The post has good substance and real domain knowledge, but the 2:1 scannability structure is violated: the Shaffer quote paragraph is far too long (~450 chars), and there are structural rhythm issues. The first comment uses 'bottleneck,' which should be replaced.",
+      "revisedContent": "Texas has $350M for nuclear. Only two projects in the entire state qualify to receive it.\n\nSilicon Valley would call this \"de-risking the funding valley.\"\n\nExcept the limiting factor was never capital.\n\nTANEO director Jarred Shaffer said it plainly: \"We've only got two eligible projects in the state that check that docketed box.\" The constraint is the years of deterministic safety analysis, the method regulators use to prove a reactor stays safe under worst-case conditions, that must happen before a single dollar is useful.\n\nAt [[MENTION:Bruce Power]], I watched funding sit idle while documentation crawled through validation.\n\nMoney without a licensing basis is a press release, not a project.\n\nThe nuclear sector keeps proving what Silicon Valley refuses to learn. Capital doesn't accelerate what hasn't been licensed. Sequencing beats speed.\n\n#NuclearEnergy #EnergyPolicy #AdvancedReactors",
+      "revisedFirstComment": "Sourced from ANS Newswire. Has licensing been the real sticking point for projects near you?\n\nhttps://www.ans.org/news/2026-04-09/article-7920/texas-opens-350m-in-nuclear-funding/"
+    },
+    "finalContent": "Texas has $350M for nuclear. Only two projects in the entire state qualify to receive it.\n\nSilicon Valley would call this \"de-risking the funding valley.\"\n\nExcept the limiting factor was never capital.\n\nTANEO director Jarred Shaffer said it plainly: \"We've only got two eligible projects in the state that check that docketed box.\" The constraint is the years of deterministic safety analysis, the method regulators use to prove a reactor stays safe under worst-case conditions, that must happen before a single dollar is useful.\n\nAt [[MENTION:Bruce Power]], I watched funding sit idle while documentation crawled through validation.\n\nMoney without a licensing basis is a press release, not a project.\n\nThe nuclear sector keeps proving what Silicon Valley refuses to learn. Capital doesn't accelerate what hasn't been licensed. Sequencing beats speed.\n\n#NuclearEnergy #EnergyPolicy #AdvancedReactors",
+    "status": "rejected",
+    "createdAt": "2026-04-11T00:01:11.237Z",
+    "wordCount": 133,
+    "actedAt": "2026-04-11T00:03:27.273Z"
+  },
+  {
+    "id": "post_1775867434895",
+    "draft": {
+      "content": "After 37 years running nuclear security drills, the NRC is stepping back. Here's why that matters.\n\nThe tech industry worships \"move fast and break things.\"\n\nNuclear just did the opposite and it took 33 years.\n\nThe [[MENTION:NRC]] phased Force-on-Force security drills from every 8 years to every 3 after 9/11. Now they're handing exercise leadership to licensees, effective 2028. That single change required decades of inspection data and a formal commission vote.\n\nAt [[MENTION:Bruce Power]] I watched minor control program changes take months of review.\n\nSilicon Valley calls that bureaucracy. I call it a safety case.\n\nWhen your experiment involves a nuclear facility, failure has a different definition. The NRC moved deliberately because consequences are measured in half-lives, not quarterly earnings.\n\nSpeed is not a virtue when your product can irradiate a county.\n\n#NuclearEnergy #EnergyPolicy #AI #NuclearSafety",
+      "firstComment": "Sourced from ANS Newswire.\n\nHave you seen licensees actually ready for this shift by 2028?",
+      "postType": "contrarian",
+      "sourceTitle": "NRC approves overhaul of FOF inspections, baseline security programs",
+      "sourceUrl": "https://www.ans.org/news/2026-04-09/article-7922/nrc-approves-overhaul-of-fof-inspections-baseline-security-programs/",
+      "sourceDate": "2026-04-09T16:28:21.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-04-11T00:30:21.369Z",
+      "wordCount": 137,
+      "combinedScore": 7.800000000000001,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "safety-case", "licensing", "nrc", "cybersecurity", "canada", "usa", "trust", "adoption"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook is strong and under 140 characters. Good industry-specific detail (Force-on-Force drills, NRC, Bruce Power). However, there are two contrasting reframe patterns ('Silicon Valley calls that bureaucracy. I call it a safety case.' and 'consequences are measured in half-lives, not quarterly earnings') that trigger a mandatory rewrite. The 2:1 scannability structure is also violated: paragraphs don't follow the One-Liner/One-Liner/Mini-Para rhythm consistently. NRC acronym needs expansion on first use.",
+      "revisedContent": "After 37 years running nuclear security drills, the NRC (Nuclear Regulatory Commission) is stepping back.\n\nThe tech industry worships \"move fast and break things.\" Nuclear took 33 years to make one change.\n\nThe [[MENTION:NRC]] phased Force-on-Force security drills from every 8 years to every 3 after 9/11. Now they're handing exercise leadership to licensees, effective 2028. That single shift required decades of inspection data and a formal commission vote.\n\nAt [[MENTION:Bruce Power]], I watched minor control program changes take months of review.\n\nThat kind of deliberation is a safety case, built on evidence and consequences.\n\nWhen your experiment involves a nuclear facility, failure means something permanent. The NRC moved deliberately because consequences are measured in half-lives. Every step had to be justified before it was taken.\n\nSpeed is not a virtue when your product can irradiate a county.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+      "revisedFirstComment": null
+    },
+    "finalContent": "After 37 years running nuclear security drills, the NRC (Nuclear Regulatory Commission) is stepping back.\n\nThe tech industry worships \"move fast and break things.\" Nuclear took 33 years to make one change.\n\nThe [[MENTION:NRC]] phased Force-on-Force security drills from every 8 years to every 3 after 9/11. Now they're handing exercise leadership to licensees, effective 2028. That single shift required decades of inspection data and a formal commission vote.\n\nAt [[MENTION:Bruce Power]], I watched minor control program changes take months of review.\n\nThat kind of deliberation is a safety case, built on evidence and consequences.\n\nWhen your experiment involves a nuclear facility, failure means something permanent. The NRC moved deliberately because consequences are measured in half-lives. Every step had to be justified before it was taken.\n\nSpeed is not a virtue when your product can irradiate a county.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+    "status": "rejected",
+    "createdAt": "2026-04-11T00:30:34.895Z",
+    "wordCount": 141,
+    "actedAt": "2026-04-11T00:34:35.728Z"
   }
 ]

@@ -50,7 +50,7 @@ async function downloadImageToTemp(imageUrl: string): Promise<string | null> {
 // Opens a headed browser and waits for the user to log in manually.
 // Returns true on success, false on timeout or error.
 export async function renewSession(): Promise<boolean> {
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(60_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: false,
@@ -92,7 +92,7 @@ export function isSessionExpiredUrl(url: string): boolean {
 }
 
 export async function pingSession(): Promise<boolean> {
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(60_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: true,
@@ -121,7 +121,7 @@ export async function pingSession(): Promise<boolean> {
 export async function postToLinkedIn(content: string, options: PostOptions = {}): Promise<string | null> {
   const headless = options.forceHeaded ? false : process.env.LINKEDIN_HEADLESS === 'true';
 
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(60_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless,
@@ -472,9 +472,8 @@ async function postFirstComment(page: Page, comment: string): Promise<string | n
       }
     }
 
-    // Wait for LinkedIn to fetch and render the URL preview card before submitting.
-    // Too short and the comment posts without a thumbnail.
-    await page.waitForTimeout(5000);
+    // Brief pause before submitting to let LinkedIn process the typed text.
+    await page.waitForTimeout(1000);
 
     // The submit "Comment" button is inside the comment composer box, NOT the reaction bar.
     // Scope the search to comment-box containers to avoid clicking reaction bar buttons on other posts.

@@ -312,12 +312,17 @@ Write the LinkedIn post now. You have the full article text above — use specif
       role: 'user',
       content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Output the comment text only — do not include the URL.
 
-${item.source && item.source !== 'Manual' && item.source !== 'Daily Notes' ? `Format: Sourced from [Source Name]. [One simple question.]
+${item.source && item.source !== 'Manual' && item.source !== 'Daily Notes' && postType !== 'insider' ? `Format (use exactly this structure with a blank line between the source and question):
+
+Sourced from [Source Name].
+
+[One simple question.]
 
 Rules:
-- "Sourced from [Source Name]" uses the publication name (e.g. "Sourced from World Nuclear News", "Sourced from Bruce Power", "Sourced from IAEA")
-- Use a period after the source name, not a dash
+- "Sourced from [Source Name]." uses the publication name (e.g. "Sourced from World Nuclear News.", "Sourced from Bruce Power.", "Sourced from IAEA.")
+- The source line ends with a period. Then a blank line. Then the question on its own line.
 - The question must be SHORT and SIMPLE — something a reader could answer in one sentence without thinking hard. Write it the way you'd casually ask a colleague, not how you'd phrase an exam question.
+- Address the question to the AUDIENCE (fellow professionals reading the post), not to the article's author.
 - Good examples: "Are you seeing this at your site?" / "Would this actually speed things up?" / "Has anyone tried this approach?"
 - Bad examples: "Given the regulatory constraints of deterministic safety analysis frameworks, how might..." — too long, too academic, nobody wants to answer this
 - One sentence only, under 20 words
@@ -328,7 +333,9 @@ Source name: ${item.source}` : `Format: [One simple question.]
 
 Rules:
 - The question must be SHORT and SIMPLE — something a reader could answer in one sentence without thinking hard. Write it the way you'd casually ask a colleague.
+- Address the question to the AUDIENCE (fellow professionals reading the post), not to the author. You ARE the author — you're asking your readers to share their experience.
 - Good examples: "Are you seeing this at your site?" / "Would this actually speed things up?" / "Has anyone tried this approach?"
+- Bad examples: "What inspired you to write this?" / "Can you tell us more?" (these address the author, not the audience)
 - One sentence only, under 20 words
 - No em dashes
 - No preamble, no sign-off, no URL`}`,
@@ -336,7 +343,7 @@ Rules:
   });
 
   const commentText = commentMessage.content[0].type === 'text' ? commentMessage.content[0].text.trim() : '';
-  const firstComment = item.link ? `${commentText}\n\n${item.link}` : commentText;
+  const firstComment = commentText;
 
   const finalWordCount = content.split(/\s+/).filter(Boolean).length;
 

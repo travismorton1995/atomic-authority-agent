@@ -293,13 +293,14 @@ export async function rewritePost(post: PendingPost): Promise<PendingPost> {
     console.log(`Rewriting post ${post.id} — "${post.draft.sourceTitle}"`);
 
     // Reconstruct the FeedItem from the stored draft
+    const isInsider = post.draft.postType === 'insider';
     const item: FeedItem = {
       title: post.draft.sourceTitle,
       link: post.draft.sourceUrl,
-      summary: '',
+      summary: isInsider ? post.finalContent : '',
       source: post.draft.sourceFeed ?? post.draft.sourceTitle,
       pubDate: post.draft.sourceDate,
-      fullText: post.draft.sourceUrl ? undefined : undefined,
+      fullText: isInsider ? post.finalContent : undefined,
       imageUrl: post.draft.imageUrl,
     };
 
@@ -351,11 +352,20 @@ export async function runInsiderPipeline(assembledNotes: string): Promise<Pendin
   pipelineRunning = true;
   try {
     console.log('[insider] Generating insider post from daily notes...');
+
+    // Search notes for friction points to ground the hook
+    const frictionPattern = /friction|frustrat|block|stuck|broke|fail|conflict|struggle|challeng|problem|bug|error|workaround/i;
+    const noteLines = assembledNotes.split('\n\n');
+    const frictionNotes = noteLines.filter(line => frictionPattern.test(line));
+    const frictionHint = frictionNotes.length > 0
+      ? `\n\nWEEKLY FRICTION POINTS (ground your hook in one of these):\n${frictionNotes.join('\n')}`
+      : '';
+
     const item: FeedItem = {
       title: 'Weekly insider observations from NPX',
       link: '',
       summary: assembledNotes.slice(0, 400),
-      fullText: assembledNotes,
+      fullText: assembledNotes + frictionHint,
       source: 'Daily Notes',
       pubDate: new Date().toISOString(),
     };
@@ -456,9 +466,7 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
     .filter(r => r.score > 0)
     .map(r => {
       const suggested = r.suggestedPostType as PostType;
-      const postType = (suggested && suggested !== lastPostType)
-        ? suggested
-        : pickPostType(lastPostType);
+      const postType = suggested || pickPostType(lastPostType);
       const balanceMultiplier = balanceMultipliers[postType] ?? 1.0;
       const postContentFeedback = computeTagMultiplier(r.suggestedTags);
 

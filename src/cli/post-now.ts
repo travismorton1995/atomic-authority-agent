@@ -49,10 +49,20 @@ async function main() {
   console.log('Opening browser...\n');
 
   try {
+    // Resolve which image to use based on approval choice
+    const imageOpts: Record<string, string | undefined> = {};
+    if ((post.imageChoice === 'ai' || post.imageChoice === 'custom') && post.draft.generatedImagePath) {
+      imageOpts.generatedImagePath = post.draft.generatedImagePath;
+    } else if (post.imageChoice === 'og' && post.draft.imageUrl) {
+      imageOpts.imageUrl = post.draft.imageUrl;
+    } else if (!post.imageChoice && post.draft.imageUrl) {
+      imageOpts.imageUrl = post.draft.imageUrl;
+    }
+
     const linkedInPostUrl = await postToLinkedIn(post.finalContent, {
       forceHeaded: true,
       firstComment: post.draft.firstComment,
-      imageUrl: post.draft.imageUrl,
+      ...imageOpts,
     });
     markPublished(post.id, linkedInPostUrl);
     console.log(`Done. Post ${post.id} marked as published.`);

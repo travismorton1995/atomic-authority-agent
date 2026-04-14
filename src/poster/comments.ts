@@ -14,7 +14,7 @@ export interface ScrapedComment {
 }
 
 export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]> {
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(30_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -94,7 +94,7 @@ export async function postCommentReply(
   commentId: string,
   replyText: string
 ): Promise<void> {
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(30_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -178,7 +178,7 @@ export async function postOutboundComment(
   postUrl: string,
   commentText: string,
 ): Promise<void> {
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(30_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',

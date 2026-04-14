@@ -39,7 +39,7 @@ export interface ReportData {
   feedRanking: RankEntry[];
   dayRanking: RankEntry[];
   windowRanking: RankEntry[];
-  photoComparison: { withPhoto: GroupStats | null; noPhoto: GroupStats | null } | null;
+  photoComparison: { ogPhoto: GroupStats | null; aiPhoto: GroupStats | null; customPhoto: GroupStats | null; noPhoto: GroupStats | null } | null;
   wordCountBuckets: Record<string, { stats: GroupStats; significant: boolean }> | null;
   outliers: Array<{ snippet: string; score: number; sigma: number }>;
   bestPost: { snippet: string; postType: string; score: number; impressions: number } | null;
@@ -111,12 +111,16 @@ export function generateReportData(): ReportData {
   const dayRanking = rankBy(posts, p => p.dayOfWeek);
   const windowRanking = rankBy(posts, p => p.timeWindow);
 
-  // Photo comparison
-  const withPhotoScores = posts.filter(p => p.imageChoice !== 'none').map(p => p.compositeScore);
+  // Photo comparison — OG, AI-generated, custom, none
+  const ogPhotoScores = posts.filter(p => p.imageChoice === 'og').map(p => p.compositeScore);
+  const aiPhotoScores = posts.filter(p => p.imageChoice === 'ai').map(p => p.compositeScore);
+  const customPhotoScores = posts.filter(p => p.imageChoice === 'custom').map(p => p.compositeScore);
   const noPhotoScores = posts.filter(p => p.imageChoice === 'none').map(p => p.compositeScore);
-  const photoComparison = (withPhotoScores.length > 0 || noPhotoScores.length > 0)
+  const photoComparison = (ogPhotoScores.length > 0 || aiPhotoScores.length > 0 || customPhotoScores.length > 0 || noPhotoScores.length > 0)
     ? {
-        withPhoto: withPhotoScores.length > 0 ? groupStats(withPhotoScores) : null,
+        ogPhoto: ogPhotoScores.length > 0 ? groupStats(ogPhotoScores) : null,
+        aiPhoto: aiPhotoScores.length > 0 ? groupStats(aiPhotoScores) : null,
+        customPhoto: customPhotoScores.length > 0 ? groupStats(customPhotoScores) : null,
         noPhoto: noPhotoScores.length > 0 ? groupStats(noPhotoScores) : null,
       }
     : null;
@@ -248,13 +252,15 @@ New followers: ${d.recent.totalNewFollowers}`;
     .map(o => `${o.sigma > 0 ? '🚀' : '📉'} ${o.snippet}… — score ${fmt(o.score)} (${fmt(Math.abs(o.sigma))}σ ${o.sigma > 0 ? 'above' : 'below'} mean)`)
     .join('\n');
 
-  // Photo comparison
+  // Photo comparison — OG, AI-generated, custom, none
   let photoLine = '';
   if (d.photoComparison) {
     const parts = [];
-    if (d.photoComparison.withPhoto) parts.push(`📷 with photo (${d.photoComparison.withPhoto.n}): median ${fmt(d.photoComparison.withPhoto.median)} score`);
-    if (d.photoComparison.noPhoto) parts.push(`🚫 no photo (${d.photoComparison.noPhoto.n}): median ${fmt(d.photoComparison.noPhoto.median)} score`);
-    if (parts.length > 0) photoLine = `\n*Photo vs no photo:*\n${parts.join(' | ')}`;
+    if (d.photoComparison.ogPhoto) parts.push(`🖼️ OG photo (${d.photoComparison.ogPhoto.n}): median ${fmt(d.photoComparison.ogPhoto.median)} score`);
+    if (d.photoComparison.aiPhoto) parts.push(`🤖 AI photo (${d.photoComparison.aiPhoto.n}): median ${fmt(d.photoComparison.aiPhoto.median)} score`);
+    if (d.photoComparison.customPhoto) parts.push(`📷 Custom photo (${d.photoComparison.customPhoto.n}): median ${fmt(d.photoComparison.customPhoto.median)} score`);
+    if (d.photoComparison.noPhoto) parts.push(`🚫 no image (${d.photoComparison.noPhoto.n}): median ${fmt(d.photoComparison.noPhoto.median)} score`);
+    if (parts.length > 0) photoLine = `\n*Image breakdown:*\n${parts.join(' | ')}`;
   }
 
   return `📊 *Performance Report* — All-time (since ${d.firstPostDate})
@@ -286,7 +292,7 @@ ${d.feedRanking.map(rankLine).join('\n')}
 *By day of week:*
 ${d.dayRanking.map(rankLine).join('\n')}
 
-*By time window (ET):*
+*By time window — experiment (ET):*
 ${d.windowRanking.map(rankLine).join('\n')}
 ${photoLine}${wcSection}${outlierLines ? `\n\n*Outliers:*\n${outlierLines}` : ''}
 

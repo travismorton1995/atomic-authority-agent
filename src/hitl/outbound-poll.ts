@@ -1,8 +1,11 @@
 import crypto from 'crypto';
+import Anthropic from '@anthropic-ai/sdk';
 import { openScrapeContext, scrapeProfilePostsWithPage, scrapeHashtagWithPage, type ScrapedPost } from '../outbound/scrape-feed.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
 import { relevanceHits } from '../outbound/relevance.js';
 import { isSessionExpiredUrl } from '../poster/index.js';
+
+const llmClient = new Anthropic();
 import {
   getActiveProfiles,
   getProfilesByPriority,
@@ -53,6 +56,77 @@ interface Candidate extends ScrapedPost {
 const POLL_TIME_LIMIT_MS = 2 * 60 * 1000; // 2 minutes — hard cutoff for profile scraping
 const COMMENT_COOLDOWN_HOURS = 24; // 1 day — won't queue a comment for a profile within this window
 
+/**
+ * Score a batch of candidate posts using an LLM for relevance.
+ * Returns a Map of candidate index → score (1–10).
+ * Candidates with zero keyword hits are pre-filtered to avoid wasting tokens.
+ */
+async function scoreCandidatesWithLLM(
+  candidates: Array<{ text: string; authorName: string; keywordHits: number; index: number }>,
+): Promise<Map<number, number>> {
+  const scores = new Map<number, number>();
+
+  // Pre-filter: candidates with zero keyword hits get score 0 (clearly off-topic)
+  const toScore = candidates.filter(c => {
+    if (c.keywordHits === 0) {
+      scores.set(c.index, 0);
+      return false;
+    }
+    return true;
+  });
+
+  if (toScore.length === 0) return scores;
+
+  // Strip broken Unicode surrogates that would produce invalid JSON for the API
+  const sanitizeText = (t: string) => t.replace(/[\uD800-\uDFFF]/g, '');
+
+  // Batch all candidates into one LLM call for efficiency
+  const postList = toScore.map((c, i) =>
+    `POST ${i + 1} (by ${c.authorName}):\n"${sanitizeText(c.text.slice(0, 400))}"`
+  ).join('\n\n');
+
+  try {
+    const message = await llmClient.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: `You are scoring LinkedIn posts for an AI developer who works in the nuclear industry (building AI tools for nuclear operators at NPX). He comments on posts where he can add genuine value from his unique position at the intersection of AI and nuclear/regulated industries.
+
+Score each post from 1 to 10 on how much value he could add in a comment. Consider:
+- Does this topic intersect with AI, nuclear, energy, regulated industries, or change management?
+- Would someone with his background have a unique angle that general commenters wouldn't?
+- Is this a substantive post worth engaging with, or shallow/promotional content?
+- A high score means he'd have something genuinely insightful to say, not just that the topic overlaps with his field.
+
+${postList}
+
+Return ONLY a JSON array of scores in order, e.g. [7, 3, 8]. One number per post, nothing else.`,
+      }],
+    });
+
+    const raw = message.content[0].type === 'text' ? message.content[0].text.trim() : '[]';
+    const parsed = JSON.parse(raw.match(/\[[\d\s,]+\]/)?.[0] ?? '[]') as number[];
+
+    for (let i = 0; i < toScore.length && i < parsed.length; i++) {
+      const score = Math.max(0, Math.min(10, parsed[i]));
+      scores.set(toScore[i].index, score);
+    }
+
+    // If LLM returned fewer scores than expected, fall back to keyword-based for the rest
+    for (let i = parsed.length; i < toScore.length; i++) {
+      scores.set(toScore[i].index, Math.min(toScore[i].keywordHits, 5) * 2);
+    }
+  } catch (err) {
+    console.warn(`  LLM scoring failed (${(err as Error).message}) — falling back to keyword scoring.`);
+    for (const c of toScore) {
+      scores.set(c.index, Math.min(c.keywordHits, 5) * 2);
+    }
+  }
+
+  return scores;
+}
+
 export async function runOutboundPoll(): Promise<void> {
   const allProfiles = getActiveProfiles();
   if (allProfiles.length === 0 && HASHTAGS.length === 0) {
@@ -68,15 +142,21 @@ export async function runOutboundPoll(): Promise<void> {
   const candidates: Candidate[] = [];
   const seenIds = new Set<string>(); // deduplicate across profiles and hashtags
 
-  const { context, page, release } = await openScrapeContext();
+  const { context, page, release } = await openScrapeContext(15_000);
   const scrapeStart = Date.now();
   let profilesChecked = 0;
 
   try {
     // Verify LinkedIn session before scraping
-    await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: 15000 });
-    if (isSessionExpiredUrl(page.url())) {
-      console.error('Outbound poll: LinkedIn session expired. Run /login to renew.');
+    try {
+      await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: 15000 });
+      if (isSessionExpiredUrl(page.url())) {
+        console.error('Outbound poll: LinkedIn session expired. Run /login to renew.');
+        recordOutboundPoll();
+        return;
+      }
+    } catch (err) {
+      console.error(`Outbound poll: session check failed (${(err as Error).message}) — aborting.`);
       recordOutboundPoll();
       return;
     }
@@ -98,14 +178,35 @@ export async function runOutboundPoll(): Promise<void> {
       }
       profilesChecked++;
 
-      const ownerName = (posts.length > 0 && posts[0].authorName)
-        ? posts[0].authorName
-        : profile.name;
-      if (ownerName && ownerName !== profile.name) {
-        updateProfileName(profile.url, ownerName);
+      // Determine the real owner name for repost filtering.
+      // Start with stored profile name, but verify against scraped posts.
+      // If none match the stored name, the majority author is likely the real owner
+      // (stored name may be stale or wrong, e.g. "AIXPERT" vs "Vector Institute").
+      let ownerName = profile.name;
+
+      const nameCounts = new Map<string, number>();
+      for (const p of posts) {
+        if (!p.authorName) continue;
+        const lower = p.authorName.toLowerCase();
+        nameCounts.set(lower, (nameCounts.get(lower) ?? 0) + 1);
       }
 
-      // Filter out reposts
+      const storedNameMatches = posts.some(p =>
+        p.authorName && p.authorName.toLowerCase() === ownerName.toLowerCase()
+      );
+
+      if (!storedNameMatches && posts.length > 0) {
+        // Stored name doesn't match any posts — find the majority author
+        const mostCommon = [...nameCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+        if (mostCommon && mostCommon[1] > posts.length / 2) {
+          const actualName = posts.find(p => p.authorName?.toLowerCase() === mostCommon[0])?.authorName ?? ownerName;
+          console.log(`  ${ownerName} — stored name doesn't match posts, updating to "${actualName}"`);
+          updateProfileName(profile.url, actualName);
+          ownerName = actualName;
+        }
+      }
+
+      // Filter out reposts — any post whose author doesn't match the profile owner
       const ownPosts = posts.filter(p =>
         !p.authorName || p.authorName.toLowerCase() === ownerName.toLowerCase()
       );
@@ -114,7 +215,7 @@ export async function runOutboundPoll(): Promise<void> {
 
       const newPosts = ownPosts.filter(p => !isPostSeen(p.id));
       const ageNote = newPosts.map(p => p.ageHours !== null ? `${p.ageHours.toFixed(1)}h` : '?h').join(', ');
-      console.log(`  ${ownerName} — ${ownPosts.length} original post(s) < 12h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
+      console.log(`  ${ownerName} — ${ownPosts.length} original post(s) < 24h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
 
       recordProfilePollResult(profile.url, newPosts.length > 0);
       for (const p of newPosts) {
@@ -154,35 +255,20 @@ export async function runOutboundPoll(): Promise<void> {
     return;
   }
 
-  // Score each candidate: higher score = better pick
-  // Four factors: relevance, recency, profile diversity, and source bonus
-  const scored = candidates.map(c => {
-    const postAge = c.ageHours ?? 12;
+  // --- Pre-compute keyword hits and cooldowns ---
+  const preScored = candidates.map((c, index) => {
+    const postAge = c.ageHours ?? 24;
     const profileCooldown = c.source === 'profile'
       ? hoursSinceLastComment(c.profile!.url)
-      : Infinity; // hashtag posts from strangers — no cooldown penalty
+      : Infinity;
     const keywords = relevanceHits(c.text);
-
-    // Relevance: 0–1 (0 = no keywords, 1 = 5+ keyword hits)
-    const relevanceScore = Math.min(keywords / 5, 1);
-
-    // Recency: 0–1 (1 = brand new, 0 = 12h old)
-    const recencyScore = 1 - Math.min(postAge / 12, 1);
-
-    // Diversity: 0–1 (1 = never commented or cooldown elapsed, 0 = just commented)
-    const diversityScore = profileCooldown >= COMMENT_COOLDOWN_HOURS ? 1 : profileCooldown / COMMENT_COOLDOWN_HOURS;
-
-    // Weighted: 50% relevance, 30% recency, 20% diversity + profile bonus
-    let score = relevanceScore * 0.5 + recencyScore * 0.3 + diversityScore * 0.2;
-    if (c.source === 'profile') score += PROFILE_BONUS;
-
-    return { candidate: c, score, postAge, profileCooldown, keywords };
+    return { candidate: c, index, postAge, profileCooldown, keywords };
   });
 
-  // Hard filters:
+  // Hard filters (apply before LLM to save tokens):
   // 1. Profile candidates within comment cooldown — skip (prevents spam)
-  // 2. Hashtag candidates with zero relevance — skip (strangers posting off-topic)
-  const eligible = scored.filter(s => {
+  // 2. Hashtag candidates with zero keyword hits — skip (strangers posting off-topic)
+  const filteredForScoring = preScored.filter(s => {
     if (s.profileCooldown < COMMENT_COOLDOWN_HOURS) {
       console.log(`  Skipping ${s.candidate.authorName || s.candidate.sourceLabel} — commented ${s.profileCooldown.toFixed(0)}h ago (cooldown: ${COMMENT_COOLDOWN_HOURS}h).`);
       return false;
@@ -190,9 +276,49 @@ export async function runOutboundPoll(): Promise<void> {
     if (s.candidate.source === 'hashtag' && s.keywords === 0) return false;
     return true;
   });
+
+  if (filteredForScoring.length === 0) {
+    console.log(`  ${preScored.length} candidate(s) found but none were eligible. Nothing queued.`);
+    await sendMessage(`📤 Outbound poll complete — ${profilesChecked} profile(s) checked, ${preScored.length} candidate(s) found, 0 eligible (cooldown). Nothing queued.`).catch(() => {});
+    recordOutboundPoll();
+    return;
+  }
+
+  // --- LLM relevance scoring ---
+  console.log(`  Scoring ${filteredForScoring.length} candidate(s) with LLM...`);
+  const llmScores = await scoreCandidatesWithLLM(
+    filteredForScoring.map(s => ({
+      text: s.candidate.text,
+      authorName: s.candidate.authorName,
+      keywordHits: s.keywords,
+      index: s.index,
+    })),
+  );
+
+  // --- Final scoring: LLM relevance drives selection, recency and diversity as tiebreakers ---
+  const eligible = filteredForScoring.map(s => {
+    const llmScore = llmScores.get(s.index) ?? 0;
+    const postAge = s.postAge;
+
+    // LLM relevance: 0–1 (normalized from 1–10 scale)
+    const relevanceScore = llmScore / 10;
+
+    // Recency: soft tiebreaker — gentle decay over 24h, not a hard cutoff
+    const recencyScore = 1 - Math.min(postAge / 24, 1);
+
+    // Diversity: 0–1 (1 = never commented or cooldown elapsed, 0 = just commented)
+    const diversityScore = s.profileCooldown >= COMMENT_COOLDOWN_HOURS ? 1 : s.profileCooldown / COMMENT_COOLDOWN_HOURS;
+
+    // Weighted: 70% LLM relevance, 15% recency, 15% diversity + profile bonus
+    let score = relevanceScore * 0.7 + recencyScore * 0.15 + diversityScore * 0.15;
+    if (s.candidate.source === 'profile') score += PROFILE_BONUS;
+
+    return { candidate: s.candidate, score, postAge, profileCooldown: s.profileCooldown, keywords: s.keywords, llmScore };
+  }).filter(s => s.llmScore >= 4); // Drop posts the LLM scored below 4/10
+
   if (eligible.length === 0) {
-    console.log(`  ${scored.length} candidate(s) found but none were eligible. Nothing queued.`);
-    await sendMessage(`📤 Outbound poll complete — ${profilesChecked} profile(s) checked, ${scored.length} candidate(s) found, 0 eligible (cooldown). Nothing queued.`).catch(() => {});
+    console.log(`  ${filteredForScoring.length} candidate(s) scored but none reached LLM relevance threshold (4/10). Nothing queued.`);
+    await sendMessage(`📤 Outbound poll complete — ${profilesChecked} profile(s) checked, ${filteredForScoring.length} candidate(s) scored, 0 above relevance threshold. Nothing queued.`).catch(() => {});
     recordOutboundPoll();
     return;
   }
@@ -205,10 +331,13 @@ export async function runOutboundPoll(): Promise<void> {
   const inGoldenWindow = best.ageHours !== null && best.ageHours < 2;
   const cooldownLabel = pick.profileCooldown === Infinity ? 'never' : `${pick.profileCooldown.toFixed(0)}h ago`;
   const sourceTag = best.source === 'profile' ? 'profile' : best.sourceLabel;
-  console.log(`  Picked: [${best.authorName || best.sourceLabel}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''} | ${pick.keywords} keyword(s) | ${sourceTag} | last comment: ${cooldownLabel}`);
+  console.log(`  Picked: [${best.authorName || best.sourceLabel}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''} | LLM: ${pick.llmScore}/10 (${pick.keywords} kw) | ${sourceTag} | last comment: ${cooldownLabel}`);
 
-  // Store the 2nd candidate as a skip fallback
-  const fb = eligible[1]?.candidate ?? null;
+  // Store the next candidate from a DIFFERENT profile as the skip fallback
+  const fb = eligible.slice(1).find(s =>
+    s.candidate.id !== best.id &&
+    (s.candidate.profile?.url ?? '') !== (best.profile?.url ?? '')
+  )?.candidate ?? null;
   storeFallbackCandidate(fb ? {
     id: fb.id,
     url: fb.url,

@@ -1,45 +1,88 @@
-// Day-specific posting windows (Eastern time)
-// Generation runs Mon/Tue/Wed evenings → posts go out Tue/Wed/Thu mornings
-// 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+// Time window experiment — 5 buckets, even rotation.
+// Posts go out Tue/Wed/Thu. Each post is assigned the least-used time window
+// to ensure even distribution across buckets for meaningful A/B comparison.
 
-interface DayWindow {
+import { readFileSync, existsSync } from 'fs';
+
+interface TimeWindow {
+  label: string;
   startHour: number;
   startMinute: number;
   endHour: number;
   endMinute: number;
 }
 
-// Primary morning windows per posting day
-const DAY_WINDOWS: Record<number, DayWindow> = {
-  2: { startHour: 8,  startMinute: 30, endHour: 10, endMinute: 45 }, // Tuesday
-  3: { startHour: 9,  startMinute: 15, endHour: 11, endMinute: 30 }, // Wednesday
-  4: { startHour: 10, startMinute: 0,  endHour: 13, endMinute: 0  }, // Thursday
-};
-
-// Secondary afternoon window — good for contrarian/discussion posts
-const AFTERNOON_WINDOW: DayWindow = { startHour: 14, startMinute: 0, endHour: 15, endMinute: 30 };
+// The 5 experimental time windows (Eastern time)
+export const TIME_WINDOWS: TimeWindow[] = [
+  { label: 'Early morning (7:30-8:30am)',  startHour: 7,  startMinute: 30, endHour: 8,  endMinute: 30 },
+  { label: 'Late morning (10:30-11:30am)', startHour: 10, startMinute: 30, endHour: 11, endMinute: 30 },
+  { label: 'Lunch (12-1pm)',               startHour: 12, startMinute: 0,  endHour: 13, endMinute: 0  },
+  { label: 'Mid-afternoon (3-4pm)',        startHour: 15, startMinute: 0,  endHour: 16, endMinute: 0  },
+  { label: 'Evening (5-6pm)',              startHour: 17, startMinute: 0,  endHour: 18, endMinute: 0  },
+];
 
 // Days we post on (Tue/Wed/Thu)
-const POSTING_DAYS = [2, 3, 4];
+const POSTING_DAYS = [2, 3, 4]; // 0=Sun, 1=Mon, ...
 
-function pickTimeInWindow(w: DayWindow): { hour: number; minute: number } {
+function pickTimeInWindow(w: TimeWindow): { hour: number; minute: number } {
   const startTotal = w.startHour * 60 + w.startMinute;
   const endTotal = w.endHour * 60 + w.endMinute;
   const picked = startTotal + Math.floor(Math.random() * (endTotal - startTotal));
   return { hour: Math.floor(picked / 60), minute: picked % 60 };
 }
 
+/** Count how many published posts landed in each time window. */
+function getWindowCounts(): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const w of TIME_WINDOWS) counts.set(w.label, 0);
+
+  const HISTORY_FILE = 'posted_history.json';
+  if (!existsSync(HISTORY_FILE)) return counts;
+
+  try {
+    const history = JSON.parse(readFileSync(HISTORY_FILE, 'utf-8')) as any[];
+    for (const post of history) {
+      if (post.status !== 'published' || !post.publishedAt) continue;
+      // Skip insider posts — they use their own posting logic
+      if (post.draft?.postType === 'insider') continue;
+      const pubDate = new Date(post.publishedAt);
+      const hourET = parseInt(pubDate.toLocaleString('en-US', { timeZone: 'America/Toronto', hour: 'numeric', hour12: false }), 10);
+      const minET = parseInt(pubDate.toLocaleString('en-US', { timeZone: 'America/Toronto', minute: 'numeric' }), 10);
+      const totalMin = hourET * 60 + minET;
+
+      for (const w of TIME_WINDOWS) {
+        const wStart = w.startHour * 60 + w.startMinute;
+        const wEnd = w.endHour * 60 + w.endMinute;
+        if (totalMin >= wStart && totalMin < wEnd) {
+          counts.set(w.label, (counts.get(w.label) ?? 0) + 1);
+          break;
+        }
+      }
+    }
+  } catch {
+    // If history is unreadable, return zeroes — all windows equally eligible
+  }
+
+  return counts;
+}
+
+/** Pick the least-used time window. Ties broken randomly. */
+function pickLeastUsedWindow(): TimeWindow {
+  const counts = getWindowCounts();
+  const minCount = Math.min(...counts.values());
+  const candidates = TIME_WINDOWS.filter(w => counts.get(w.label) === minCount);
+  return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
 // Legacy export — used by scheduler for generation time reference
 export function pickPostTime(): { hour: number; minute: number } {
-  const windows = Object.values(DAY_WINDOWS);
-  const w = windows[Math.floor(Math.random() * windows.length)];
+  const w = TIME_WINDOWS[Math.floor(Math.random() * TIME_WINDOWS.length)];
   return pickTimeInWindow(w);
 }
 
 function nextPostingDay(fromDate: Date): Date {
   const d = new Date(fromDate);
   d.setDate(d.getDate() + 1);
-  // Advance until we land on a posting day (Tue/Wed/Thu)
   while (!POSTING_DAYS.includes(d.getDay())) {
     d.setDate(d.getDate() + 1);
   }
@@ -47,17 +90,35 @@ function nextPostingDay(fromDate: Date): Date {
 }
 
 // Returns the next posting slot as an ISO timestamp (Eastern time).
-// Always targets the NEXT posting day (Tue/Wed/Thu) — approval happens the evening before.
-// Picks from that day's specific window. Falls back to the afternoon window ~20% of the time.
+// Picks the least-used time window to ensure even rotation across all 5 buckets.
 export function pickScheduledTime(): string {
   const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
   const target = nextPostingDay(nowET);
-  const dayOfWeek = target.getDay();
 
-  const useAfternoon = Math.random() < 0.2;
-  const window = useAfternoon ? AFTERNOON_WINDOW : (DAY_WINDOWS[dayOfWeek] ?? DAY_WINDOWS[2]);
+  const window = pickLeastUsedWindow();
   const { hour, minute } = pickTimeInWindow(window);
+  console.log(`[windows] Scheduled in "${window.label}" (least-used bucket)`);
 
   target.setHours(hour, minute, 0, 0);
+  return target.toISOString();
+}
+
+/** Returns the next Sunday 7–8pm ET as an ISO timestamp for insider posts. */
+export function pickInsiderScheduledTime(): string {
+  const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
+  const target = new Date(nowET);
+
+  // Advance to next Sunday (or stay if Sunday and before 8pm)
+  const daysUntilSunday = (7 - target.getDay()) % 7;
+  if (daysUntilSunday === 0) {
+    if (target.getHours() >= 20) target.setDate(target.getDate() + 7);
+  } else {
+    target.setDate(target.getDate() + daysUntilSunday);
+  }
+
+  // Random minute within 7:00–8:00 PM
+  const minute = Math.floor(Math.random() * 60);
+  target.setHours(19, minute, 0, 0);
+  console.log(`[windows] Insider post scheduled for Sunday ${target.toLocaleString('en-US', { timeZone: 'America/Toronto' })}`);
   return target.toISOString();
 }

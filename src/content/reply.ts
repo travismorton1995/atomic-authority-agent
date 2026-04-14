@@ -34,7 +34,7 @@ Hard constraints — any violation is a rewrite trigger:
 - No em dashes (—). Use a comma or period instead.
 - No gerund openers ("Building on this...", "Recognizing the need...")
 - No pivot fillers ("But here's the thing." / "Here's what that means.")
-- No hollow openers: "Great question", "Thanks for", "Interesting point", or starting with "I"
+- Hollow openers ("Great question", "Thanks for", "Interesting point") are acceptable when the comment is supportive in tone. Only flag them if the comment is meant to challenge, question, or add independent context.
 - No validation phrases: "what you are describing is real", "this is spot on", "you nailed it"
 - No stacked adjectives before nouns
 - Avoid "bottleneck" — use constraint, chokepoint, limiting factor, sticking point, friction, barrier, or describe the problem directly

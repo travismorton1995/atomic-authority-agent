@@ -90,11 +90,11 @@ async function scrapeVisiblePosts(page: Page): Promise<ScrapedPost[]> {
         ageHours: parseAgeHours(p.timeText),
       };
     })
-    .filter(p => p.url && (p.ageHours === null || p.ageHours <= 12));
+    .filter(p => p.url && (p.ageHours === null || p.ageHours <= 24));
 }
 
 async function scrapePagePosts(page: Page, activityUrl: string): Promise<ScrapedPost[]> {
-  await page.goto(activityUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.goto(activityUrl, { waitUntil: 'domcontentloaded', timeout: 15000 });
   await page.waitForSelector('[data-urn*="urn:li:activity:"]', { timeout: 5000 }).catch(() => {});
   await page.waitForTimeout(500);
   return scrapeVisiblePosts(page);
@@ -105,7 +105,7 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
   const isCompany = profileUrl.includes('/company/');
   const activityUrl = profileUrl.replace(/\/$/, '') + (isCompany ? '/posts/' : '/recent-activity/shares/');
 
-  const release = await acquireBrowserLock();
+  const release = await acquireBrowserLock(30_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -122,8 +122,8 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
 
 // Opens a shared browser context for scraping multiple profiles in one session.
 // Caller MUST call release() after closing the context.
-export async function openScrapeContext(): Promise<{ context: BrowserContext; page: Page; release: () => void }> {
-  const release = await acquireBrowserLock();
+export async function openScrapeContext(lockTimeoutMs?: number): Promise<{ context: BrowserContext; page: Page; release: () => void }> {
+  const release = await acquireBrowserLock(lockTimeoutMs);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -144,7 +144,7 @@ export async function scrapeProfilePostsWithPage(profileUrl: string, page: Page)
 export async function scrapeHashtagWithPage(hashtag: string, page: Page): Promise<ScrapedPost[]> {
   const tag = hashtag.replace(/^#/, '').toLowerCase();
   const url = `https://www.linkedin.com/feed/hashtag/${tag}/`;
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
   // Click "Past 24 hours" filter to surface recent posts
   // LinkedIn renders these as <button> elements with varying markup — try multiple selectors
@@ -236,5 +236,5 @@ async function scrapeSearchResults(page: Page): Promise<ScrapedPost[]> {
     text: p.text,
     authorName: p.authorName,
     ageHours: parseAgeHours(p.timeText),
-  })).filter(p => p.ageHours === null || p.ageHours <= 12);
+  })).filter(p => p.ageHours === null || p.ageHours <= 24);
 }

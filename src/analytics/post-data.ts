@@ -53,12 +53,13 @@ export interface PostAnalyticsRecord {
   postSnippet: string;
 }
 
-function getTimeWindow(hour: number): string {
-  if (hour >= 7 && hour < 10) return 'Early morning (7-10am)';
-  if (hour >= 10 && hour < 12) return 'Late morning (10am-12pm)';
-  if (hour >= 12 && hour < 14) return 'Midday (12-2pm)';
-  if (hour >= 14 && hour < 17) return 'Afternoon (2-5pm)';
-  if (hour >= 17 && hour < 19) return 'Evening (5-7pm)';
+function getTimeWindow(hour: number, minute: number = 0): string {
+  const total = hour * 60 + minute;
+  if (total >= 450 && total < 510) return 'Early morning (7:30-8:30am)';
+  if (total >= 630 && total < 690) return 'Late morning (10:30-11:30am)';
+  if (total >= 720 && total < 780) return 'Lunch (12-1pm)';
+  if (total >= 900 && total < 960) return 'Mid-afternoon (3-4pm)';
+  if (total >= 1020 && total < 1080) return 'Evening (5-6pm)';
   return 'Other';
 }
 
@@ -90,6 +91,7 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
   return withMetrics.map((p: any) => {
     const pubDate = new Date(p.publishedAt);
     const hourET = parseInt(pubDate.toLocaleString('en-US', { timeZone: 'America/Toronto', hour: 'numeric', hour12: false }), 10);
+    const minET = parseInt(pubDate.toLocaleString('en-US', { timeZone: 'America/Toronto', minute: 'numeric' }), 10);
     const dayOfWeek = pubDate.toLocaleString('en-US', { timeZone: 'America/Toronto', weekday: 'short' });
     const content: string = p.finalContent ?? '';
     const hashtags = (content.match(/#\w+/g) ?? []).map((t: string) => t.toLowerCase());
@@ -106,9 +108,12 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
       cringeScore: p.screening?.cringeScore ?? 0,
       publishedAt: pubDate,
       dayOfWeek,
-      timeWindow: getTimeWindow(hourET),
+      timeWindow: getTimeWindow(hourET, minET),
       hourET,
-      imageChoice: p.imageChoice ?? 'none',
+      imageChoice: p.imageChoice === 'custom' ? 'custom'
+        : p.imageChoice
+        ?? (p.draft?.generatedImagePath ? 'ai' : undefined)
+        ?? (p.draft?.imageUrl ? 'og' : 'none'),
       impressions: p.metrics?.impressions ?? 0,
       reactions: p.metrics?.reactions ?? 0,
       comments: p.metrics?.comments ?? 0,

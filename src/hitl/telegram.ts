@@ -1,7 +1,8 @@
 import { Telegraf } from 'telegraf';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import path from 'path';
 import { approvePost, rejectPost, cancelPost, clearPostImage, setImageChoice, setGeneratedImagePath, getPendingPosts } from './queue.js';
-import { pickScheduledTime } from '../scheduler/windows.js';
+import { pickScheduledTime, pickInsiderScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
 import { postCommentReply, postOutboundComment } from '../poster/comments.js';
@@ -28,9 +29,12 @@ export function waitForAction(postId: string): Promise<'approved' | 'rejected' |
   });
 }
 
+// Tracks posts waiting for a custom photo upload — maps chatId to postId
+const pendingPhotoUploads = new Map<string, string>();
+
 // Optional handler called after a rejection — used by scheduler to auto-regenerate
 let onRejectHandler: (() => Promise<void>) | null = null;
-let onGenerateHandler: (() => Promise<void>) | null = null;
+let onGenerateHandler: ((url?: string) => Promise<void>) | null = null;
 let onPollHandler: (() => Promise<void>) | null = null;
 let onOutboundHandler: (() => Promise<void>) | null = null;
 
@@ -38,7 +42,7 @@ export function setOnRejectHandler(handler: () => Promise<void>): void {
   onRejectHandler = handler;
 }
 
-export function setOnGenerateHandler(handler: () => Promise<void>): void {
+export function setOnGenerateHandler(handler: (url?: string) => Promise<void>): void {
   onGenerateHandler = handler;
 }
 
@@ -73,6 +77,7 @@ export function startBot(): void {
     await ctx.reply(
       '*Atomic Authority — Bot Commands*\n\n' +
       '/generate — Run the content pipeline and generate a new draft\n' +
+      '/insider — Generate an insider post from your notes (min 1 note)\n' +
       '/poll — Run a comment reply poll (checks for new comments on your posts)\n' +
       '/outbound — Run the outbound engagement poll (finds posts to comment on)\n' +
       '/metrics — Fetch engagement metrics for all published posts\n' +
@@ -88,9 +93,20 @@ export function startBot(): void {
 
   bot.command('generate', async (ctx) => {
     if (!onGenerateHandler) { await ctx.reply('Generator not available.'); return; }
-    console.log('Telegram /generate command received');
-    await ctx.reply('Running content pipeline...').catch(err => console.error('[/generate] Failed to send reply:', err));
-    onGenerateHandler()
+
+    // Parse optional URL: /generate https://example.com/article
+    const args = ctx.message.text.split(/\s+/).slice(1);
+    const articleUrl = args.find(a => a.startsWith('http'));
+
+    if (articleUrl) {
+      console.log(`Telegram /generate command received with URL: ${articleUrl}`);
+      await ctx.reply(`Running content pipeline for:\n${articleUrl}`).catch(err => console.error('[/generate] Failed to send reply:', err));
+    } else {
+      console.log('Telegram /generate command received');
+      await ctx.reply('Running content pipeline...').catch(err => console.error('[/generate] Failed to send reply:', err));
+    }
+
+    onGenerateHandler(articleUrl)
       .then((status: any) => {
         if (status === 'already_running') {
           ctx.reply('Pipeline is already running — try again shortly.').catch(() => {});
@@ -102,6 +118,29 @@ export function startBot(): void {
         console.error('[/generate] Unexpected error:', err);
         ctx.reply(`Pipeline failed: ${err.message}`).catch(() => {});
       });
+  });
+
+  bot.command('insider', async (ctx) => {
+    const { getNoteCount, assembleNotes } = await import('./daily-notes.js');
+    const count = getNoteCount();
+    if (count < 1) {
+      await ctx.reply('No notes this week. Add at least one with /notes before generating.');
+      return;
+    }
+    const notes = assembleNotes(1);
+    if (!notes) {
+      await ctx.reply('Failed to assemble notes.');
+      return;
+    }
+    console.log(`Telegram /insider command received (${count} note(s))`);
+    await ctx.reply(`Generating insider post from ${count} note(s)...`);
+    try {
+      const { runInsiderPipeline } = await import('../content/pipeline.js');
+      await runInsiderPipeline(notes);
+    } catch (err: any) {
+      console.error('[/insider] Pipeline failed:', err);
+      await ctx.reply(`Insider pipeline failed: ${err.message}`).catch(() => {});
+    }
   });
 
   bot.command('poll', async (ctx) => {
@@ -156,11 +195,20 @@ export function startBot(): void {
       await ctx.reply(`📝 ${count} note(s) this week.\n\nUsage: /notes Your note text here`);
       return;
     }
-    const { addNote, getNoteCount } = await import('./daily-notes.js');
+    const { addNote, getNoteCount, isFridayPromptWindow, tryAssembleAndGenerate } = await import('./daily-notes.js');
     addNote(noteText);
     const count = getNoteCount();
     console.log(`[/notes] Note added (${count} this week)`);
     await ctx.reply(`📝 Note saved (${count} this week).`);
+
+    // Only trigger insider generation during the Friday prompt window
+    if (count >= 2 && isFridayPromptWindow()) {
+      await ctx.reply('Enough notes collected — generating insider post...');
+      tryAssembleAndGenerate().catch(err => {
+        console.error('[insider] Immediate generation failed:', err);
+        ctx.reply(`Insider post generation failed: ${err.message}`).catch(() => {});
+      });
+    }
   });
 
   bot.command('login', async (ctx) => {
@@ -186,8 +234,9 @@ export function startBot(): void {
     if (!data) return;
 
     const firstColon = data.indexOf(':');
-    const action = data.slice(0, firstColon);
-    const payload = data.slice(firstColon + 1);
+    const action = firstColon === -1 ? data : data.slice(0, firstColon);
+    const payload = firstColon === -1 ? '' : data.slice(firstColon + 1);
+    console.log(`[callback] action="${action}" payload="${payload.slice(0, 40)}"`);
 
     try {
       // --- Step 1: Text approved → generate images and show Step 2 ---
@@ -240,18 +289,13 @@ export function startBot(): void {
           }
 
           // Build Step 2 keyboard
-          const hasAnyImage = hasOgImage || hasAiImage;
-          const imgKeyboard = hasAnyImage
-            ? [
-                ...(hasOgImage ? [[{ text: '🖼 Use article image', callback_data: `img_og:${post.id}` }]] : []),
-                ...(hasAiImage ? [[{ text: '🤖 Use AI image', callback_data: `img_ai:${post.id}` }]] : []),
-                [{ text: '🚫 No image', callback_data: `img_none:${post.id}` }],
-                [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
-              ]
-            : [
-                [{ text: '🚫 No image (none available)', callback_data: `img_none:${post.id}` }],
-                [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
-              ];
+          const imgKeyboard = [
+            ...(hasOgImage ? [[{ text: '🖼 Use article image', callback_data: `img_og:${post.id}` }]] : []),
+            ...(hasAiImage ? [[{ text: '🤖 Use AI image', callback_data: `img_ai:${post.id}` }]] : []),
+            [{ text: '📷 Upload your own', callback_data: `img_upload:${post.id}` }],
+            [{ text: '🚫 No image', callback_data: `img_none:${post.id}` }],
+            [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
+          ];
 
           await sender.telegram.sendMessage(chatId!, 'Text approved. Choose an image option:', {
             reply_markup: { inline_keyboard: imgKeyboard },
@@ -262,7 +306,15 @@ export function startBot(): void {
         });
       }
 
-      // --- Step 2: Image selected → schedule the post ---
+      // --- Step 2a: Upload your own photo ---
+      if (action === 'img_upload') {
+        await ctx.answerCbQuery('Send me a photo...');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await ctx.reply('📷 Send me the photo you want to use for this post.');
+        pendingPhotoUploads.set(String(chatId), payload);
+      }
+
+      // --- Step 2: Image selected → schedule or publish immediately ---
       if (action === 'img_og' || action === 'img_ai' || action === 'img_none') {
         const choice = action === 'img_og' ? 'og' : action === 'img_ai' ? 'ai' : 'none';
         if (choice === 'none') {
@@ -270,25 +322,48 @@ export function startBot(): void {
         } else {
           setImageChoice(payload, choice);
         }
-        const scheduledFor = pickScheduledTime();
-        const post = approvePost(payload, scheduledFor);
-        if (!post) {
-          await ctx.answerCbQuery('Post not found or already actioned.');
-          return;
-        }
-        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
-          timeZone: 'America/Toronto',
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          timeZoneName: 'short',
-        });
+
+        // Check if this is an insider post — publish immediately instead of scheduling
+        const pendingPost = getPendingPosts().find(p => p.id === payload);
+        const isInsider = pendingPost?.draft.postType === 'insider';
         const label = choice === 'og' ? 'article image' : choice === 'ai' ? 'AI image' : 'text only';
-        await ctx.answerCbQuery(`Approved (${label})!`);
-        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-        await ctx.reply(`Post approved (${label}). Scheduled for ${scheduledStr}.`);
+
+        if (isInsider) {
+          const scheduledFor = pickInsiderScheduledTime();
+          const post = approvePost(payload, scheduledFor);
+          if (!post) {
+            await ctx.answerCbQuery('Post not found or already actioned.');
+            return;
+          }
+          const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+            timeZone: 'America/Toronto',
+            weekday: 'short', month: 'short', day: 'numeric',
+            hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+          });
+          await ctx.answerCbQuery(`Approved (${label})!`);
+          await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+          await ctx.reply(`Insider post approved (${label}). Scheduled for ${scheduledStr}.`);
+        } else {
+          const scheduledFor = pickScheduledTime();
+          const post = approvePost(payload, scheduledFor);
+          if (!post) {
+            await ctx.answerCbQuery('Post not found or already actioned.');
+            return;
+          }
+          const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+            timeZone: 'America/Toronto',
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZoneName: 'short',
+          });
+          await ctx.answerCbQuery(`Approved (${label})!`);
+          await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+          await ctx.reply(`Post approved (${label}). Scheduled for ${scheduledStr}.`);
+        }
+
         pendingResolutions.get(payload)?.('approved');
         pendingResolutions.delete(payload);
       }
@@ -548,8 +623,7 @@ export function startBot(): void {
 
     } catch (err: any) {
       if (err?.response?.error_code === 400) {
-        // Callback query expired — safe to ignore, happens when a new session
-        // picks up button presses from a previous generate run
+        console.log(`[callback] Swallowed 400 for action="${action}" — ${err?.response?.description ?? err.message}`);
         return;
       }
       console.error('Unexpected error handling callback query:', err);
@@ -559,23 +633,87 @@ export function startBot(): void {
   // Launch with retry — Telegram returns 409 if a previous polling session is still active.
   // Retry on the same bot instance (handlers are preserved) until the old session expires.
   (async () => {
-    for (let attempt = 1; attempt <= 5; attempt++) {
+    for (let attempt = 1; attempt <= 10; attempt++) {
       try {
         await bot!.launch();
+        console.log('Telegram bot connected and polling.');
         return;
       } catch (err: any) {
         const is409 = err?.response?.error_code === 409 || String(err?.message).includes('409');
-        if (is409 && attempt < 5) {
-          console.warn(`Telegram 409 conflict (attempt ${attempt}/5) — retrying in 10s...`);
+        if (is409 && attempt < 10) {
+          console.warn(`Telegram 409 conflict (attempt ${attempt}/10) — retrying in 10s...`);
           await new Promise(r => setTimeout(r, 10_000));
         } else {
-          console.error('Telegram bot failed to launch:', err);
+          console.error('Telegram bot failed to launch after all retries:', err);
           return;
         }
       }
     }
   })();
-  console.log('Telegram bot started.');
+  console.log('Telegram bot starting...');
+
+  // Photo upload handler — receives custom images for posts
+  bot.on('photo', async (ctx) => {
+    const chatIdStr = String(ctx.chat.id);
+    const postId = pendingPhotoUploads.get(chatIdStr);
+    if (!postId) return; // No pending upload
+    pendingPhotoUploads.delete(chatIdStr);
+
+    try {
+      // Get the highest-resolution photo
+      const photos = ctx.message.photo;
+      const best = photos[photos.length - 1];
+      const file = await ctx.telegram.getFile(best.file_id);
+      const fileUrl = `https://api.telegram.org/file/bot${token}/${file.file_path}`;
+
+      // Download and save locally
+      const res = await fetch(fileUrl);
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const ext = file.file_path?.endsWith('.png') ? '.png' : '.jpg';
+      const imgDir = path.resolve('generated_images');
+      if (!existsSync(imgDir)) mkdirSync(imgDir, { recursive: true });
+      const filename = `custom_${Date.now()}${ext}`;
+      const filepath = path.join(imgDir, filename);
+      writeFileSync(filepath, buffer);
+
+      // Set as post image
+      setGeneratedImagePath(postId, filepath);
+      setImageChoice(postId, 'custom');
+      console.log(`[img_upload] Custom photo saved for ${postId}: ${filepath}`);
+
+      // Approve and handle posting (insider = immediate, others = scheduled)
+      const post = getPendingPosts().find(p => p.id === postId);
+      const isInsider = post?.draft.postType === 'insider';
+
+      if (isInsider) {
+        const scheduledFor = pickInsiderScheduledTime();
+        const approved = approvePost(postId, scheduledFor);
+        if (!approved) { await ctx.reply('Post not found or already actioned.'); return; }
+        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short', month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+        });
+        await ctx.reply(`📷 Photo saved. Insider post approved (custom image). Scheduled for ${scheduledStr}.`);
+      } else {
+        const scheduledFor = pickScheduledTime();
+        const approved = approvePost(postId, scheduledFor);
+        if (!approved) { await ctx.reply('Post not found or already actioned.'); return; }
+        const scheduledStr = new Date(scheduledFor).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short', month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+        });
+        await ctx.reply(`📷 Photo saved. Post approved (custom image). Scheduled for ${scheduledStr}.`);
+      }
+
+      pendingResolutions.get(postId)?.('approved');
+      pendingResolutions.delete(postId);
+    } catch (err: any) {
+      console.error('[img_upload] Error processing photo:', err);
+      await ctx.reply(`Failed to process photo: ${err.message}`).catch(() => {});
+    }
+  });
 
   // LinkedIn URL listener — profile URLs get added to outbound list,
   // post URLs trigger ad-hoc comment generation.
@@ -594,7 +732,12 @@ export function startBot(): void {
       try {
         const { scrapePostByUrl } = await import('../outbound/scrape-post.js');
         const scraped = await scrapePostByUrl(postUrl);
-        console.log(`[ad-hoc comment] Scraped: "${scraped.text.slice(0, 60)}..." by ${scraped.authorName}`);
+        console.log(`[ad-hoc comment] Scraped: "${scraped.text.slice(0, 60)}..." by ${scraped.authorName}${scraped.isRepost ? ' (REPOST)' : ''}`);
+
+        if (scraped.isRepost) {
+          await ctx.reply(`⚠️ This looks like a repost, not an original post. Comment on the original instead — your engagement will be more visible there.`);
+          return;
+        }
 
         // Mark the post as seen so the outbound poll won't suggest it again.
         // Extract activity ID from both URL formats:
@@ -672,11 +815,20 @@ export function startBot(): void {
     }
 
     // Capture plain text as a daily note if within the prompt window
-    const { isWithinPromptWindow, addNote, getNoteCount } = await import('./daily-notes.js');
+    const { isWithinPromptWindow, isFridayPromptWindow, addNote, getNoteCount, tryAssembleAndGenerate } = await import('./daily-notes.js');
     if (isWithinPromptWindow() && text.length > 10) {
       addNote(text);
       const count = getNoteCount();
       await ctx.reply(`📝 Note saved (${count} this week).`);
+
+      // Only trigger insider generation during the Friday prompt window
+      if (count >= 2 && isFridayPromptWindow()) {
+        await ctx.reply('Enough notes collected — generating insider post...');
+        tryAssembleAndGenerate().catch(err => {
+          console.error('[insider] Immediate generation failed:', err);
+          ctx.reply(`Insider post generation failed: ${err.message}`).catch(() => {});
+        });
+      }
     }
   });
 
@@ -754,9 +906,8 @@ function getNextCandidatesSummary(): string {
     const next = (store.candidates as any[]).slice(store.nextIndex, store.nextIndex + 2);
     if (next.length === 0) return '';
     const lines = next.map((c: any, i: number) => {
-      const b = c.scoreBreakdown;
-      const bStr = b ? ` (I:${b.intersection} N:${b.novelty} G:${b.geography})` : '';
-      return `  #${store.nextIndex + i + 1} · ${c.articleScore}/10${bStr} · "${c.item.title.slice(0, 50)}" _(${c.postType})_`;
+      const combined = c.combinedScore != null ? c.combinedScore.toFixed(1) : c.articleScore;
+      return `  #${store.nextIndex + i + 1} · ${combined} · "${c.item.title.slice(0, 50)}" _(${c.postType})_`;
     });
     return `\n\n*If rejected, next up:*\n${lines.join('\n')}`;
   } catch {

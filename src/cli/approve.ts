@@ -1,12 +1,12 @@
 import 'dotenv/config';
 import { getPendingPosts, approvePost, setImageChoice } from '../hitl/queue.js';
-import { pickScheduledTime } from '../scheduler/windows.js';
+import { pickScheduledTime, pickInsiderScheduledTime } from '../scheduler/windows.js';
 
 const args = process.argv.slice(2);
 const idFlagIndex = args.indexOf('--id');
 const id = idFlagIndex !== -1 ? args[idFlagIndex + 1] : null;
 const imageFlagIndex = args.indexOf('--image');
-const imageChoice = imageFlagIndex !== -1 ? args[imageFlagIndex + 1] as 'ai' | 'og' | 'none' : undefined;
+const imageChoice = imageFlagIndex !== -1 ? args[imageFlagIndex + 1] as 'ai' | 'og' | 'none' | 'custom' : undefined;
 
 const pending = getPendingPosts();
 
@@ -26,19 +26,22 @@ if (!id) {
     console.log(post.finalContent);
     console.log('---\n');
   }
-  console.log(`Run: npm run approve -- --id <id> [--image ai|og|none]`);
+  console.log(`Run: npm run approve -- --id <id> [--image ai|og|none|custom]`);
   process.exit(0);
 }
 
 if (imageChoice) {
-  if (!['ai', 'og', 'none'].includes(imageChoice)) {
-    console.error('Invalid --image value. Use: ai, og, or none');
+  if (!['ai', 'og', 'none', 'custom'].includes(imageChoice)) {
+    console.error('Invalid --image value. Use: ai, og, none, or custom');
     process.exit(1);
   }
   setImageChoice(id, imageChoice);
 }
 
-const scheduledFor = pickScheduledTime();
+// Check if this is an insider post — schedule for Sunday 7-8pm ET
+const pendingPost = pending.find(p => p.id === id);
+const isInsider = pendingPost?.draft.postType === 'insider';
+const scheduledFor = isInsider ? pickInsiderScheduledTime() : pickScheduledTime();
 const post = approvePost(id, scheduledFor);
 if (!post) {
   console.error(`No pending post found with ID: ${id}`);
