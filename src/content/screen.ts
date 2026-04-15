@@ -112,7 +112,19 @@ export async function screenPost(draft: DraftPost): Promise<ScreeningResult> {
     const result = JSON.parse(raw) as ScreeningResult;
     return result;
   } catch {
-    console.error('Screener returned non-JSON response:', raw);
+    // LLM sometimes returns duplicate keys or malformed JSON — try to extract the first valid JSON object
+    const objMatch = raw.match(/\{[\s\S]*?"cringeScore"\s*:\s*\d+[\s\S]*?\}/);
+    if (objMatch) {
+      try {
+        // Remove duplicate keys by keeping the last occurrence of each
+        const deduped = objMatch[0].replace(/"(revisedContent|revisedFirstComment)"\s*:\s*(?:"(?:[^"\\]|\\.)*"|null)\s*,\s*"(revisedContent|revisedFirstComment)"/g,
+          (_m, _k1, key2) => `"${key2}"`);
+        const result = JSON.parse(deduped) as ScreeningResult;
+        console.warn('Screener returned malformed JSON — recovered via extraction.');
+        return result;
+      } catch { /* fall through */ }
+    }
+    console.error('Screener returned non-JSON response:', raw.slice(0, 500));
     return { cringeScore: 0, reasoning: 'Screener parse error', revisedContent: null, revisedFirstComment: null };
   }
 }

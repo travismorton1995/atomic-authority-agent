@@ -2,12 +2,12 @@ export type PostType = 'bridge' | 'contrarian' | 'change-management' | 'explaine
 
 export const POST_TYPE_WEIGHTS: Partial<Record<PostType, number>> = {
   bridge: 30,
-  'change-management': 15,
   explainer: 20,
   contrarian: 15,
-  'myth-busting': 10,
-  prediction: 7,
-  'hot-take': 8,
+  'myth-busting': 15,
+  'change-management': 10,
+  'hot-take': 5,
+  prediction: 5,
 };
 
 export const WORD_COUNT_TARGETS: Record<PostType, { min: number; max: number; reviseMin: number; reviseMax: number }> = {

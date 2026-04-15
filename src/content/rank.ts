@@ -11,12 +11,15 @@ export interface ScoreBreakdown {
   npx: number;          // 0–1
 }
 
+export type TypeFitScores = Record<string, number>; // post type → fit score (0–10)
+
 export interface RankedItem {
   item: FeedItem;
   score: number;        // computed: intersection + novelty + geography + npx
   breakdown: ScoreBreakdown;
   reasoning: string;
-  suggestedPostType: string;
+  suggestedPostType: string; // kept for backward compat — best type from typeFit × weight
+  typeFit: TypeFitScores;    // how well this article fits each post type (0–10)
   suggestedTags: ContentTag[];
 }
 
@@ -51,14 +54,14 @@ NPX MENTION (0–1):
 1 = "NPX" or "Nuclear Promise X" appears anywhere in the article title or summary
 0 = Not mentioned
 
-POST TYPE MATCHING — assign the best type based on these signals:
-- bridge: regulatory approval, partnership announcement, new build milestone, technology deployment — something happened that connects nuclear and AI concretely
-- contrarian: article reflects mainstream AI culture (speed, iteration, disruption) that conflicts with nuclear's engineering discipline
-- change-management: workforce adoption friction, trust gaps, org culture, training, or human factors in AI deployment
-- explainer: complex nuclear or AI concept that the other audience wouldn't know — licensing, reactor physics, model validation, safety cases
-- myth-busting: article touches a widespread misconception about nuclear or AI — public fear, overhype, or a common misunderstanding
-- prediction: major industry shift, policy direction, or technology trajectory with clear 12-24 month implications
-- hot-take: surprising statistic, frustrating decision, or a strong opinion the article clearly warrants
+POST TYPE FIT — score how well each article fits EACH post type (0–10). Be generous across multiple types — most articles can work as 3–4 different types. Score based on these signals:
+- bridge: A concrete event, decision, or development that connects nuclear and AI. Partnerships, deployments, regulatory changes, technology milestones. The article describes something that HAPPENED.
+- contrarian: The article's topic or framing reflects a mainstream assumption that nuclear's engineering discipline would challenge. Works when the conventional wisdom deserves pushback.
+- change-management: Workforce, organizational, trust, training, or human factors angle. Works when the story is really about people and adoption, not just technology.
+- explainer: The article contains a technical concept that one audience (nuclear OR AI) wouldn't know. Works when there's a knowledge bridge to build.
+- myth-busting: The article touches on or perpetuates a common misconception about nuclear or AI. Works when there's a wrong belief to correct.
+- prediction: The article reveals a trajectory — industry shift, policy direction, or technology trend with implications worth calling out. Works when you can make a specific, time-bounded claim.
+- hot-take: The article warrants genuine frustration, pointed disagreement, or a provocative reaction. ONLY score high (7+) if the article is truly outrageous, contradictory, or reveals something that should make people angry. Most routine news does NOT warrant a hot take — score 0–3 for normal articles.
 
 Respond ONLY with a valid JSON array — no markdown, no extra text before or after. One entry per article, in the same order as input:
 [
@@ -68,7 +71,7 @@ Respond ONLY with a valid JSON array — no markdown, no extra text before or af
     "geography": <0-2>,
     "npx": <0-1>,
     "reasoning": "<one sentence explaining the intersection score>",
-    "suggestedPostType": "<bridge|contrarian|change-management|explainer|myth-busting|prediction|hot-take>",
+    "typeFit": { "bridge": <0-10>, "contrarian": <0-10>, "change-management": <0-10>, "explainer": <0-10>, "myth-busting": <0-10>, "prediction": <0-10>, "hot-take": <0-10> },
     "suggestedTags": ["<tag1>", "<tag2>"]
   }
 ]
@@ -135,13 +138,16 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
       geography: number;
       npx: number;
       reasoning: string;
-      suggestedPostType: string;
+      typeFit?: Record<string, number>;
+      suggestedPostType?: string; // legacy fallback
       suggestedTags?: string[];
     }>;
 
     if (scores.length < eligible.length) {
       console.warn(`Ranker returned ${scores.length} scores for ${eligible.length} articles — missing entries will default to score 1.`);
     }
+
+    const defaultTypeFit: TypeFitScores = { bridge: 5, contrarian: 3, 'change-management': 3, explainer: 5, 'myth-busting': 2, prediction: 3, 'hot-take': 2 };
 
     return eligible.map((item, i) => {
       const s = scores[i];
@@ -152,12 +158,22 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
         npx:          s?.npx          ?? 0,
       };
       const score = breakdown.intersection + breakdown.novelty + breakdown.geography + breakdown.npx;
+
+      // Use typeFit if provided, fall back to legacy suggestedPostType
+      const typeFit: TypeFitScores = s?.typeFit ?? defaultTypeFit;
+
+      // Derive suggestedPostType from highest typeFit score (for backward compat / logging)
+      const suggestedPostType = s?.typeFit
+        ? Object.entries(typeFit).sort((a, b) => b[1] - a[1])[0][0]
+        : (s?.suggestedPostType ?? 'bridge');
+
       return {
         item,
         score: s ? score : 1,
         breakdown,
         reasoning: s?.reasoning ?? 'No reasoning provided',
-        suggestedPostType: s?.suggestedPostType ?? 'bridge',
+        suggestedPostType,
+        typeFit,
         suggestedTags: (s?.suggestedTags ?? []).filter((t): t is ContentTag => (CONTENT_TAGS as readonly string[]).includes(t)),
       };
     });
@@ -165,12 +181,14 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
     console.error(`Ranker JSON parse failed (${eligible.length} articles, response length ${raw.length}):`, (err as Error).message);
     console.error('Response start:', raw.slice(0, 200));
     console.error('Response end:', raw.slice(-200));
+    const defaultTypeFit: TypeFitScores = { bridge: 5, contrarian: 3, 'change-management': 3, explainer: 5, 'myth-busting': 2, prediction: 3, 'hot-take': 2 };
     return eligible.map(item => ({
       item,
       score: 1,
       breakdown: { intersection: 0, novelty: 0, geography: 0, npx: 0 },
       reasoning: 'Ranker error — fallback score',
       suggestedPostType: 'bridge',
+      typeFit: defaultTypeFit,
       suggestedTags: [],
     }));
   }

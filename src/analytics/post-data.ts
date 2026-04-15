@@ -55,11 +55,14 @@ export interface PostAnalyticsRecord {
 
 function getTimeWindow(hour: number, minute: number = 0): string {
   const total = hour * 60 + minute;
-  if (total >= 450 && total < 510) return 'Early morning (7:30-8:30am)';
-  if (total >= 630 && total < 690) return 'Late morning (10:30-11:30am)';
-  if (total >= 720 && total < 780) return 'Lunch (12-1pm)';
-  if (total >= 900 && total < 960) return 'Mid-afternoon (3-4pm)';
-  if (total >= 1020 && total < 1080) return 'Evening (5-6pm)';
+  if (total >= 420 && total < 510) return '7-8:30am';
+  if (total >= 510 && total < 630) return '8:30-10:30am';
+  if (total >= 630 && total < 720) return '10:30am-12pm';
+  if (total >= 720 && total < 810) return '12-1:30pm';
+  if (total >= 810 && total < 900) return '1:30-3pm';
+  if (total >= 900 && total < 1020) return '3-5pm';
+  if (total >= 1020 && total < 1140) return '5-7pm';
+  if (total >= 1140 && total < 1260) return '7-9pm';
   return 'Other';
 }
 

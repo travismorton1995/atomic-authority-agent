@@ -8,6 +8,7 @@ import {
 } from './stats.js';
 import { loadPostsWithMetrics, type PostAnalyticsRecord } from './post-data.js';
 import { getCorrelationInsights, type CorrelationInsight } from './feedback.js';
+import { getFollowerData } from './followers.js';
 
 export interface RankEntry {
   label: string;
@@ -26,6 +27,7 @@ export interface ReportData {
   totalReposts: number;
   totalSaves: number;
   totalNewFollowers: number;
+  followers: { current: number; allTimeGrowth: number; weeklyGrowth: number | null } | null;
   avgImpressions: number;
   overallEngRate: string;
   avgWordCount: number | null;
@@ -39,7 +41,7 @@ export interface ReportData {
   feedRanking: RankEntry[];
   dayRanking: RankEntry[];
   windowRanking: RankEntry[];
-  photoComparison: { ogPhoto: GroupStats | null; aiPhoto: GroupStats | null; customPhoto: GroupStats | null; stockPhoto: GroupStats | null; noPhoto: GroupStats | null } | null;
+  photoEntries: Array<{ label: string; emoji: string; stats: GroupStats }>;
   wordCountBuckets: Record<string, { stats: GroupStats; significant: boolean }> | null;
   outliers: Array<{ snippet: string; score: number; sigma: number }>;
   bestPost: { snippet: string; postType: string; score: number; impressions: number } | null;
@@ -102,37 +104,48 @@ export function generateReportData(): ReportData {
   const allTimeAvgScore = scoreStats.mean;
   const trend = trendLine(posts.map(p => ({ x: p.dayIndex, y: p.compositeScore })));
   const correlations = getCorrelationInsights();
+  const followerData = getFollowerData();
+  const followers = followerData ? {
+    current: followerData.current,
+    allTimeGrowth: followerData.allTimeGrowth,
+    weeklyGrowth: followerData.weeklyGrowth,
+  } : null;
 
   // Rankings (all-time)
   const typeRanking = rankBy(posts, p => p.postType);
-  const tagRanking = rankBy(posts, p => p.contentTags).slice(0, 5);
-  const hashtagRanking = rankBy(posts, p => p.hashtags).slice(0, 5);
+  const tagRanking = rankBy(posts, p => p.contentTags);
+  const hashtagRanking = rankBy(posts, p => p.hashtags);
   const feedRanking = rankBy(posts, p => p.sourceFeed);
   const dayRanking = rankBy(posts, p => p.dayOfWeek);
   const windowRanking = rankBy(posts, p => p.timeWindow);
 
-  // Photo comparison — OG, AI-generated, custom, stock, none
-  const ogPhotoScores = posts.filter(p => p.imageChoice === 'og').map(p => p.compositeScore);
-  const aiPhotoScores = posts.filter(p => p.imageChoice === 'ai').map(p => p.compositeScore);
-  const customPhotoScores = posts.filter(p => p.imageChoice === 'custom').map(p => p.compositeScore);
-  const stockPhotoScores = posts.filter(p => p.imageChoice === 'stock').map(p => p.compositeScore);
-  const noPhotoScores = posts.filter(p => p.imageChoice === 'none').map(p => p.compositeScore);
-  const photoComparison = (ogPhotoScores.length > 0 || aiPhotoScores.length > 0 || customPhotoScores.length > 0 || stockPhotoScores.length > 0 || noPhotoScores.length > 0)
-    ? {
-        ogPhoto: ogPhotoScores.length > 0 ? groupStats(ogPhotoScores) : null,
-        aiPhoto: aiPhotoScores.length > 0 ? groupStats(aiPhotoScores) : null,
-        customPhoto: customPhotoScores.length > 0 ? groupStats(customPhotoScores) : null,
-        stockPhoto: stockPhotoScores.length > 0 ? groupStats(stockPhotoScores) : null,
-        noPhoto: noPhotoScores.length > 0 ? groupStats(noPhotoScores) : null,
-      }
-    : null;
+  // Photo comparison — all image types
+  const photoTypes: Array<{ key: string; label: string; emoji: string }> = [
+    { key: 'og', label: 'OG', emoji: '🖼️' },
+    { key: 'ai', label: 'AI', emoji: '🤖' },
+    { key: 'custom', label: 'Uploaded', emoji: '📷' },
+    { key: 'stock', label: 'Stock', emoji: '📸' },
+    { key: 'none', label: 'None', emoji: '🚫' },
+  ];
+  const photoEntries: Array<{ label: string; emoji: string; stats: GroupStats }> = [];
+  for (const pt of photoTypes) {
+    const scores = posts.filter(p => p.imageChoice === pt.key).map(p => p.compositeScore);
+    if (scores.length > 0) photoEntries.push({ label: pt.label, emoji: pt.emoji, stats: groupStats(scores) });
+  }
+  photoEntries.sort((a, b) => b.stats.median - a.stats.median);
 
-  // Word count buckets
-  const wcBuckets: Record<string, number[]> = { 'Short (<120)': [], 'Medium (120-170)': [], 'Long (>170)': [] };
+  // Word count buckets — finer granularity
+  const wcBuckets: Record<string, number[]> = {
+    '<100': [], '100-120': [], '120-140': [], '140-160': [], '160-180': [], '180-200': [], '>200': [],
+  };
   for (const p of posts) {
-    if (p.wordCount < 120) wcBuckets['Short (<120)'].push(p.compositeScore);
-    else if (p.wordCount <= 170) wcBuckets['Medium (120-170)'].push(p.compositeScore);
-    else wcBuckets['Long (>170)'].push(p.compositeScore);
+    if (p.wordCount < 100) wcBuckets['<100'].push(p.compositeScore);
+    else if (p.wordCount < 120) wcBuckets['100-120'].push(p.compositeScore);
+    else if (p.wordCount < 140) wcBuckets['120-140'].push(p.compositeScore);
+    else if (p.wordCount < 160) wcBuckets['140-160'].push(p.compositeScore);
+    else if (p.wordCount < 180) wcBuckets['160-180'].push(p.compositeScore);
+    else if (p.wordCount <= 200) wcBuckets['180-200'].push(p.compositeScore);
+    else wcBuckets['>200'].push(p.compositeScore);
   }
   const hasWcData = Object.values(wcBuckets).some(v => v.length > 0);
   const wordCountBuckets = hasWcData ? bucketCompare(wcBuckets) : null;
@@ -146,14 +159,20 @@ export function generateReportData(): ReportData {
     return { snippet: p.postSnippet, score: p.compositeScore, sigma };
   });
 
-  // Best post
-  const bestIdx = scores.indexOf(Math.max(...scores));
-  const bestPost = {
-    snippet: posts[bestIdx].postSnippet,
-    postType: posts[bestIdx].postType,
-    score: posts[bestIdx].compositeScore,
-    impressions: posts[bestIdx].impressions,
-  };
+  // Best post — last 14 days only
+  const recentCutoff14 = Date.now() - 14 * 24 * 60 * 60 * 1000;
+  const recent14 = posts.filter(p => p.publishedAt.getTime() >= recentCutoff14);
+  let bestPost: ReportData['bestPost'] = null;
+  if (recent14.length > 0) {
+    const recentScores = recent14.map(p => p.compositeScore);
+    const bestIdx = recentScores.indexOf(Math.max(...recentScores));
+    bestPost = {
+      snippet: recent14[bestIdx].postSnippet,
+      postType: recent14[bestIdx].postType,
+      score: recent14[bestIdx].compositeScore,
+      impressions: recent14[bestIdx].impressions,
+    };
+  }
 
   // Recent period (last 14 days) for trend comparison
   const recentCutoff = Date.now() - 14 * 24 * 60 * 60 * 1000;
@@ -179,7 +198,7 @@ export function generateReportData(): ReportData {
     avgWordCount, scoreStats, trend, correlations, allTimeAvgScore,
     typeRanking, tagRanking, hashtagRanking, feedRanking,
     dayRanking, windowRanking,
-    photoComparison, wordCountBuckets, outliers, bestPost, recent,
+    photoEntries, wordCountBuckets, outliers, bestPost, recent, followers,
   };
 }
 
@@ -193,7 +212,7 @@ function emptyReport(): ReportData {
     correlations: [], allTimeAvgScore: 0,
     typeRanking: [], tagRanking: [], hashtagRanking: [], feedRanking: [],
     dayRanking: [], windowRanking: [],
-    photoComparison: null, wordCountBuckets: null, outliers: [], bestPost: null, recent: null,
+    photoEntries: [], wordCountBuckets: null, outliers: [], bestPost: null, recent: null, followers: null,
   };
 }
 
@@ -203,38 +222,51 @@ export function formatReportMessage(d: ReportData): string {
   const fmt = (n: number) => n.toFixed(1);
   const medals = ['🥇', '🥈', '🥉'];
 
-  const rankLine = (r: RankEntry, i: number) => {
+  const rankLine = (r: RankEntry, i: number, maxLabelLen: number) => {
     const medal = medals[i] ?? '  •';
     const conf = r.confidence === 'low' ? ' ⚠️' : '';
-    return `${medal} \`${r.label}\` — ${fmt(r.avg)} score (${r.count} post${r.count !== 1 ? 's' : ''})${conf}`;
+    const label = r.label.slice(0, maxLabelLen).padEnd(maxLabelLen);
+    return `${medal}<code> ${label} ${fmt(r.avg).padStart(5)} (${String(r.count).padStart(2)})</code>${conf}`;
   };
+
+  const rankBlock = (entries: RankEntry[], labelLen = 14) =>
+    entries.map((r, i) => rankLine(r, i, labelLen)).join('\n');
+
+  // Followers
+  let followerSection = '';
+  if (d.followers) {
+    const weeklyStr = d.followers.weeklyGrowth !== null
+      ? `Weekly: +${d.followers.weeklyGrowth}`
+      : 'Weekly: awaiting data';
+    followerSection = `\n<b>Followers:</b> ${d.followers.current.toLocaleString()} total (+${d.followers.allTimeGrowth} since Mar 18) · ${weeklyStr}`;
+  }
 
   // Trend
   const trendEmoji = d.trend.direction === 'improving' ? '📈' : d.trend.direction === 'declining' ? '📉' : '➡️';
   const trendStr = d.trend.direction === 'flat'
     ? `${trendEmoji} Flat`
-    : `${trendEmoji} ${d.trend.direction.charAt(0).toUpperCase() + d.trend.direction.slice(1)} — ${d.trend.slope > 0 ? '+' : ''}${fmt(d.trend.slope * 7)} score/week (R²=${fmt(d.trend.rSquared)})`;
+    : `${trendEmoji} ${d.trend.direction.charAt(0).toUpperCase() + d.trend.direction.slice(1)} — ${d.trend.slope > 0 ? '+' : ''}${fmt(d.trend.slope * 7)}/week (R²=${fmt(d.trend.rSquared)})`;
 
   // Recent comparison
   let recentSection = '';
   if (d.recent && d.recent.postCount > 0) {
     const scoreDelta = d.recent.avgScore - d.allTimeAvgScore;
     const deltaEmoji = scoreDelta > 5 ? '🔼' : scoreDelta < -5 ? '🔽' : '➡️';
-    recentSection = `\n*Last ${d.recent.periodDays} days* (${d.recent.postCount} posts):
-Avg score: ${fmt(d.recent.avgScore)} ${deltaEmoji} (all-time: ${fmt(d.allTimeAvgScore)})
-Avg impressions: ${d.recent.avgImpressions.toLocaleString()}/post | Eng rate: ${d.recent.engRate}%
-New followers: ${d.recent.totalNewFollowers}`;
+    recentSection = `\n<b>Last ${d.recent.periodDays}d</b> (${d.recent.postCount} posts): ${fmt(d.recent.avgScore)} avg ${deltaEmoji}
+<code> Impressions  ${d.recent.avgImpressions.toLocaleString().padStart(6)}/post
+ Eng rate     ${d.recent.engRate.padStart(5)}%</code>`;
   }
 
-  // Correlations
-  const corrLines = d.correlations
-    .filter(c => Math.abs(c.r) > 0.2)
-    .map(c => {
-      const dir = c.r > 0 ? 'higher → better' : 'lower → better';
-      const sig = c.significant ? '' : ' (not significant)';
-      return `• ${c.attribute}: r=${fmt(c.r)} (${dir})${sig}`;
-    })
-    .join('\n');
+  // Filter rankings — require min count, sort by count desc then score desc, cap display
+  const minCount = 2;
+  const filterAndSort = (entries: RankEntry[], max = 8) =>
+    entries
+      .filter(r => r.count >= minCount)
+      .sort((a, b) => b.count - a.count || b.avg - a.avg)
+      .slice(0, max);
+  const filteredTags = filterAndSort(d.tagRanking);
+  const filteredHashtags = filterAndSort(d.hashtagRanking);
+  const filteredFeeds = filterAndSort(d.feedRanking);
 
   // Word count buckets
   let wcSection = '';
@@ -242,63 +274,63 @@ New followers: ${d.recent.totalNewFollowers}`;
     const lines = Object.entries(d.wordCountBuckets)
       .filter(([, v]) => v.stats.n > 0)
       .map(([label, v]) => {
-        const conf = v.stats.n < 3 ? ' ⚠️ low confidence' : '';
-        return `• ${label}: median ${fmt(v.stats.median)} score (${v.stats.n} posts)${conf}`;
+        const conf = v.stats.n < 3 ? ' ⚠️' : '';
+        return `<code> ${label.padEnd(16)} ${fmt(v.stats.median).padStart(5)} (${String(v.stats.n).padStart(2)})</code>${conf}`;
       })
       .join('\n');
-    if (lines) wcSection = `\n*Word count buckets:*\n${lines}`;
+    if (lines) wcSection = `\n<b>Word count:</b>\n${lines}`;
   }
 
   // Outliers
   const outlierLines = d.outliers
-    .map(o => `${o.sigma > 0 ? '🚀' : '📉'} ${o.snippet}… — score ${fmt(o.score)} (${fmt(Math.abs(o.sigma))}σ ${o.sigma > 0 ? 'above' : 'below'} mean)`)
+    .map(o => `${o.sigma > 0 ? '🚀' : '📉'} ${o.snippet.slice(0, 30)}… ${fmt(o.score)} (${fmt(Math.abs(o.sigma))}σ)`)
     .join('\n');
 
-  // Photo comparison — OG, AI-generated, custom, none
+  // Photo comparison — sorted by median desc
   let photoLine = '';
-  if (d.photoComparison) {
-    const parts = [];
-    if (d.photoComparison.ogPhoto) parts.push(`🖼️ OG photo (${d.photoComparison.ogPhoto.n}): median ${fmt(d.photoComparison.ogPhoto.median)} score`);
-    if (d.photoComparison.aiPhoto) parts.push(`🤖 AI photo (${d.photoComparison.aiPhoto.n}): median ${fmt(d.photoComparison.aiPhoto.median)} score`);
-    if (d.photoComparison.customPhoto) parts.push(`📷 Custom photo (${d.photoComparison.customPhoto.n}): median ${fmt(d.photoComparison.customPhoto.median)} score`);
-    if (d.photoComparison.stockPhoto) parts.push(`📸 Stock photo (${d.photoComparison.stockPhoto.n}): median ${fmt(d.photoComparison.stockPhoto.median)} score`);
-    if (d.photoComparison.noPhoto) parts.push(`🚫 no image (${d.photoComparison.noPhoto.n}): median ${fmt(d.photoComparison.noPhoto.median)} score`);
-    if (parts.length > 0) photoLine = `\n*Image breakdown:*\n${parts.join(' | ')}`;
+  if (d.photoEntries.length > 0) {
+    const parts = d.photoEntries.map(e =>
+      `<code> ${e.emoji} ${e.label.padEnd(10)} ${fmt(e.stats.median).padStart(5)} (${String(e.stats.n).padStart(2)})</code>`
+    );
+    photoLine = `\n<b>Images:</b> (median score, count)\n${parts.join('\n')}`;
   }
 
-  return `📊 *Performance Report* — All-time (since ${d.firstPostDate})
+  return `📊 <b>Performance Report</b>
+Since ${d.firstPostDate} · ${d.postCount} posts
 
-*Posts published:* ${d.postCount}
-*Impressions:* ${d.totalImpressions.toLocaleString()} (avg ${d.avgImpressions.toLocaleString()}/post)
-*Engagement rate:* ${d.overallEngRate}%
-*Reactions:* ${d.totalReactions} | *Comments:* ${d.totalComments} | *Reposts:* ${d.totalReposts}
-*Saves:* ${d.totalSaves} | *New followers:* ${d.totalNewFollowers}
-*Score:* median ${fmt(d.scoreStats.median)}, mean ${fmt(d.scoreStats.mean)}, stddev ${fmt(d.scoreStats.stddev)}
-*IQR:* ${fmt(d.scoreStats.p25)}–${fmt(d.scoreStats.p75)} | *Range:* ${fmt(d.scoreStats.min)}–${fmt(d.scoreStats.max)}${d.avgWordCount ? ` | *Avg words:* ${d.avgWordCount}` : ''}
+<code> Impressions  ${d.totalImpressions.toLocaleString().padStart(6)} (${d.avgImpressions.toLocaleString()}/post)
+ Eng rate     ${d.overallEngRate.padStart(5)}%
+ Reactions    ${String(d.totalReactions).padStart(6)}
+ Comments     ${String(d.totalComments).padStart(6)}
+ Reposts      ${String(d.totalReposts).padStart(6)}
+ Saves        ${String(d.totalSaves).padStart(6)}</code>
+${followerSection}
 
-*Performance trend:*
-${trendStr}
+<b>Score:</b> med ${fmt(d.scoreStats.median)} · avg ${fmt(d.scoreStats.mean)} · sd ${fmt(d.scoreStats.stddev)}
+IQR ${fmt(d.scoreStats.p25)}–${fmt(d.scoreStats.p75)} · range ${fmt(d.scoreStats.min)}–${fmt(d.scoreStats.max)}${d.avgWordCount ? ` · ${d.avgWordCount}w avg` : ''}
+
+<b>Trend:</b> ${trendStr}
 ${recentSection}
-${corrLines ? `\n*What correlates with performance:*\n${corrLines}` : ''}
-*Post types:*
-${d.typeRanking.map(rankLine).join('\n')}
 
-*Top content tags:*
-${d.tagRanking.length > 0 ? d.tagRanking.map(rankLine).join('\n') : '  _(no tags)_'}
+<b>Post types:</b> (avg score, count)
+${rankBlock(d.typeRanking)}
 
-*Top hashtags:*
-${d.hashtagRanking.length > 0 ? d.hashtagRanking.map(rankLine).join('\n') : '  _(no hashtags)_'}
+<b>Tags:</b> (min ${minCount} posts)
+${filteredTags.length > 0 ? rankBlock(filteredTags) : '  <i>(insufficient data)</i>'}
 
-*By source feed:*
-${d.feedRanking.map(rankLine).join('\n')}
+<b>Hashtags:</b> (min ${minCount} posts)
+${filteredHashtags.length > 0 ? rankBlock(filteredHashtags, 16) : '  <i>(insufficient data)</i>'}
 
-*By day of week:*
-${d.dayRanking.map(rankLine).join('\n')}
+<b>Feed:</b> (min ${minCount} posts)
+${filteredFeeds.length > 0 ? rankBlock(filteredFeeds, 18) : '  <i>(insufficient data)</i>'}
 
-*By time window — experiment (ET):*
-${d.windowRanking.map(rankLine).join('\n')}
-${photoLine}${wcSection}${outlierLines ? `\n\n*Outliers:*\n${outlierLines}` : ''}
+<b>Day:</b>
+${rankBlock(d.dayRanking, 10)}
 
-*Best post:* [${d.bestPost?.postType}] ${d.bestPost?.snippet}…
-_Score: ${d.bestPost ? fmt(d.bestPost.score) : 'n/a'}${d.bestPost?.impressions ? ` · ${d.bestPost.impressions.toLocaleString()} impressions` : ''}_`;
+<b>Time window (ET):</b>
+${rankBlock(d.windowRanking, 14)}
+${photoLine}${wcSection}${outlierLines ? `\n\n<b>Outliers:</b>\n${outlierLines}` : ''}
+
+<b>Best (last 14d):</b>${d.bestPost ? ` [${d.bestPost.postType}] ${d.bestPost.snippet?.slice(0, 35)}…
+Score ${fmt(d.bestPost.score)}${d.bestPost.impressions ? ` · ${d.bestPost.impressions.toLocaleString()} impr` : ''}` : ' <i>(no recent posts)</i>'}`;
 }

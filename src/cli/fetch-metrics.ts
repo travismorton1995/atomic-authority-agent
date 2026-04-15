@@ -50,6 +50,9 @@ async function scrapePostAnalytics(page: import('playwright').Page, urn: string)
 
   const pageText = await page.evaluate('document.body.innerText') as string;
 
+  // Debug: log page start if no metrics are found (helps diagnose layout changes)
+  const debugSnippet = pageText.replace(/\n/g, ' | ').slice(0, 200);
+
   // LinkedIn analytics page has two sections with different patterns:
   //   Discovery: "1,938\nImpressions\n1,071\nMembers reached" (number BEFORE label)
   //   Engagement: "Reactions\n68\nComments\n1\nReposts\n3" (label BEFORE number)
@@ -88,17 +91,21 @@ async function scrapePostAnalytics(page: import('playwright').Page, urn: string)
     return map;
   };
 
-  // Split page into Discovery and Engagement sections
-  const discoveryIdx = lines.findIndex(l => l === 'Discovery');
-  const engagementIdx = lines.findIndex(l => l === 'Engagement');
-  const demographicsIdx = lines.findIndex(l => l === 'Top demographics');
+  // Split page into sections — LinkedIn uses varying labels, match flexibly
+  const discoveryIdx = lines.findIndex(l => /^discovery$/i.test(l));
+  const profileIdx = lines.findIndex(l => /^profile activity$/i.test(l));
+  const engagementIdx = lines.findIndex(l => /social engagement|^engagement$/i.test(l));
+  const demographicsIdx = lines.findIndex(l => /demographics/i.test(l));
 
-  const discoveryLines = discoveryIdx >= 0 && engagementIdx > discoveryIdx
-    ? lines.slice(discoveryIdx, engagementIdx) : [];
-  const engagementLines = engagementIdx >= 0
-    ? lines.slice(engagementIdx, demographicsIdx > engagementIdx ? demographicsIdx : engagementIdx + 30) : [];
+  const discoveryEnd = [profileIdx, engagementIdx, demographicsIdx].find(i => i > discoveryIdx) ?? discoveryIdx + 20;
+  const engagementEnd = demographicsIdx > engagementIdx ? demographicsIdx : engagementIdx + 20;
+
+  const discoveryLines = discoveryIdx >= 0 ? lines.slice(discoveryIdx, discoveryEnd) : [];
+  const profileLines = profileIdx >= 0 ? lines.slice(profileIdx, engagementIdx > profileIdx ? engagementIdx : profileIdx + 10) : [];
+  const engagementLines = engagementIdx >= 0 ? lines.slice(engagementIdx, engagementEnd) : [];
 
   const discoveryLookup = buildLookup(discoveryLines, 'number-first');
+  const profileLookup = buildLookup(profileLines, 'label-first');
   const engagementLookup = buildLookup(engagementLines, 'label-first');
 
   const raw = {
@@ -109,10 +116,11 @@ async function scrapePostAnalytics(page: import('playwright').Page, urn: string)
     reposts: engagementLookup.get('reposts'),
     saves: engagementLookup.get('saves'),
     sends: engagementLookup.get('sends on linkedin'),
-    newFollowers: discoveryLookup.get('followers gained from this post'),
+    newFollowers: profileLookup.get('followers gained from this post')
+      ?? discoveryLookup.get('followers gained from this post'),
   };
 
-  return {
+  const result: PostMetrics = {
     fetchedAt: new Date().toISOString(),
     impressions: parseNumber(raw.impressions),
     membersReached: parseNumber(raw.membersReached),
@@ -123,6 +131,14 @@ async function scrapePostAnalytics(page: import('playwright').Page, urn: string)
     sends: parseNumber(raw.sends),
     newFollowers: parseNumber(raw.newFollowers),
   };
+
+  // Log debug info if nothing was parsed — helps diagnose layout changes
+  if (result.impressions === null && result.reactions === null && result.comments === null) {
+    console.warn(`  [debug] No metrics found. Discovery section: ${discoveryLines.length} lines, Engagement: ${engagementLines.length} lines`);
+    console.warn(`  [debug] Page start: ${debugSnippet}`);
+  }
+
+  return result;
 }
 
 export async function runMetricsFetch() {
@@ -149,8 +165,9 @@ export async function runMetricsFetch() {
   const release = await acquireBrowserLock(60_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
-    headless: true,
+    headless: process.env.LINKEDIN_HEADLESS === 'true',
     locale: 'en-US',
+    viewport: { width: 1280, height: 800 },
   });
 
   await context.addInitScript(() => {
@@ -160,6 +177,8 @@ export async function runMetricsFetch() {
   const page = context.pages()[0] ?? await context.newPage();
 
   try {
+    let sessionChecked = false;
+
     for (const post of postsWithUrl) {
       const urn = extractUrn(post.linkedInPostUrl);
       console.log(`\n[${post.draft?.postType}] "${post.draft?.sourceTitle?.slice(0, 60)}"`);
@@ -169,11 +188,34 @@ export async function runMetricsFetch() {
       }
       try {
         const metrics = await scrapePostAnalytics(page, urn);
-        post.metrics = metrics;
-        console.log(`  Impressions: ${metrics.impressions ?? 'n/a'} | Reactions: ${metrics.reactions ?? 'n/a'} | Comments: ${metrics.comments ?? 'n/a'} | Reposts: ${metrics.reposts ?? 'n/a'} | Saves: ${metrics.saves ?? 'n/a'} | Followers: ${metrics.newFollowers ?? 'n/a'}`);
+        // Only update if scrape returned actual data — don't overwrite good metrics with nulls
+        const hasData = metrics.impressions !== null || metrics.reactions !== null || metrics.comments !== null;
+        if (hasData) {
+          sessionChecked = true;
+          post.metrics = metrics;
+          console.log(`  Impressions: ${metrics.impressions ?? 'n/a'} | Reactions: ${metrics.reactions ?? 'n/a'} | Comments: ${metrics.comments ?? 'n/a'} | Reposts: ${metrics.reposts ?? 'n/a'} | Saves: ${metrics.saves ?? 'n/a'} | Followers: ${metrics.newFollowers ?? 'n/a'}`);
+        } else {
+          console.warn(`  Scrape returned no data — keeping previous metrics.`);
+          // If the very first post returns no data, session is likely dead — abort early
+          if (!sessionChecked) {
+            console.error('Metrics fetch: first post returned no data — session may be expired. Aborting.');
+            break;
+          }
+        }
       } catch (err) {
         console.warn(`  Failed to fetch metrics: ${(err as Error).message}`);
       }
+    }
+
+    // Scrape total follower count from audience analytics (reuse browser session)
+    try {
+      const { scrapeFollowerCount, recordSnapshot } = await import('../analytics/followers.js');
+      const followerCount = await scrapeFollowerCount(page);
+      if (followerCount) {
+        recordSnapshot(followerCount);
+      }
+    } catch (err) {
+      console.warn(`[followers] Scrape failed (non-fatal): ${(err as Error).message}`);
     }
   } finally {
     await context.close();
@@ -207,7 +249,7 @@ export async function runWeeklyReport(): Promise<void> {
   const message = formatReportMessage(data);
 
   console.log('Sending weekly report to Telegram...');
-  await sendMessage(message);
+  await sendMessage(message, 'HTML');
   console.log('Weekly report sent.');
 }
 

@@ -1,1 +1,101 @@
-[]
+[
+  {
+    "id": "post_1776207664968",
+    "draft": {
+      "content": "Waste is becoming an energy asset. The anaerobic digestion market doubles to $39B by 2033—here's why.\n\nMy prediction: before the end of 2028, at least one SMR developer partners with a commercial biogas operator.\n\nThe logic is straightforward.\n\nBoth technologies produce dispatchable, low-carbon energy. Both serve municipalities and industrial facilities. And nuclear process heat can dramatically improve methane yield from digesters, which currently leave significant energy on the table.\n\nThe anaerobic digestion sector is growing at 10.3% CAGR. Dry digestion systems are scaling fast for municipal waste. Meanwhile, SMR developers need anchor customers beyond data centers to prove commercial viability and earn public trust.\n\nIf I'm right, it validates nuclear's role in the broader circular economy.\n\nIf I'm wrong, it means SMR vendors are still stuck chasing only the obvious electricity buyers, and the licensing timeline for industrial heat applications remains too painful.\n\nEither answer tells you something important about where this industry actually is.\n\n#NuclearEnergy #EnergyPolicy #SMR #Decarbonization",
+      "firstComment": "Sourced from NewsData.\n\nAre any of you already working with biogas operators at your facilities?",
+      "postType": "prediction",
+      "sourceTitle": "Anaerobic Digestion Market: Global Outlook and Strategic Developments",
+      "sourceUrl": "https://express-press-release.net/news/2026/04/13/1746848",
+      "sourceDate": "2026-04-13T15:10:45.000Z",
+      "sourceFeed": "NewsData: express_press_release_net",
+      "generatedAt": "2026-04-14T23:00:48.610Z",
+      "imageUrl": "http://express-press-release.net/news/wp-content/uploads/2015/11/epr-network-big-logo.jpg",
+      "wordCount": 159,
+      "combinedScore": 7.800000000000002,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 0.8,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.25,
+      "contentTags": ["smr", "public-opinion", "trust", "adoption"]
+    },
+    "screening": {
+      "cringeScore": 6,
+      "reasoning": "The content itself is strong: specific prediction with falsification criteria, real numbers, credible nuclear angle. However, two structural issues force the score up. First, two consecutive mini-paragraphs in the middle violate the mandatory 2:1 scannability rule (+2). Second, CAGR is an uncommon acronym used without expansion (+1). The hook is good at 87 characters, creates genuine curiosity with a concrete dollar figure, and avoids weak patterns.",
+      "revisedContent": "Waste is becoming an energy asset. The anaerobic digestion market doubles to $39B by 2033.\n\nMy prediction: an SMR developer partners with a commercial biogas operator before 2029.\n\nThe logic is straightforward.\n\nBoth technologies produce dispatchable, low-carbon energy. Both serve municipalities and industrial facilities. Nuclear process heat can dramatically improve methane yield from digesters, which currently leave significant energy on the table.\n\nThe sector is growing at 10.3% annually.\n\nDry digestion systems are scaling fast for municipal waste.\n\nMeanwhile, SMR developers need anchor customers beyond data centers to prove commercial viability and earn public trust. If I'm right, it validates nuclear's role in the broader circular economy.\n\nEither answer tells you something important.\n\nIf I'm wrong, it means SMR vendors are still stuck chasing only the obvious electricity buyers, and the licensing timeline for industrial heat applications remains too painful.\n\n#NuclearEnergy #EnergyPolicy #SMR #Decarbonization",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Waste is becoming an energy asset. The anaerobic digestion market doubles to $39B by 2033.\n\nMy prediction: an SMR developer partners with a commercial biogas operator before 2029.\n\nThe logic is straightforward.\n\nBoth technologies produce dispatchable, low-carbon energy. Both serve municipalities and industrial facilities. Nuclear process heat can dramatically improve methane yield from digesters, which currently leave significant energy on the table.\n\nThe sector is growing at 10.3% annually.\n\nDry digestion systems are scaling fast for municipal waste.\n\nMeanwhile, SMR developers need anchor customers beyond data centers to prove commercial viability and earn public trust. If I'm right, it validates nuclear's role in the broader circular economy.\n\nEither answer tells you something important.\n\nIf I'm wrong, it means SMR vendors are still stuck chasing only the obvious electricity buyers, and the licensing timeline for industrial heat applications remains too painful.\n\n#NuclearEnergy #EnergyPolicy #SMR #Decarbonization",
+    "status": "pending",
+    "createdAt": "2026-04-14T23:01:04.968Z",
+    "wordCount": 144
+  },
+  {
+    "id": "post_1776211357947",
+    "draft": {
+      "content": "The constraint isn't engineering. It's whether a community can trust the same technology that contaminated it.\n\nOntario just announced a 10,000 MW nuclear plant near Port Hope—a town still cleaning up 1940s contamination. Silicon Valley's \"move fast and break things\" doesn't work where fenced-off areas carry radiation signs and remediation won't finish until 2032.\n\nAt [[MENTION:Bruce Power]], I learned: earning operational trust takes years of consistency, not a single pitch. Port Hope residents aren't evaluating a business case—they're evaluating whether this industry has changed.\n\nThe [[MENTION:CNSC]] licensing process won't allow site prep until 2030. That timeline exists for a reason.\n\nEvery AI system we build for nuclear operators carries the same burden. If your model can't survive scrutiny from people who've been burned before, your accuracy metrics are irrelevant.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+      "firstComment": "Sourced from Toronto Star.\n\nAre communities near your site pushing back on new builds?",
+      "postType": "contrarian",
+      "sourceTitle": "Nuclear past and present collide in Ontario's Port Hope",
+      "sourceUrl": "https://www.thestar.com/politics/provincial/nuclear-past-and-present-collide-in-ontarios-port-hope/article_61ce8c2c-c30b-494a-902b-c7dae22e562d.html",
+      "sourceDate": "2026-04-13T13:00:00.000Z",
+      "sourceFeed": "NewsData: thestar",
+      "generatedAt": "2026-04-15T00:02:23.909Z",
+      "imageUrl": "https://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/3/9b/39b972bd-823e-5d70-b486-eb5c3960c506/69d93df34a52e.image.jpg?crop=1662%2C873%2C0%2C187&resize=1200%2C630&order=crop%2Cresize",
+      "wordCount": 132,
+      "combinedScore": 9.75,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.25,
+      "contentTags": ["trust", "adoption", "regulatory", "licensing", "cnsc", "canada", "public-opinion", "explainability"],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776211670769.png",
+      "stockImageUrl": "https://images.unsplash.com/photo-1766788467067-d443f19314b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Juan Pablo",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/Gz6Yp4BcbbQ/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1766788467067-d443f19314b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Juan Pablo",
+          "downloadUrl": "https://api.unsplash.com/photos/Gz6Yp4BcbbQ/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA",
+          "description": "Industrial building with blue corrugated metal siding and yellow stripe."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1742112125630-dd2955dd6120?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxXb3JrZXJzJTIwaW4lMjBzYWZldHklMjBlcXVpcG1lbnQlMjB0YWxraW5nfGVufDF8fHx8MTc3NjIxMTY3Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "RONNAKORN TRIRAGANON",
+          "downloadUrl": "https://api.unsplash.com/photos/tEepjQhromE/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxXb3JrZXJzJTIwaW4lMjBzYWZldHklMjBlcXVpcG1lbnQlMjB0YWxraW5nfGVufDF8fHx8MTc3NjIxMTY3Nnww",
+          "description": "Construction workers are inspecting plans on the jobsite."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1640030104754-0a33c686c533?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxCcm9rZW4lMjB0cnVzdCUyMGJlaW5nJTIwcmVidWlsdCUyMHNsb3dseXxlbnwxfHx8fDE3NzYyMTE2Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Ronda Dorsey",
+          "downloadUrl": "https://api.unsplash.com/photos/ZoVR7mPHMGo/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxCcm9rZW4lMjB0cnVzdCUyMGJlaW5nJTIwcmVidWlsdCUyMHNsb3dseXxlbnwxfHx8fDE3NzYyMTE2Nzd8MA",
+          "description": "trust spelled with wooden letter blocks on a table"
+        }
+      ]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook uses a contrasting reframe pattern ('The constraint isn't engineering. It's whether...'), which is an automatic rewrite trigger. The content itself is strong, specific, and grounded in real experience. The scannability structure has issues: the second paragraph is too long for a one-liner and doesn't fit the 2:1 rhythm. The AI connection at the end feels slightly bolted on but is acceptable. The first comment question is a bit long and could be simpler.",
+      "revisedContent": "Ontario is building a 10,000 MW nuclear plant next to a town still cleaning up 1940s contamination.\n\nThat tension tells you everything about nuclear's real challenge.\n\nPort Hope has fenced-off areas with radiation signs. Remediation won't finish until 2032. Silicon Valley's \"move fast and break things\" doesn't work here.\n\nAt [[MENTION:Bruce Power]], I learned something: earning operational trust takes years of consistency, not a single pitch. Port Hope residents aren't evaluating a business case. They're evaluating whether this industry has changed.\n\nThe [[MENTION:CNSC]] licensing process won't allow site prep until 2030.\n\nThat timeline exists for a reason.\n\nEvery AI system we build for nuclear operators carries the same burden. If your model can't survive scrutiny from people who've been burned before, your accuracy metrics are irrelevant.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+      "revisedFirstComment": "Sourced from Toronto Star.\n\nAre communities near your site pushing back on new builds?"
+    },
+    "finalContent": "Ontario is building a 10,000 MW nuclear plant next to a town still cleaning up 1940s contamination.\n\nThat tension tells you everything about nuclear's real challenge.\n\nPort Hope has fenced-off areas with radiation signs. Remediation won't finish until 2032. Silicon Valley's \"move fast and break things\" doesn't work here.\n\nAt [[MENTION:Bruce Power]], I learned something: earning operational trust takes years of consistency, not a single pitch. Port Hope residents aren't evaluating a business case. They're evaluating whether this industry has changed.\n\nThe [[MENTION:CNSC]] licensing process won't allow site prep until 2030.\n\nThat timeline exists for a reason.\n\nEvery AI system we build for nuclear operators carries the same burden. If your model can't survive scrutiny from people who've been burned before, your accuracy metrics are irrelevant.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+    "status": "approved",
+    "createdAt": "2026-04-15T00:02:37.947Z",
+    "wordCount": 129,
+    "imageChoice": "ai",
+    "actedAt": "2026-04-15T00:09:32.600Z",
+    "scheduledFor": "2026-04-15T21:37:00.000Z"
+  }
+]

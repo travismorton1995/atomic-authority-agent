@@ -15,6 +15,11 @@ function esc(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Escape text for Telegram Markdown parse mode.
+function escMd(text: string): string {
+  return text.replace(/([_*\[\]`~])/g, '\\$1');
+}
+
 const token = process.env.TELEGRAM_BOT_TOKEN;
 const chatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -81,6 +86,7 @@ export function startBot(): void {
       '/poll — Run a comment reply poll (checks for new comments on your posts)\n' +
       '/outbound — Run the outbound engagement poll (finds posts to comment on)\n' +
       '/metrics — Fetch engagement metrics for all published posts\n' +
+      '/types — Show post type distribution vs targets\n' +
       '/notes — Add a daily note (assembled into an insider post weekly)\n' +
       '/login — Open a browser to renew your LinkedIn session\n' +
       '/help — Show this message\n\n' +
@@ -89,6 +95,55 @@ export function startBot(): void {
       '• Send a LinkedIn post URL to generate comment options for that post',
       { parse_mode: 'Markdown' },
     );
+  });
+
+  bot.command('types', async (ctx) => {
+    try {
+      const { POST_TYPE_WEIGHTS } = await import('../content/persona.js');
+      const history = JSON.parse(readFileSync('posted_history.json', 'utf-8')) as any[];
+      const published = history.filter((p: any) => p.status === 'published' && p.draft?.postType);
+      const total = published.length;
+
+      const counts: Record<string, number> = {};
+      for (const p of published) counts[p.draft.postType] = (counts[p.draft.postType] || 0) + 1;
+
+      const wTotal = Object.values(POST_TYPE_WEIGHTS).reduce((a, b) => a + (b ?? 0), 0);
+
+      const types = Object.entries(POST_TYPE_WEIGHTS)
+        .filter(([, w]) => w != null)
+        .sort(([, a], [, b]) => (b ?? 0) - (a ?? 0)) as [string, number][];
+
+      const shortNames: Record<string, string> = {
+        bridge: 'bridge', explainer: 'explainer', contrarian: 'contrarian',
+        'myth-busting': 'myth-bust', 'change-management': 'change-mgmt',
+        'hot-take': 'hot-take', prediction: 'prediction',
+      };
+
+      const lines = types.map(([type, weight]) => {
+        const count = counts[type] || 0;
+        const actualPct = total > 0 ? (count / total * 100).toFixed(1) : '0.0';
+        const targetPct = (weight / wTotal * 100).toFixed(1);
+        const deltaNum = parseFloat(actualPct) - parseFloat(targetPct);
+        const delta = deltaNum.toFixed(1);
+        const sign = deltaNum > 0 ? '+' : '';
+        const indicator = Math.abs(deltaNum) <= 3 ? '\u{1F7E2}' : Math.abs(deltaNum) <= 7 ? '\u{1F7E1}' : '\u{1F534}';
+        const name = (shortNames[type] ?? type).padEnd(12);
+        return `${indicator}<code> ${name}${String(count).padStart(2)} ${(actualPct + '%').padStart(6)} ${(targetPct + '%').padStart(6)} ${(sign + delta).padStart(6)}</code>`;
+      });
+
+      // Add insider separately (no target weight)
+      const insiderCount = counts['insider'] || 0;
+      if (insiderCount > 0) {
+        lines.push(`\u{26AA}<code> ${'insider'.padEnd(12)}${String(insiderCount).padStart(2)}    n/a    n/a      -</code>`);
+      }
+
+      const header = `<code> ${'Type'.padEnd(12)} #  Actual Target  Delta</code>`;
+      const msg = `<b>Post Type Distribution</b> (${total} published)\n\n${header}\n${lines.join('\n')}`;
+
+      await ctx.reply(msg, { parse_mode: 'HTML' });
+    } catch (err: any) {
+      await ctx.reply(`Failed: ${err.message}`).catch(() => {});
+    }
   });
 
   bot.command('generate', async (ctx) => {
@@ -903,13 +958,13 @@ export async function sendAlert(message: string): Promise<void> {
   });
 }
 
-export async function sendMessage(message: string): Promise<void> {
+export async function sendMessage(message: string, parseMode: 'Markdown' | 'HTML' = 'Markdown'): Promise<void> {
   if (!token || !chatId) {
     console.log(`[REPORT]\n${message}`);
     return;
   }
   const sender = new Telegraf(token);
-  await sender.telegram.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  await sender.telegram.sendMessage(chatId, message, { parse_mode: parseMode });
 }
 
 export async function notifyTelegram(post: PendingPost): Promise<void> {
@@ -963,7 +1018,7 @@ function getNextCandidatesSummary(): string {
     if (next.length === 0) return '';
     const lines = next.map((c: any, i: number) => {
       const combined = c.combinedScore != null ? c.combinedScore.toFixed(1) : c.articleScore;
-      return `  #${store.nextIndex + i + 1} · ${combined} · "${c.item.title.slice(0, 50)}" _(${c.postType})_`;
+      return `  #${store.nextIndex + i + 1} · ${combined} · "${escMd(c.item.title.slice(0, 50))}" _(${c.postType})_`;
     });
     return `\n\n*If rejected, next up:*\n${lines.join('\n')}`;
   } catch {
@@ -977,7 +1032,7 @@ function formatMessage(post: PendingPost): string {
     : `Cringe: ${post.screening.cringeScore}/10 — clean`;
 
   const commentSection = post.draft.firstComment
-    ? `\n\n*First comment:*\n${post.draft.firstComment}`
+    ? `\n\n*First comment:*\n${escMd(post.draft.firstComment)}`
     : '';
 
   const sourceDateStr = post.draft.sourceDate
@@ -988,9 +1043,10 @@ function formatMessage(post: PendingPost): string {
         year: 'numeric',
       })
     : null;
+  const safeTitle = escMd(post.draft.sourceTitle);
   const sourceNote = sourceDateStr
-    ? `*Source:* ${post.draft.sourceTitle} _(${sourceDateStr})_`
-    : `*Source:* ${post.draft.sourceTitle}`;
+    ? `*Source:* ${safeTitle} _(${sourceDateStr})_`
+    : `*Source:* ${safeTitle}`;
 
   const feedNote = post.draft.sourceFeed ? `*Feed:* ${post.draft.sourceFeed}` : '';
   const bd = post.draft.scoreBreakdown;
@@ -1003,7 +1059,8 @@ function formatMessage(post: PendingPost): string {
     : '';
   const metaLine = [feedNote, scoreNote].filter(Boolean).join(' | ');
 
-  const displayContent = post.finalContent.replace(/\[\[MENTION:([^\]]+)\]\]/g, '*$1*');
+  // Escape Markdown in post body, then re-apply bold for mentions
+  const displayContent = escMd(post.finalContent).replace(/\\\[\\\[MENTION:([^\]]+)\\\]\\\]/g, '*$1*');
 
   const wc = post.wordCount ?? post.finalContent.split(/\s+/).filter(Boolean).length;
 

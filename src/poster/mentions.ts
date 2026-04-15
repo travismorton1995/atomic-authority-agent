@@ -126,10 +126,14 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'Westinghouse':                              { searchTerm: 'Westinghouse Electric Company', verified: true },
   'X-energy':                                  { searchTerm: 'X-energy',                   verified: true },
   'YouTube':                                   { searchTerm: 'YouTube',                    verified: true },
+  'ASME':                                      { searchTerm: 'ASME',                       verified: false },
   'BMI':                                       { searchTerm: 'BMI',                        verified: false },
+  'BWXT':                                      { searchTerm: 'BWXT',                       verified: false },
+  'Centrus Energy':                            { searchTerm: 'Centrus Energy',             verified: false },
   'Darlington':                                { searchTerm: 'Darlington',                 verified: false },
   'Department of Energy':                      { searchTerm: 'Department of Energy',       verified: false },
   'Eldorado Nuclear':                          { searchTerm: 'Eldorado Nuclear',           verified: false },
+  'EPRI':                                      { searchTerm: 'EPRI',                       verified: false },
   'Impact Assessment Agency':                  { searchTerm: 'Impact Assessment Agency',   verified: false },
   'KRONOS':                                    { searchTerm: 'KRONOS',                     verified: false },
   'LANL':                                      { searchTerm: 'LANL',                       verified: false },
@@ -140,7 +144,9 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'Port Hope':                                 { searchTerm: 'Port Hope',                  verified: false },
   'Radiant Energy':                            { searchTerm: 'Radiant Energy',             verified: false },
   'SCALE':                                     { searchTerm: 'SCALE',                      verified: false },
+  'SMR':                                       { searchTerm: 'SMR',                        verified: false },
   'TSUNAMI':                                   { searchTerm: 'TSUNAMI',                    verified: false },
+  'University of Sheffield':                   { searchTerm: 'University of Sheffield',    verified: false },
 };
 
 // Returns only verified entries — used during posting

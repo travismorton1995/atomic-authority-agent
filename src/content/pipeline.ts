@@ -7,7 +7,7 @@ import { verifyPost } from './verify.js';
 import { addPendingPost, getSourceHistory, cancelPost, PendingPost } from '../hitl/queue.js';
 import { notifyTelegram } from '../hitl/telegram.js';
 import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
-import { rankItems, ScoreBreakdown } from './rank.js';
+import { rankItems, ScoreBreakdown, TypeFitScores } from './rank.js';
 import { addUnverifiedMentions } from '../poster/mentions.js';
 import { CONTENT_TAGS, ContentTag } from './synthesize.js';
 import Anthropic from '@anthropic-ai/sdk';
@@ -59,6 +59,50 @@ export interface PipelineOptions {
 
 const CANDIDATES_FILE = 'candidates.json';
 const CANDIDATES_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+/**
+ * Select the best post type for an article using typeFit × softened weight.
+ *
+ * Raw weights range from 7 to 30 (4.3x ratio), which makes bridge win almost
+ * every time. We compress the weights using sqrt so the ratio narrows to ~2x,
+ * giving the LLM's fit scores meaningful influence while still favoring
+ * higher-weighted types.
+ *
+ * sqrt(30) = 5.48, sqrt(8) = 2.83 → ratio 1.94x (vs 3.75x raw)
+ * This means bridge needs roughly 2x the fit score of hot-take to win,
+ * not 4x. The LLM's assessment actually matters.
+ */
+function selectPostType(
+  typeFit: TypeFitScores,
+  balanceMultipliers: Partial<Record<PostType, number>>,
+  lastPostType?: PostType,
+): PostType {
+  // If no type has a fit score >= 4, the article doesn't strongly match any type.
+  // Fall back to weighted random selection instead of letting bridge win by default.
+  const maxFit = Math.max(...Object.values(typeFit).map(v => v ?? 0));
+  if (maxFit < 4) {
+    return pickPostType(lastPostType);
+  }
+
+  let bestType: PostType = 'bridge';
+  let bestScore = -1;
+
+  for (const [type, weight] of Object.entries(POST_TYPE_WEIGHTS) as [PostType, number][]) {
+    if (weight == null) continue;
+    const fit = typeFit[type] ?? 0;
+    const balance = balanceMultipliers[type] ?? 1.0;
+    // Soften weights with sqrt to prevent bridge from dominating
+    const score = fit * Math.sqrt(weight) * balance;
+    // Slight penalty for repeating last post type
+    const adjusted = (type === lastPostType) ? score * 0.7 : score;
+    if (adjusted > bestScore) {
+      bestScore = adjusted;
+      bestType = type;
+    }
+  }
+
+  return bestType;
+}
 
 interface ScoredCandidate {
   item: FeedItem;
@@ -263,6 +307,7 @@ async function fetchAndFinalize(candidate: ScoredCandidate): Promise<PendingPost
   const bd = candidate.scoreBreakdown;
   console.log(`Score: ${candidate.articleScore}/10 (I:${bd.intersection} N:${bd.novelty} G:${bd.geography} NPX:${bd.npx}) — ${candidate.reasoning}`);
   console.log(`Balance: ${candidate.balanceMultiplier.toFixed(2)}x | Recency: ${candidate.recencyMultiplier.toFixed(2)}x | Post-content feedback: ${candidate.postContentFeedback.toFixed(2)}x | Combined: ${candidate.combinedScore.toFixed(2)}`);
+  console.log(`Post type: ${candidate.postType}`);
 
   if (candidate.item.link && (!candidate.item.fullText || !candidate.item.imageUrl)) {
     try {
@@ -465,8 +510,10 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
   const scored: ScoredCandidate[] = ranked
     .filter(r => r.score > 0)
     .map(r => {
-      const suggested = r.suggestedPostType as PostType;
-      const postType = suggested || pickPostType(lastPostType);
+      // Select post type using typeFit × weight — the type with the highest
+      // weighted score wins, naturally producing a distribution close to targets
+      // while respecting article-type fit from the LLM.
+      const postType = selectPostType(r.typeFit, balanceMultipliers, lastPostType);
       const balanceMultiplier = balanceMultipliers[postType] ?? 1.0;
       const postContentFeedback = computeTagMultiplier(r.suggestedTags);
 
