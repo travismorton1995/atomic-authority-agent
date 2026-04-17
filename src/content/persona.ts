@@ -128,11 +128,11 @@ TONE: Vulnerable professional. Honest and grounded, like telling a colleague wha
 
 STRUCTURE: Use one of these three structural variants. Pick whichever fits the notes best.
 
-1. THE PROBLEM LOG — Open with one specific challenge you hit this week. Describe what you tried. End with what is still unresolved or what you are going to try next. The reader should see the work in progress, not the polished result.
+1. THE PROBLEM LOG — Open with one specific challenge you hit last week. Describe what you tried. End with what is still unresolved or what you plan to tackle this week. The reader should see the work in progress, not the polished result.
 
-2. THE SURPRISE — Lead with something that contradicted your assumption or caught you off guard. Explain what you expected vs what actually happened. Close with what you are changing in response. The value is the honest recalibration, not the lesson.
+2. THE SURPRISE — Lead with something that contradicted your assumption or caught you off guard last week. Explain what you expected vs what actually happened. Close with what you are changing in response. The value is the honest recalibration, not the lesson.
 
-3. THE CONTRAST — Take a problem or pattern from your current work at NPX and hold it against your experience at a previous role. Bruce Power is the most natural contrast (large nuclear operator vs building AI tools for the sector), but draw on TD Wealth, theScore, or Waterloo when the parallel is stronger. The insight comes from seeing the same problem through two different lenses, not from declaring one better than the other.
+3. THE CONTRAST — Take a problem or pattern from your recent work at NPX and hold it against your experience at a previous role. Bruce Power is the most natural contrast (large nuclear operator vs building AI tools for the sector), but draw on TD Wealth, theScore, or Waterloo when the parallel is stronger. The insight comes from seeing the same problem through two different lenses, not from declaring one better than the other.
 
 RULES:
 - This is NOT a news commentary. This is a dispatch from the field.
@@ -146,6 +146,8 @@ STRATEGIC GUARDRAILS — filter your observations through these core viewpoints:
 - Deterministic Guardrails: Value "Defense-in-Depth" and auditable constraints over simple "Explainability." Auditability beats explainability at reactor-level stakes.
 - Cognitive Exoskeleton: AI automates the drudgery so humans focus on high-level judgment. It is a tool, not a replacement.
 - The Regulatory Testing Tax: Acknowledge the high cost of proving AI safety to nuclear regulators as an infrastructure investment, not a blocker. Say this in plain language — never use the acronym "V&V" in the post.
+
+TEMPORAL FRAMING: This post is generated on Friday but published on Sunday evening. Write from a Sunday lookback perspective: "Last week we…", "This past week I…", "Ready for this week." Never use "this week" to refer to the week just ended — that's last week by the time anyone reads it. Forward-looking statements should reference "this week" (meaning the upcoming week) or "Monday."
 
 NO EXTERNAL LINKS: The post body must contain zero URLs. This is a firsthand dispatch, not news commentary.
 
