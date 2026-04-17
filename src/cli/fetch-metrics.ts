@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { chromium } from 'playwright';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import path from 'path';
-import { sendMessage } from '../hitl/telegram.js';
+import { sendMessage, sendPhotoBuffer, sendDocumentBuffer } from '../hitl/telegram.js';
 import { acquireBrowserLock } from '../poster/browser-lock.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
@@ -141,10 +141,27 @@ async function scrapePostAnalytics(page: import('playwright').Page, urn: string)
   return result;
 }
 
-export async function runMetricsFetch() {
+/** Collapse short JSON arrays onto single lines for readability. */
+function collapseShortArrays(json: string): string {
+  return json.replace(
+    /\[\n(\s+)"([^"]+)"(,\n\s+"[^"]+")*\n\s+\]/g,
+    (match) => {
+      const items = [...match.matchAll(/"([^"]+)"/g)].map(m => `"${m[1]}"`);
+      const oneLine = `[${items.join(', ')}]`;
+      return oneLine.length <= 120 ? oneLine : match;
+    },
+  );
+}
+
+/**
+ * Scrape metrics for all published posts (last 90 days) using an existing Playwright page.
+ * Updates posted_history.json in place. Reusable by both runMetricsFetch() and the midnight snapshot.
+ * Returns true if at least one post returned data (session is alive).
+ */
+export async function scrapeAllPostMetrics(page: import('playwright').Page): Promise<boolean> {
   if (!existsSync(HISTORY_FILE)) {
     console.log('No posted_history.json found.');
-    return;
+    return false;
   }
 
   const history = JSON.parse(readFileSync(HISTORY_FILE, 'utf-8'));
@@ -157,11 +174,47 @@ export async function runMetricsFetch() {
 
   if (postsWithUrl.length === 0) {
     console.log('No posts with LinkedIn URLs in the last 90 days.');
-    return;
+    return false;
   }
 
   console.log(`Fetching metrics for ${postsWithUrl.length} post(s) (last 90 days)...`);
 
+  let sessionChecked = false;
+
+  for (const post of postsWithUrl) {
+    const urn = extractUrn(post.linkedInPostUrl);
+    console.log(`\n[${post.draft?.postType}] "${post.draft?.sourceTitle?.slice(0, 60)}"`);
+    if (!urn) {
+      console.warn(`  Could not extract URN from: ${post.linkedInPostUrl}`);
+      continue;
+    }
+    try {
+      const metrics = await scrapePostAnalytics(page, urn);
+      // Only update if scrape returned actual data — don't overwrite good metrics with nulls
+      const hasData = metrics.impressions !== null || metrics.reactions !== null || metrics.comments !== null;
+      if (hasData) {
+        sessionChecked = true;
+        post.metrics = metrics;
+        console.log(`  Impressions: ${metrics.impressions ?? 'n/a'} | Reactions: ${metrics.reactions ?? 'n/a'} | Comments: ${metrics.comments ?? 'n/a'} | Reposts: ${metrics.reposts ?? 'n/a'} | Saves: ${metrics.saves ?? 'n/a'} | Followers: ${metrics.newFollowers ?? 'n/a'}`);
+      } else {
+        console.warn(`  Scrape returned no data — keeping previous metrics.`);
+        // If the very first post returns no data, session is likely dead — abort early
+        if (!sessionChecked) {
+          console.error('Metrics fetch: first post returned no data — session may be expired. Aborting.');
+          break;
+        }
+      }
+    } catch (err) {
+      console.warn(`  Failed to fetch metrics: ${(err as Error).message}`);
+    }
+  }
+
+  writeFileSync(HISTORY_FILE, collapseShortArrays(JSON.stringify(history, null, 2)));
+  console.log('\nMetrics saved to posted_history.json.');
+  return sessionChecked;
+}
+
+export async function runMetricsFetch() {
   const release = await acquireBrowserLock(60_000);
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
@@ -177,62 +230,11 @@ export async function runMetricsFetch() {
   const page = context.pages()[0] ?? await context.newPage();
 
   try {
-    let sessionChecked = false;
-
-    for (const post of postsWithUrl) {
-      const urn = extractUrn(post.linkedInPostUrl);
-      console.log(`\n[${post.draft?.postType}] "${post.draft?.sourceTitle?.slice(0, 60)}"`);
-      if (!urn) {
-        console.warn(`  Could not extract URN from: ${post.linkedInPostUrl}`);
-        continue;
-      }
-      try {
-        const metrics = await scrapePostAnalytics(page, urn);
-        // Only update if scrape returned actual data — don't overwrite good metrics with nulls
-        const hasData = metrics.impressions !== null || metrics.reactions !== null || metrics.comments !== null;
-        if (hasData) {
-          sessionChecked = true;
-          post.metrics = metrics;
-          console.log(`  Impressions: ${metrics.impressions ?? 'n/a'} | Reactions: ${metrics.reactions ?? 'n/a'} | Comments: ${metrics.comments ?? 'n/a'} | Reposts: ${metrics.reposts ?? 'n/a'} | Saves: ${metrics.saves ?? 'n/a'} | Followers: ${metrics.newFollowers ?? 'n/a'}`);
-        } else {
-          console.warn(`  Scrape returned no data — keeping previous metrics.`);
-          // If the very first post returns no data, session is likely dead — abort early
-          if (!sessionChecked) {
-            console.error('Metrics fetch: first post returned no data — session may be expired. Aborting.');
-            break;
-          }
-        }
-      } catch (err) {
-        console.warn(`  Failed to fetch metrics: ${(err as Error).message}`);
-      }
-    }
-
-    // Scrape total follower count from audience analytics (reuse browser session)
-    try {
-      const { scrapeFollowerCount, recordSnapshot } = await import('../analytics/followers.js');
-      const followerCount = await scrapeFollowerCount(page);
-      if (followerCount) {
-        recordSnapshot(followerCount);
-      }
-    } catch (err) {
-      console.warn(`[followers] Scrape failed (non-fatal): ${(err as Error).message}`);
-    }
+    await scrapeAllPostMetrics(page);
   } finally {
     await context.close();
     release();
   }
-
-  const raw = JSON.stringify(history, null, 2);
-  const collapsed = raw.replace(
-    /\[\n(\s+)"([^"]+)"(,\n\s+"[^"]+")*\n\s+\]/g,
-    (match) => {
-      const items = [...match.matchAll(/"([^"]+)"/g)].map(m => `"${m[1]}"`);
-      const oneLine = `[${items.join(', ')}]`;
-      return oneLine.length <= 120 ? oneLine : match;
-    },
-  );
-  writeFileSync(HISTORY_FILE, collapsed);
-  console.log('\nMetrics saved to posted_history.json.');
 }
 
 export async function runWeeklyReport(): Promise<void> {
@@ -248,8 +250,36 @@ export async function runWeeklyReport(): Promise<void> {
   const data = generateReportData();
   const message = formatReportMessage(data);
 
-  console.log('Sending weekly report to Telegram...');
+  // Generate PDF report
+  let pdfSent = false;
+  try {
+    const { generatePdfReport } = await import('../analytics/pdf-report.js');
+    const pdfBuffer = await generatePdfReport();
+    const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+    await sendDocumentBuffer(pdfBuffer, `atomic-dispatch-${dateStr}.pdf`, 'Performance Report');
+    pdfSent = true;
+    console.log('PDF report sent to Telegram.');
+  } catch (err) {
+    console.warn(`PDF generation failed (falling back to text+charts): ${(err as Error).message}`);
+  }
+
+  // Always send text report as supplement (quick-glance in chat)
+  console.log('Sending text report to Telegram...');
   await sendMessage(message, 'HTML');
+
+  // Send chart images only if PDF failed (avoid duplicate visuals)
+  if (!pdfSent) {
+    let charts: Array<{ name: string; buffer: Buffer; caption: string }> = [];
+    try {
+      const { generateAllCharts } = await import('../analytics/chart.js');
+      charts = await generateAllCharts();
+    } catch (err) {
+      console.warn(`Chart generation failed (non-fatal): ${(err as Error).message}`);
+    }
+    for (const chart of charts) {
+      await sendPhotoBuffer(chart.buffer, chart.caption);
+    }
+  }
   console.log('Weekly report sent.');
 }
 

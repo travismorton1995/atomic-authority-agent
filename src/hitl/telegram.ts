@@ -913,7 +913,7 @@ export function startBot(): void {
     }
 
     // Check for profile URL
-    const profileMatch = text.match(/https:\/\/www\.linkedin\.com\/(in|company)\/[^\s?#]+/);
+    const profileMatch = text.match(/https:\/\/www\.linkedin\.com\/(in|company|showcase)\/[^\s?#]+/);
     if (profileMatch) {
       const url = profileMatch[0];
       const { profile, existed } = addProfile(url);
@@ -965,6 +965,24 @@ export async function sendMessage(message: string, parseMode: 'Markdown' | 'HTML
   }
   const sender = new Telegraf(token);
   await sender.telegram.sendMessage(chatId, message, { parse_mode: parseMode });
+}
+
+export async function sendPhotoBuffer(photo: Buffer, caption?: string): Promise<void> {
+  if (!token || !chatId) {
+    console.log(`[PHOTO] (${photo.length} bytes) ${caption ?? ''}`);
+    return;
+  }
+  const sender = new Telegraf(token);
+  await sender.telegram.sendPhoto(chatId, { source: photo }, caption ? { caption } : {});
+}
+
+export async function sendDocumentBuffer(doc: Buffer, filename: string, caption?: string): Promise<void> {
+  if (!token || !chatId) {
+    console.log(`[DOC] (${doc.length} bytes) ${filename} ${caption ?? ''}`);
+    return;
+  }
+  const sender = new Telegraf(token);
+  await sender.telegram.sendDocument(chatId, { source: doc, filename }, caption ? { caption } : {});
 }
 
 export async function notifyTelegram(post: PendingPost): Promise<void> {

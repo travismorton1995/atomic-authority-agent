@@ -1,0 +1,1116 @@
+"""Atomic Dispatch — Performance Report PDF generator.
+
+Usage: python generate-pdf.py <data.json> <output.pdf>
+
+Reads a JSON payload with all report data + chart PNG paths,
+renders a branded multi-page PDF using reportlab.
+"""
+
+import json
+import sys
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.colors import HexColor, white, black
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib.units import inch
+
+# ── Brand colors ──────────────────────────────────────────────────────
+
+NAVY      = HexColor('#1B2A4A')
+AMBER     = HexColor('#E8883C')
+OFF_WHITE = HexColor('#F5F0EB')
+TEAL      = HexColor('#2A9D8F')
+SOFT_RED  = HexColor('#E76F51')
+DARK_GRAY = HexColor('#333333')
+MID_GRAY  = HexColor('#888888')
+LIGHT_GRAY= HexColor('#E0E0E0')
+
+TYPE_COLORS = {
+    'bridge': HexColor('#4285F4'),
+    'explainer': HexColor('#34A853'),
+    'contrarian': HexColor('#EA4335'),
+    'change-management': HexColor('#FBBC04'),
+    'myth-busting': HexColor('#8E24AA'),
+    'hot-take': HexColor('#FF6D00'),
+    'prediction': HexColor('#00ACC1'),
+    'insider': HexColor('#607D8B'),
+}
+
+# ── Page constants ────────────────────────────────────────────────────
+
+PAGE_W, PAGE_H = letter  # 612 x 792
+MARGIN = 40
+CONTENT_W = PAGE_W - 2 * MARGIN
+RIGHT_EDGE = PAGE_W - MARGIN
+
+# ── Drawing helpers ───────────────────────────────────────────────────
+
+def draw_page_bg(c):
+    """Fill page with off-white background."""
+    c.setFillColor(OFF_WHITE)
+    c.rect(0, 0, PAGE_W, PAGE_H, fill=1, stroke=0)
+
+
+def draw_title_bar(c, date_range):
+    """Navy title bar at top of page 1."""
+    bar_h = 60
+    y = PAGE_H - bar_h
+    c.setFillColor(NAVY)
+    c.rect(0, y, PAGE_W, bar_h, fill=1, stroke=0)
+
+    # Amber accent line
+    c.setFillColor(AMBER)
+    c.rect(0, y, PAGE_W, 3, fill=1, stroke=0)
+
+    # Title text
+    c.setFillColor(AMBER)
+    c.setFont('Helvetica-Bold', 20)
+    c.drawString(MARGIN, y + 22, 'ATOMIC DISPATCH')
+
+    c.setFillColor(white)
+    c.setFont('Helvetica', 11)
+    c.drawString(MARGIN + 230, y + 25, 'Performance Report')
+
+    # Date range right-aligned
+    c.setFont('Helvetica', 10)
+    c.drawRightString(RIGHT_EDGE, y + 25, date_range)
+
+
+def draw_section_header(c, y, title):
+    """Navy section header bar."""
+    bar_h = 32
+    c.setFillColor(NAVY)
+    c.rect(MARGIN, y - bar_h, CONTENT_W, bar_h, fill=1, stroke=0)
+    c.setFillColor(AMBER)
+    c.rect(MARGIN, y - bar_h, 4, bar_h, fill=1, stroke=0)
+    c.setFillColor(white)
+    c.setFont('Helvetica-Bold', 14)
+    c.drawString(MARGIN + 14, y - bar_h + 10, title)
+    return y - bar_h - 10
+
+
+def draw_subsection(c, y, title):
+    """Smaller subsection header."""
+    c.setFillColor(NAVY)
+    c.setFont('Helvetica-Bold', 11)
+    c.drawString(MARGIN, y, title)
+    y -= 4
+    c.setStrokeColor(AMBER)
+    c.setLineWidth(1)
+    c.line(MARGIN, y, MARGIN + c.stringWidth(title, 'Helvetica-Bold', 11) + 5, y)
+    return y - 14
+
+
+def draw_kpi_card(c, x, y, w, h, value, label, delta=None):
+    """Rounded KPI card with navy background."""
+    c.setFillColor(NAVY)
+    c.roundRect(x, y, w, h, 6, fill=1, stroke=0)
+
+    # Value (top third of card)
+    c.setFillColor(AMBER)
+    c.setFont('Helvetica-Bold', 22)
+    c.drawCentredString(x + w/2, y + h - 32, str(value))
+
+    # Delta (middle — only shown if present)
+    if delta is not None:
+        c.setFillColor(TEAL if delta >= 0 else SOFT_RED)
+        c.setFont('Helvetica-Bold', 10)
+        sign = '+' if delta >= 0 else ''
+        c.drawCentredString(x + w/2, y + h - 50, f'{sign}{delta}')
+
+    # Label (bottom of card)
+    c.setFillColor(white)
+    c.setFont('Helvetica', 9)
+    c.drawCentredString(x + w/2, y + 8, label)
+
+
+def draw_chart(c, path, x, y, max_w, max_h):
+    """Embed a PNG chart, scaling proportionally. Returns actual height used."""
+    if not path or not os.path.exists(path):
+        return 0
+    try:
+        img = ImageReader(path)
+        iw, ih = img.getSize()
+        scale = min(max_w / iw, max_h / ih)
+        draw_w = iw * scale
+        draw_h = ih * scale
+        # Center horizontally
+        cx = x + (max_w - draw_w) / 2
+        c.drawImage(img, cx, y, draw_w, draw_h, preserveAspectRatio=True, mask='auto')
+        return draw_h
+    except Exception as e:
+        print(f'  Warning: could not embed chart {path}: {e}')
+        return 0
+
+
+def draw_badge(c, x, y, text, bg_color):
+    """Small colored pill badge."""
+    tw = c.stringWidth(text, 'Helvetica-Bold', 8) + 12
+    c.setFillColor(bg_color)
+    c.roundRect(x, y - 2, tw, 14, 4, fill=1, stroke=0)
+    c.setFillColor(white)
+    c.setFont('Helvetica-Bold', 8)
+    c.drawString(x + 6, y + 1, text)
+    return tw
+
+
+def draw_footer(c, page_num, total_pages):
+    """Page footer."""
+    y = 25
+    c.setFillColor(MID_GRAY)
+    c.setFont('Helvetica', 8)
+    c.drawString(MARGIN, y, 'Generated by Atomic Authority Agent')
+    c.drawRightString(RIGHT_EDGE, y, f'Page {page_num} of {total_pages}')
+    # Thin line above
+    c.setStrokeColor(LIGHT_GRAY)
+    c.setLineWidth(0.5)
+    c.line(MARGIN, y + 12, RIGHT_EDGE, y + 12)
+
+
+def wrap_text(c, text, font, size, max_w):
+    """Split text into lines that fit within max_w. Preserves paragraph breaks."""
+    c.setFont(font, size)
+    lines = []
+    # Split on newlines first to preserve paragraph structure
+    paragraphs = text.split('\n')
+    for para in paragraphs:
+        para = para.strip()
+        if not para:
+            lines.append('')  # blank line for paragraph break
+            continue
+        words = para.split()
+        current = ''
+        for word in words:
+            test = f'{current} {word}'.strip()
+            if c.stringWidth(test, font, size) <= max_w:
+                current = test
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+    return lines
+
+
+def fmt(n):
+    """Format number with commas."""
+    if isinstance(n, float):
+        return f'{n:,.1f}'
+    return f'{n:,}'
+
+
+# ── Page renderers ────────────────────────────────────────────────────
+
+def render_page_1(c, data):
+    """Dashboard Overview."""
+    draw_page_bg(c)
+    draw_title_bar(c, data.get('dateRange', ''))
+
+    kpis = data.get('kpis', {})
+
+    # KPI cards
+    y_kpi = PAGE_H - 90
+    card_w = (CONTENT_W - 30) / 4  # 4 cards with 10px gaps
+    card_h = 75
+
+    draw_kpi_card(c, MARGIN, y_kpi - card_h, card_w, card_h,
+                  fmt(kpis.get('totalFollowers', 0)), 'Total Followers',
+                  kpis.get('followerGrowth'))
+
+    draw_kpi_card(c, MARGIN + card_w + 10, y_kpi - card_h, card_w, card_h,
+                  f"{kpis.get('engagementRate', '0')}%", 'Engagement Rate')
+
+    draw_kpi_card(c, MARGIN + 2*(card_w + 10), y_kpi - card_h, card_w, card_h,
+                  fmt(kpis.get('totalImpressions', 0)), 'Total Impressions')
+
+    trend = kpis.get('compositeScoreTrend', 'flat')
+    trend_label = {'improving': 'Improving', 'declining': 'Declining', 'flat': 'Flat'}.get(trend, trend)
+    slope = kpis.get('trendSlopePerWeek', 0)
+    trend_val = f'{trend_label}'
+    draw_kpi_card(c, MARGIN + 3*(card_w + 10), y_kpi - card_h, card_w, card_h,
+                  trend_val, 'Score Trend',
+                  round(slope, 1) if slope else None)
+
+    # Secondary stats row
+    y_stats = y_kpi - card_h - 20
+    c.setFillColor(DARK_GRAY)
+    c.setFont('Helvetica-Bold', 11)
+    stats = kpis.get('scoreStats', {})
+    total_posts = kpis.get('totalPosts', 0)
+    parts = [
+        f"{total_posts} posts",
+        f"Score: med {stats.get('median', 0):.1f} / avg {stats.get('mean', 0):.1f}",
+        f"Reactions: {fmt(kpis.get('totalReactions', 0))}",
+        f"Comments: {fmt(kpis.get('totalComments', 0))}",
+        f"Reposts: {fmt(kpis.get('totalReposts', 0))}",
+    ]
+    c.drawString(MARGIN, y_stats, '  |  '.join(parts))
+
+    # Follower chart
+    y_chart = y_stats - 20
+    charts = data.get('charts', {})
+    chart_h = draw_chart(c, charts.get('followerGrowth'), MARGIN, y_chart - 300, CONTENT_W, 300)
+
+    # Color legend under chart
+    legend_y = y_chart - 300 - 15
+    legend_items = [
+        ('rgba(76, 175, 80, 0.7)', 'Post day'),
+        ('rgba(66, 133, 244, 0.7)', 'Outbound only'),
+        ('rgba(180, 180, 180, 0.5)', 'Quiet day'),
+    ]
+    legend_colors = [HexColor('#4CAF50'), HexColor('#4285F4'), HexColor('#B4B4B4')]
+    lx = MARGIN + (CONTENT_W / 2) - 120  # roughly centered
+    for i, (_, label) in enumerate(legend_items):
+        color = legend_colors[i]
+        c.setFillColor(color)
+        c.roundRect(lx, legend_y, 10, 10, 2, fill=1, stroke=0)
+        c.setFillColor(MID_GRAY)
+        c.setFont('Helvetica', 8)
+        c.drawString(lx + 14, legend_y + 1, label)
+        lx += c.stringWidth(label, 'Helvetica', 8) + 30
+
+    draw_footer(c, 1, 6)
+
+
+def _draw_ranking_table(c, x, y, title, entries, min_count=3, max_rows=8, col_widths=None):
+    """Draw a styled ranking table with title as first row. Returns y after table."""
+    filtered = [e for e in entries if e.get('count', 0) >= min_count]
+    filtered.sort(key=lambda e: e.get('avg', 0), reverse=True)
+    filtered = filtered[:max_rows]
+
+    if not filtered:
+        return y
+
+    # Title row spans all columns, then column headers, then data
+    rows = [
+        [title, '', '', ''],
+        ['', 'Avg Score', 'Posts', 'Conf.'],
+    ]
+    for i, e in enumerate(filtered):
+        medal = ['1.', '2.', '3.'][i] if i < 3 else f'{i+1}.'
+        conf_sym = {'low': '?', 'medium': '~', 'high': chr(10003)}.get(e.get('confidence', ''), '')
+        rows.append([
+            f"{medal} {e['label'][:22]}",
+            f"{e['avg']:.1f}",
+            str(e['count']),
+            conf_sym,
+        ])
+
+    if col_widths is None:
+        col_widths = [CONTENT_W * 0.50, CONTENT_W * 0.18, CONTENT_W * 0.15, CONTENT_W * 0.12]
+
+    t = Table(rows, colWidths=col_widths)
+    t.setStyle(TableStyle([
+        # Title row
+        ('SPAN', (0, 0), (-1, 0)),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+        ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        # Column headers
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 8),
+        ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+        ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+        ('TOPPADDING', (0, 1), (-1, 1), 2),
+        ('BOTTOMPADDING', (0, 1), (-1, 1), 2),
+        # Data rows
+        ('FONTSIZE', (0, 2), (-1, -1), 9),
+        ('FONTNAME', (0, 2), (0, -1), 'Helvetica'),
+        ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+        ('TEXTCOLOR', (0, 2), (0, 4), NAVY),  # top 3 labels in navy
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
+        ('TOPPADDING', (0, 2), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+        ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+    ]))
+    tw, th = t.wrapOn(c, sum(col_widths), 400)
+    t.drawOn(c, x, y - th)
+    return y - th - 5
+
+
+def render_page_2(c, data):
+    """Timing & Rankings."""
+    c.showPage()
+    draw_page_bg(c)
+
+    y = draw_section_header(c, PAGE_H - 20, 'Timing & Rankings')
+
+    # Heatmap
+    charts = data.get('charts', {})
+    hm_h = draw_chart(c, charts.get('heatmap'), MARGIN, y - 250, CONTENT_W, 240)
+    y = y - max(hm_h, 240) - 25
+
+    # Two tables side-by-side: Tags + Hashtags
+    half_w = (CONTENT_W - 20) / 2
+    half_col_widths = [half_w * 0.48, half_w * 0.22, half_w * 0.16, half_w * 0.14]
+
+    tags_y = y
+    tags_end = _draw_ranking_table(c, MARGIN, tags_y, 'Tags (min 3)', data.get('tagRanking', []),
+                                   min_count=3, max_rows=8, col_widths=half_col_widths)
+
+    ht_end = _draw_ranking_table(c, MARGIN + half_w + 20, tags_y, 'Hashtags (min 3)', data.get('hashtagRanking', []),
+                                 min_count=3, max_rows=8, col_widths=half_col_widths)
+
+    # Feeds table below, full width
+    y = min(tags_end, ht_end)
+    feed_col_widths = [CONTENT_W * 0.50, CONTENT_W * 0.20, CONTENT_W * 0.15, CONTENT_W * 0.15]
+    _draw_ranking_table(c, MARGIN, y, 'Feeds (min 3)', data.get('feedRanking', []),
+                        min_count=3, max_rows=6, col_widths=feed_col_widths)
+
+    draw_footer(c, 2, 6)
+
+
+ROW_GREEN  = HexColor('#C8F7C5')  # on target (within +/-3) — soft mint
+ROW_RED    = HexColor('#F5B7B1')  # over target (> +3) — soft coral
+ROW_BLUE   = HexColor('#C5CAE9')  # under target (< -3) — soft lavender
+ROW_GRAY   = HexColor('#E8E8E8')  # insider (no target)
+
+
+def _draw_type_distribution(c, y, data):
+    """Post type distribution table with full-row color coding."""
+    type_ranking = data.get('typeRanking', [])
+    total_posts = data.get('kpis', {}).get('totalPosts', 0)
+    if not type_ranking or total_posts == 0:
+        return y
+
+    target_weights = {
+        'bridge': 30, 'explainer': 20, 'contrarian': 15,
+        'myth-busting': 15, 'change-management': 10,
+        'hot-take': 5, 'prediction': 5,
+    }
+    w_total = sum(target_weights.values())
+
+    all_types = sorted(target_weights.keys(), key=lambda t: target_weights[t], reverse=True)
+    count_map = {e['label']: e['count'] for e in type_ranking}
+    score_map = {e['label']: e['avg'] for e in type_ranking}
+
+    # Row 0: title, Row 1: column headers, Row 2+: data
+    rows = [
+        [f'Post Type Distribution ({total_posts} posts)', '', '', '', '', ''],
+        ['Type', '#', 'Actual', 'Target', 'Delta', 'Avg Score'],
+    ]
+    row_colors = []  # per data row
+
+    for t in all_types:
+        count = count_map.get(t, 0)
+        actual_pct = (count / total_posts * 100) if total_posts > 0 else 0
+        target_pct = target_weights[t] / w_total * 100
+        delta = actual_pct - target_pct
+        sign = '+' if delta > 0 else ''
+        avg_score = score_map.get(t, 0)
+
+        if delta > 3:
+            row_colors.append(ROW_RED)
+        elif delta < -3:
+            row_colors.append(ROW_BLUE)
+        else:
+            row_colors.append(ROW_GREEN)
+
+        rows.append([t, str(count), f'{actual_pct:.1f}%', f'{target_pct:.0f}%', f'{sign}{delta:.1f}',
+                     f'{avg_score:.1f}' if count > 0 else '-'])
+
+    # Insider row
+    insider_count = count_map.get('insider', 0)
+    if insider_count > 0:
+        insider_score = score_map.get('insider', 0)
+        rows.append(['insider', str(insider_count), f'{insider_count/total_posts*100:.1f}%', 'n/a', '-',
+                     f'{insider_score:.1f}' if insider_count > 0 else '-'])
+        row_colors.append(ROW_GRAY)
+
+    col_widths = [CONTENT_W * 0.28, CONTENT_W * 0.08, CONTENT_W * 0.13, CONTENT_W * 0.13, CONTENT_W * 0.13, CONTENT_W * 0.16]
+
+    style_cmds = [
+        # Title row
+        ('SPAN', (0, 0), (-1, 0)),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+        ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        # Column headers
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 9),
+        ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+        ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+        ('TOPPADDING', (0, 1), (-1, 1), 2),
+        ('BOTTOMPADDING', (0, 1), (-1, 1), 4),
+        # Data rows
+        ('FONTSIZE', (0, 2), (-1, -1), 10),
+        ('FONTNAME', (0, 2), (0, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+        ('TOPPADDING', (0, 2), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 2), (-1, -1), 4),
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
+    ]
+
+    # Color each data row
+    for i, color in enumerate(row_colors):
+        row_idx = i + 2  # offset for title + header
+        style_cmds.append(('BACKGROUND', (0, row_idx), (-1, row_idx), color))
+
+    t = Table(rows, colWidths=col_widths)
+    t.setStyle(TableStyle(style_cmds))
+    tw, th = t.wrapOn(c, sum(col_widths), 400)
+    t.drawOn(c, MARGIN, y - th)
+    return y - th - 10
+
+
+def render_page_3(c, data):
+    """Content Strategy."""
+    c.showPage()
+    draw_page_bg(c)
+
+    y = draw_section_header(c, PAGE_H - 20, 'Content Strategy')
+
+    charts = data.get('charts', {})
+
+    # Score trend (compact to leave room for tables below)
+    trend_h = draw_chart(c, charts.get('scoreTrend'), MARGIN, y - 190, CONTENT_W, 180)
+    y = y - max(trend_h, 180) - 12
+
+    # Post type distribution table
+    y = _draw_type_distribution(c, y, data)
+
+    # ── Side-by-side: Image Type (left) + Word Count (right) ──
+    y -= 10
+    side_y = y
+    half_w = (CONTENT_W - 20) / 2
+
+    # Image type performance (left side) — as a table
+    photos = data.get('photoEntries', [])
+    if photos:
+        img_rows = [
+            ['Image Type Performance', '', ''],
+            ['Type', 'Median Score', 'Posts'],
+        ]
+        for entry in photos[:5]:
+            img_rows.append([
+                entry['label'],
+                f"{entry.get('median', entry.get('avg', 0)):.1f}",
+                str(entry['count']),
+            ])
+        img_widths = [half_w * 0.40, half_w * 0.35, half_w * 0.25]
+        t = Table(img_rows, colWidths=img_widths)
+        t.setStyle(TableStyle([
+            ('SPAN', (0, 0), (-1, 0)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 9),
+            ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+            ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+            ('FONTSIZE', (0, 2), (-1, -1), 10),
+            ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+            ('TOPPADDING', (0, 2), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+            ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+        ]))
+        tw, th = t.wrapOn(c, sum(img_widths), 300)
+        t.drawOn(c, MARGIN, side_y - th)
+        left_end = side_y - th
+
+    # Word count (right side)
+    wc_data = data.get('wordCountBuckets')
+    right_end = side_y
+    if wc_data:
+        wc_rows = [
+            ['Word Count vs Score', '', ''],
+            ['Range', 'Median', 'Posts'],
+        ]
+        best_score = -1
+        best_row = -1
+        data_idx = 0
+        for label in ['<100', '100-120', '120-140', '140-160', '160-180', '180-200', '>200']:
+            bucket = wc_data.get(label)
+            if not bucket:
+                continue
+            wc_rows.append([label, f"{bucket['median']:.1f}", str(bucket['count'])])
+            if bucket['median'] > best_score:
+                best_score = bucket['median']
+                best_row = data_idx
+            data_idx += 1
+
+        if len(wc_rows) > 2:
+            wc_widths = [half_w * 0.35, half_w * 0.35, half_w * 0.25]
+            style_cmds = [
+                ('SPAN', (0, 0), (-1, 0)),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+                ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+                ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 1), (-1, 1), 9),
+                ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+                ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+                ('FONTSIZE', (0, 2), (-1, -1), 10),
+                ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+                ('TOPPADDING', (0, 2), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+                ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+            ]
+            if best_row >= 0:
+                style_cmds.append(('BACKGROUND', (0, best_row + 2), (-1, best_row + 2), ROW_GREEN))
+
+            t = Table(wc_rows, colWidths=wc_widths)
+            t.setStyle(TableStyle(style_cmds))
+            tw, th = t.wrapOn(c, sum(wc_widths), 300)
+            t.drawOn(c, MARGIN + half_w + 20, side_y - th)
+            right_end = side_y - th
+
+    y = min(left_end if photos else side_y, right_end) - 5
+
+    # Week-over-week comparison (full width below) — only if room remains
+    recent = data.get('recent')
+    all_avg = data.get('allTimeAvgScore', 0)
+    footer_clearance = 50  # footer sits at y=25, need margin above
+    if recent and recent.get('postCount', 0) > 0:
+        cmp_rows = [
+            [f"Last {recent['periodDays']} Days vs All-Time", '', ''],
+            ['', 'Recent', 'All-Time'],
+            ['Avg Score', f"{recent['avgScore']:.1f}", f"{all_avg:.1f}"],
+            ['Avg Impressions', fmt(recent['avgImpressions']), fmt(data.get('kpis', {}).get('avgImpressions', 0))],
+            ['Eng Rate', f"{recent['engRate']}%", f"{data.get('kpis', {}).get('engagementRate', '0')}%"],
+        ]
+        cmp_widths = [CONTENT_W * 0.40, CONTENT_W * 0.25, CONTENT_W * 0.25]
+        t = Table(cmp_rows, colWidths=cmp_widths)
+        t.setStyle(TableStyle([
+            ('SPAN', (0, 0), (-1, 0)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 9),
+            ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+            ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+            ('FONTSIZE', (0, 2), (-1, -1), 10),
+            ('FONTNAME', (1, 2), (1, -1), 'Helvetica-Bold'),
+            ('TEXTCOLOR', (0, 2), (0, -1), DARK_GRAY),
+            ('TEXTCOLOR', (1, 2), (1, -1), NAVY),
+            ('TEXTCOLOR', (2, 2), (2, -1), MID_GRAY),
+            ('TOPPADDING', (0, 2), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 2), (-1, -1), 4),
+            ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+        ]))
+        tw, th = t.wrapOn(c, sum(cmp_widths), 200)
+        t.drawOn(c, MARGIN, y - th)
+
+    draw_footer(c, 3, 6)
+
+
+def render_page_4(c, data):
+    """Top Posts (last 30 days)."""
+    c.showPage()
+    draw_page_bg(c)
+
+    y = draw_section_header(c, PAGE_H - 20, 'Top Posts — Last 30 Days')
+
+    top_posts = data.get('topPosts', [])
+    if not top_posts:
+        c.setFillColor(MID_GRAY)
+        c.setFont('Helvetica', 11)
+        c.drawString(MARGIN, y - 30, 'No posts with metrics in the last 30 days.')
+        draw_footer(c, 4, 6)
+        return
+
+    for i, post in enumerate(top_posts[:3]):
+        y -= 8
+        card_h = 220
+        card_y = y - card_h
+        type_color = TYPE_COLORS.get(post.get('postType', ''), MID_GRAY)
+
+        # Card background + left accent
+        c.setFillColor(white)
+        c.roundRect(MARGIN, card_y, CONTENT_W, card_h, 8, fill=1, stroke=0)
+        c.setFillColor(type_color)
+        c.roundRect(MARGIN, card_y, 5, card_h, 2, fill=1, stroke=0)
+
+        # ── Row 1: Rank + Title (left) + Score (right) ──
+        row1_y = card_y + card_h - 20
+        rank_x = MARGIN + 15
+        c.setFillColor(AMBER)
+        c.circle(rank_x + 10, row1_y + 3, 12, fill=1, stroke=0)
+        c.setFillColor(white)
+        c.setFont('Helvetica-Bold', 14)
+        c.drawCentredString(rank_x + 10, row1_y - 2, f'#{i+1}')
+
+        title = post.get('title', '')
+        if title:
+            c.setFillColor(NAVY)
+            c.setFont('Helvetica-Bold', 14)
+            c.drawCentredString(MARGIN + CONTENT_W / 2, row1_y - 2, title)
+
+        # Composite score (top-right)
+        c.setFillColor(AMBER)
+        c.setFont('Helvetica-Bold', 28)
+        c.drawRightString(RIGHT_EDGE - 15, row1_y - 5, f"{post.get('compositeScore', 0):.0f}")
+        c.setFillColor(MID_GRAY)
+        c.setFont('Helvetica', 7)
+        c.drawRightString(RIGHT_EDGE - 15, row1_y - 18, 'composite score')
+
+        # ── Row 2: Badge + Date ──
+        row2_y = row1_y - 22
+        draw_badge(c, rank_x + 30, row2_y - 1, post.get('postType', '').upper(), type_color)
+
+        pub = post.get('publishedAt', '')[:10]
+        c.setFillColor(MID_GRAY)
+        c.setFont('Helvetica', 9)
+        c.drawString(rank_x + 140, row2_y, pub)
+
+        body_top = row2_y - 14
+        metrics_top = card_y + 48
+
+        # ── Image (left, fixed width zone) + body text (right) ──
+        img_path = post.get('imagePath')
+        IMG_ZONE_W = 130  # fixed horizontal space for image regardless of aspect ratio
+        img_x = MARGIN + 15
+        img_zone_h = body_top - metrics_top
+
+        # Top-align image with title row
+        img_top = body_top
+
+        if img_path and os.path.exists(img_path):
+            try:
+                img = ImageReader(img_path)
+                iw, ih = img.getSize()
+                # Scale to fill IMG_ZONE_W wide, then cap height to zone
+                scale = IMG_ZONE_W / iw
+                draw_w = IMG_ZONE_W
+                draw_h = ih * scale
+                if draw_h > img_zone_h:
+                    scale = img_zone_h / ih
+                    draw_h = img_zone_h
+                    draw_w = iw * scale
+                # Center horizontally, top-align vertically
+                cx = img_x + (IMG_ZONE_W - draw_w) / 2
+                cy = img_top - draw_h
+                c.drawImage(img, cx, cy, draw_w, draw_h, preserveAspectRatio=True, mask='auto')
+            except:
+                pass
+        else:
+            ph_h = min(80, img_zone_h)
+            ph_y = img_top - ph_h
+            c.setFillColor(LIGHT_GRAY)
+            c.roundRect(img_x, ph_y, IMG_ZONE_W, ph_h, 4, fill=1, stroke=0)
+            c.setFillColor(MID_GRAY)
+            c.setFont('Helvetica', 8)
+            c.drawCentredString(img_x + IMG_ZONE_W/2, ph_y + ph_h/2 - 4, 'No image')
+
+        # Body text (right of image zone) — preserves paragraph breaks
+        text_x = img_x + IMG_ZONE_W + 12
+        text_w = RIGHT_EDGE - text_x - 10
+        body = post.get('bodyText', '') or post.get('hookText', '')
+        lines = wrap_text(c, body, 'Helvetica', 9, text_w)
+        text_y = body_top
+        c.setFillColor(DARK_GRAY)
+        c.setFont('Helvetica', 9)
+        line_h = 12
+        para_gap = 5
+        for line in lines:
+            if text_y < metrics_top:
+                break
+            if line == '':
+                text_y -= para_gap
+            else:
+                c.drawString(text_x, text_y, line)
+                text_y -= line_h
+
+        # ── Metrics row (bottom of card) ──
+        metrics_y = card_y + 12
+        # Divider line above metrics
+        c.setStrokeColor(LIGHT_GRAY)
+        c.setLineWidth(0.5)
+        c.line(MARGIN + 15, metrics_y + 30, RIGHT_EDGE - 15, metrics_y + 30)
+
+        metric_items = [
+            ('Impressions', fmt(post.get('impressions', 0)), 'x0.01'),
+            ('Reactions', str(post.get('reactions', 0)), 'x1'),
+            ('Comments', str(post.get('comments', 0)), 'x3'),
+            ('Reposts', str(post.get('reposts', 0)), 'x5'),
+            ('Followers', str(post.get('newFollowers', 0)), 'x10'),
+        ]
+        mx = MARGIN + 20
+        spacing = (CONTENT_W - 30) / len(metric_items)
+        for label, val, weight in metric_items:
+            c.setFillColor(MID_GRAY)
+            c.setFont('Helvetica', 8)
+            c.drawString(mx, metrics_y + 16, label)
+            c.setFillColor(NAVY)
+            c.setFont('Helvetica-Bold', 13)
+            c.drawString(mx, metrics_y, val)
+            # Weight multiplier
+            val_w = c.stringWidth(val, 'Helvetica-Bold', 13)
+            c.setFillColor(LIGHT_GRAY)
+            c.setFont('Helvetica', 8)
+            c.drawString(mx + val_w + 3, metrics_y + 1, weight)
+            mx += spacing
+
+        y = card_y
+
+    draw_footer(c, 4, 6)
+
+
+def _profile_table(c, y, title, profiles, col_widths=None):
+    """Render a profile lift table. Returns y after table."""
+    if not profiles:
+        return y
+    if col_widths is None:
+        col_widths = [CONTENT_W * 0.45, CONTENT_W * 0.18, CONTENT_W * 0.15, CONTENT_W * 0.22]
+
+    rows = [
+        [title, '', '', ''],
+        ['Profile', 'Lift/day', 'Days', 'Confidence'],
+    ]
+    for p in profiles:
+        sign = '+' if p['lift'] >= 0 else ''
+        rows.append([
+            p['name'][:28],
+            f"{sign}{p['lift']:.1f}",
+            str(p['commentDays']),
+            p['confidence'],
+        ])
+
+    t = Table(rows, colWidths=col_widths)
+    t.setStyle(TableStyle([
+        # Title row
+        ('SPAN', (0, 0), (-1, 0)),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+        ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        # Column headers
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 9),
+        ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+        ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+        ('TOPPADDING', (0, 1), (-1, 1), 2),
+        ('BOTTOMPADDING', (0, 1), (-1, 1), 3),
+        # Data rows
+        ('FONTSIZE', (0, 2), (-1, -1), 10),
+        ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+        ('TOPPADDING', (0, 2), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 2), (-1, -1), 4),
+        ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+        ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
+    ]))
+    tw, th = t.wrapOn(c, sum(col_widths), 400)
+    t.drawOn(c, MARGIN, y - th)
+    return y - th - 8
+
+
+def render_page_5(c, data):
+    """Follow Attribution — organic follow source breakdown, post & profile performance."""
+    c.showPage()
+    draw_page_bg(c)
+
+    y = draw_section_header(c, PAGE_H - 20, 'Follow Attribution')
+
+    oa = data.get('organicAttribution')
+    stats = data.get('outboundStats', {})
+
+    if not oa:
+        c.setFillColor(MID_GRAY)
+        c.setFont('Helvetica', 11)
+        c.drawString(MARGIN, y - 30, 'Insufficient data for organic attribution. Needs 2+ days of impression snapshots.')
+        draw_footer(c, 5, 6)
+        return
+
+    # ── KPI cards: Follow Source ──
+    total = oa.get('totalGrowth', 0)
+    from_posts = oa.get('postAttributed', 0)
+    from_comments = oa.get('commentAttributed', 0)
+    unattr = oa.get('unattributed', 0)
+    days = oa.get('daysTracked', 0)
+
+    card_w = (CONTENT_W - 30) / 4
+    card_h = 68
+
+    draw_kpi_card(c, MARGIN, y - card_h, card_w, card_h,
+                  f"+{total}", 'Total Follows')
+    draw_kpi_card(c, MARGIN + card_w + 10, y - card_h, card_w, card_h,
+                  f"+{from_posts:.0f}", 'From Posts',
+                  int(round(from_posts / total * 100)) if total > 0 else None)
+    draw_kpi_card(c, MARGIN + 2*(card_w + 10), y - card_h, card_w, card_h,
+                  f"+{from_comments:.0f}", 'From Comments',
+                  int(round(from_comments / total * 100)) if total > 0 else None)
+    draw_kpi_card(c, MARGIN + 3*(card_w + 10), y - card_h, card_w, card_h,
+                  f"{days}d", 'Tracked')
+
+    y = y - card_h - 8
+
+    # ── Subtitle ──
+    c.setFillColor(MID_GRAY)
+    c.setFont('Helvetica-Oblique', 8)
+    c.drawString(MARGIN, y,
+                 'Indirect follows are attributed proportionally by daily impression deltas. '
+                 'Direct follows come from LinkedIn\'s per-post attribution.')
+    y -= 18
+
+    # ── Post Attribution Table ──
+    post_rollup = oa.get('postRollup', [])
+    if post_rollup:
+        rows = [
+            ['Post Attribution', '', '', '', '', '', ''],
+            ['Post', 'Impressions', 'Direct', 'Indirect', 'Total', 'Impr/Follow', 'Type'],
+        ]
+        for p in post_rollup[:8]:
+            direct = p.get('directFollows', 0)
+            indirect = p.get('totalAttributed', 0)
+            total_follows = direct + indirect
+            eff = p.get('efficiency')
+            eff_str = str(eff) if eff else '-'
+            rows.append([
+                p.get('title', p.get('label', ''))[:34],
+                fmt(p.get('impressions', 0)),
+                str(direct),
+                f"+{indirect:.1f}",
+                f"+{total_follows:.1f}",
+                eff_str,
+                p.get('postType', '')[:10],
+            ])
+
+        col_widths = [CONTENT_W * 0.30, CONTENT_W * 0.12, CONTENT_W * 0.09, CONTENT_W * 0.11,
+                      CONTENT_W * 0.11, CONTENT_W * 0.13, CONTENT_W * 0.10]
+        t = Table(rows, colWidths=col_widths)
+
+        style_cmds = [
+            ('SPAN', (0, 0), (-1, 0)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 8),
+            ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+            ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+            ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('BOTTOMPADDING', (0, 1), (-1, 1), 3),
+            ('FONTSIZE', (0, 2), (-1, -1), 9),
+            ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+            ('TOPPADDING', (0, 2), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+            ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+            ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
+        ]
+
+        # Highlight the most efficient post (lowest impr/follow) in green
+        best_eff = None
+        best_idx = -1
+        for i, p in enumerate(post_rollup[:8]):
+            eff = p.get('efficiency')
+            if eff and (best_eff is None or eff < best_eff):
+                best_eff = eff
+                best_idx = i
+        if best_idx >= 0:
+            style_cmds.append(('BACKGROUND', (0, best_idx + 2), (-1, best_idx + 2), ROW_GREEN))
+
+        t.setStyle(TableStyle(style_cmds))
+        tw, th = t.wrapOn(c, sum(col_widths), 400)
+        t.drawOn(c, MARGIN, y - th)
+        y = y - th - 12
+
+    # ── Outbound Profile Table ──
+    profile_rollup = oa.get('profileRollup', [])
+    if profile_rollup:
+        rows = [
+            ['Outbound Comment Attribution', '', '', '', ''],
+            ['Profile', 'Comments', 'Tot Impressions', 'Avg Impr', 'Indirect Follows'],
+        ]
+        for p in profile_rollup[:10]:
+            rows.append([
+                p.get('profileName', '')[:28],
+                str(p.get('commentCount', 0)),
+                fmt(p.get('totalImpressions', 0)) if p.get('totalImpressions') else '-',
+                str(p.get('avgImpressions', 0)) if p.get('avgImpressions') else '-',
+                f"+{p.get('totalAttributed', 0):.2f}",
+            ])
+
+        col_widths = [CONTENT_W * 0.30, CONTENT_W * 0.12, CONTENT_W * 0.18, CONTENT_W * 0.15,
+                      CONTENT_W * 0.20]
+        t = Table(rows, colWidths=col_widths)
+        t.setStyle(TableStyle([
+            ('SPAN', (0, 0), (-1, 0)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 8),
+            ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+            ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+            ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('BOTTOMPADDING', (0, 1), (-1, 1), 3),
+            ('FONTSIZE', (0, 2), (-1, -1), 9),
+            ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+            ('TOPPADDING', (0, 2), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+            ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+            ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
+        ]))
+        tw, th = t.wrapOn(c, sum(col_widths), 400)
+        t.drawOn(c, MARGIN, y - th)
+        y = y - th - 12
+
+    # ── Outbound Activity KPIs (compact, bottom) ──
+    act_y = y
+    mini_w = (CONTENT_W - 20) / 3
+    mini_h = 45
+    draw_kpi_card(c, MARGIN, act_y - mini_h, mini_w, mini_h,
+                  str(stats.get('totalCommentsPosted', 0)), 'Comments Posted')
+    draw_kpi_card(c, MARGIN + mini_w + 10, act_y - mini_h, mini_w, mini_h,
+                  str(stats.get('uniqueProfilesCommented', 0)), 'Profiles Engaged')
+    draw_kpi_card(c, MARGIN + 2*(mini_w + 10), act_y - mini_h, mini_w, mini_h,
+                  f"{stats.get('avgCommentsPerDay', 0):.1f}", 'Comments/Day')
+
+    draw_footer(c, 5, 6)
+
+
+def render_page_6(c, data):
+    """Insights & Recommendations."""
+    c.showPage()
+    draw_page_bg(c)
+
+    y = draw_section_header(c, PAGE_H - 20, 'Insights & Recommendations')
+
+    insights = data.get('insights', [])
+    if not insights:
+        c.setFillColor(MID_GRAY)
+        c.setFont('Helvetica', 11)
+        c.drawString(MARGIN, y - 30, 'No insights generated for this period.')
+        draw_footer(c, 6, 6)
+        return
+
+    type_colors = {
+        'working': TEAL,
+        'attention': SOFT_RED,
+        'recommendation': AMBER,
+    }
+
+    for insight in insights:
+        y -= 10
+        itype = insight.get('type', 'recommendation')
+        color = type_colors.get(itype, AMBER)
+        title = insight.get('title', '')
+        body = insight.get('body', '')
+
+        # Card background
+        card_x = MARGIN
+        body_lines = wrap_text(c, body, 'Helvetica', 9, CONTENT_W - 40)
+        card_h = 48 + len(body_lines) * 13
+        card_y = y - card_h
+
+        c.setFillColor(white)
+        c.roundRect(card_x, card_y, CONTENT_W, card_h, 6, fill=1, stroke=0)
+
+        # Left accent bar
+        c.setFillColor(color)
+        c.roundRect(card_x, card_y, 5, card_h, 2, fill=1, stroke=0)
+
+        # Type badge
+        badge_label = itype.upper()
+        draw_badge(c, card_x + CONTENT_W - 100, y - 5, badge_label, color)
+
+        # Title
+        c.setFillColor(NAVY)
+        c.setFont('Helvetica-Bold', 11)
+        c.drawString(card_x + 15, y - 8, title)
+
+        # Body
+        c.setFillColor(DARK_GRAY)
+        c.setFont('Helvetica', 9)
+        text_y = y - 25
+        for line in body_lines:
+            c.drawString(card_x + 15, text_y, line)
+            text_y -= 13
+
+        y = card_y
+
+    # Correlations (moved from old page 5)
+    correlations = data.get('correlations', [])
+    if correlations and y > 200:
+        y -= 10
+        y = draw_subsection(c, y, 'Correlation Insights')
+
+        corr_rows = [['Attribute', 'r', 'Direction', 'Significant']]
+        for corr in correlations:
+            r_val = corr.get('r', 0)
+            direction = corr.get('direction', 'none')
+            sig = 'Yes' if corr.get('significant') else 'No'
+            corr_rows.append([corr.get('attribute', ''), f"{r_val:.2f}", direction, sig])
+
+        corr_widths = [CONTENT_W * 0.38, CONTENT_W * 0.15, CONTENT_W * 0.22, CONTENT_W * 0.20]
+        t = Table(corr_rows, colWidths=corr_widths)
+        style_cmds = [
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 9),
+            ('TEXTCOLOR', (0, 0), (-1, 0), MID_GRAY),
+            ('LINEBELOW', (0, 0), (-1, 0), 0.5, LIGHT_GRAY),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('TEXTCOLOR', (0, 1), (-1, -1), DARK_GRAY),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [OFF_WHITE, white]),
+        ]
+        for i, corr in enumerate(correlations):
+            row_idx = i + 1
+            if corr.get('significant'):
+                direction = corr.get('direction', 'none')
+                color = TEAL if direction == 'positive' else SOFT_RED if direction == 'negative' else DARK_GRAY
+                style_cmds.append(('TEXTCOLOR', (0, row_idx), (-1, row_idx), color))
+                style_cmds.append(('FONTNAME', (0, row_idx), (-1, row_idx), 'Helvetica-Bold'))
+        t.setStyle(TableStyle(style_cmds))
+        tw, th = t.wrapOn(c, sum(corr_widths), 300)
+        t.drawOn(c, MARGIN, y - th)
+
+    # Closing note
+    y_close = 55
+    c.setFillColor(MID_GRAY)
+    c.setFont('Helvetica-Oblique', 9)
+    c.drawCentredString(PAGE_W / 2, y_close, 'Insights generated by Claude  |  Atomic Authority Agent')
+
+    draw_footer(c, 6, 6)
+
+
+# ── Main ──────────────────────────────────────────────────────────────
+
+def main():
+    if len(sys.argv) < 3:
+        print('Usage: python generate-pdf.py <data.json> <output.pdf>')
+        sys.exit(1)
+
+    data_path = sys.argv[1]
+    output_path = sys.argv[2]
+
+    with open(data_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+
+    c = Canvas(output_path, pagesize=letter)
+    c.setTitle('Atomic Dispatch — Performance Report')
+    c.setAuthor('Atomic Authority Agent')
+
+    render_page_1(c, data)
+    render_page_2(c, data)
+    render_page_3(c, data)
+    render_page_4(c, data)
+    render_page_5(c, data)
+    render_page_6(c, data)
+
+    c.save()
+    print(f'PDF saved to {output_path}')
+
+
+if __name__ == '__main__':
+    main()

@@ -20,7 +20,8 @@
         "machine-learning",
         "new-build",
         "regulatory"
-      ]
+      ],
+      "title": "Advanced Reactor Licensing Milestone"
     },
     "screening": {
       "cringeScore": 3,
@@ -36,9 +37,9 @@
     "publishedAt": "2026-03-19T16:09:57.579Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440428997878013952/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:50:59.326Z",
-      "impressions": 885,
-      "membersReached": 365,
+      "fetchedAt": "2026-04-17T18:13:11.044Z",
+      "impressions": 889,
+      "membersReached": 367,
       "reactions": 3,
       "comments": 1,
       "reposts": 0,
@@ -68,7 +69,8 @@
         "workforce",
         "adoption",
         "change-management"
-      ]
+      ],
+      "title": "UK Nuclear AI Acceleration Prediction"
     },
     "screening": {
       "cringeScore": 3,
@@ -84,9 +86,9 @@
     "publishedAt": "2026-03-20T12:46:53.367Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440740463885746176/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:04.343Z",
-      "impressions": 2015,
-      "membersReached": 1085,
+      "fetchedAt": "2026-04-17T18:13:17.076Z",
+      "impressions": 2020,
+      "membersReached": 1088,
       "reactions": 2,
       "comments": 14,
       "reposts": 0,
@@ -118,7 +120,8 @@
         "northeast-us",
         "regulatory",
         "change-management"
-      ]
+      ],
+      "title": "SMR Deployment Agreement PJM"
     },
     "screening": {
       "cringeScore": 3,
@@ -134,8 +137,8 @@
     "publishedAt": "2026-03-23T12:44:48.919Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7441827081430282240/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:09.388Z",
-      "impressions": 777,
+      "fetchedAt": "2026-04-17T18:13:22.074Z",
+      "impressions": 778,
       "membersReached": 369,
       "reactions": 1,
       "comments": 1,
@@ -166,7 +169,8 @@
         "regulatory",
         "document-automation",
         "usa"
-      ]
+      ],
+      "title": "Nuclear Energy Confidence Resurgence"
     },
     "screening": {
       "cringeScore": 5,
@@ -182,9 +186,9 @@
     "publishedAt": "2026-03-24T13:25:33.050Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442199752626094080/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:14.158Z",
-      "impressions": 629,
-      "membersReached": 285,
+      "fetchedAt": "2026-04-17T18:13:27.558Z",
+      "impressions": 631,
+      "membersReached": 286,
       "reactions": 2,
       "comments": 1,
       "reposts": 0,
@@ -205,7 +209,8 @@
       "sourceFeed": "Canadian Nuclear Laboratories",
       "generatedAt": "2026-03-24T23:14:56.659Z",
       "combinedScore": 11.200000000000001,
-      "contentTags": ["cybersecurity", "safety-case", "canada", "anomaly-detection", "regulatory", "trust"]
+      "contentTags": ["cybersecurity", "safety-case", "canada", "anomaly-detection", "regulatory", "trust"],
+      "title": "Nuclear Cybersecurity Exercise Romania"
     },
     "screening": {
       "cringeScore": 4,
@@ -222,9 +227,9 @@
     "publishedAt": "2026-03-25T15:29:43.169Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442593340212236288/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:18.894Z",
-      "impressions": 689,
-      "membersReached": 281,
+      "fetchedAt": "2026-04-17T18:13:33.248Z",
+      "impressions": 691,
+      "membersReached": 282,
       "reactions": 2,
       "comments": 1,
       "reposts": 0,
@@ -257,7 +262,8 @@
         "northeast-us",
         "midwest-us",
         "southeast-us"
-      ]
+      ],
+      "title": "Alaska Microreactors Strategic Deployment"
     },
     "screening": {
       "cringeScore": 3,
@@ -274,8 +280,8 @@
     "publishedAt": "2026-03-26T16:12:32.549Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442966521708158976/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:30.077Z",
-      "impressions": 550,
+      "fetchedAt": "2026-04-17T18:13:37.987Z",
+      "impressions": 552,
       "membersReached": 150,
       "reactions": 3,
       "comments": 1,
@@ -304,7 +310,8 @@
         "geography": 1,
         "npx": 0
       },
-      "contentTags": ["llm", "safety-case", "document-automation", "regulatory", "nrc", "fusion", "doe", "usa", "change-management"]
+      "contentTags": ["llm", "safety-case", "document-automation", "regulatory", "nrc", "fusion", "doe", "usa", "change-management"],
+      "title": "OpenAI Nuclear Energy Deal"
     },
     "screening": {
       "cringeScore": 5,
@@ -321,15 +328,15 @@
     "publishedAt": "2026-03-31T13:23:58.129Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7444736016478846976/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:34.977Z",
-      "impressions": 1633,
-      "membersReached": 1073,
-      "reactions": 2,
+      "fetchedAt": "2026-04-17T18:13:42.670Z",
+      "impressions": 1644,
+      "membersReached": 1075,
+      "reactions": 3,
       "comments": 3,
       "reposts": 0,
       "saves": 0,
       "sends": 0,
-      "newFollowers": 0
+      "newFollowers": 1
     }
   },
   {
@@ -351,7 +358,8 @@
         "geography": 2,
         "npx": 0
       },
-      "contentTags": ["candu", "canada", "new-build", "reactor-design"]
+      "contentTags": ["candu", "canada", "new-build", "reactor-design"],
+      "title": "Cobalt Harvest Technology Upgrade"
     },
     "screening": {
       "cringeScore": 5,
@@ -368,10 +376,10 @@
     "publishedAt": "2026-04-01T19:08:47.067Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445185194199834624/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:39.938Z",
-      "impressions": 7462,
-      "membersReached": 5007,
-      "reactions": 106,
+      "fetchedAt": "2026-04-17T18:13:48.096Z",
+      "impressions": 7523,
+      "membersReached": 5035,
+      "reactions": 107,
       "comments": 4,
       "reposts": 6,
       "saves": 1,
@@ -412,7 +420,8 @@
         "new-build",
         "texas",
         "usa"
-      ]
+      ],
+      "title": "Texas Advanced Nuclear Funding"
     },
     "screening": {
       "cringeScore": 5,
@@ -428,9 +437,9 @@
     "publishedAt": "2026-04-02T15:35:25.147Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445493857913360384/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:44.687Z",
-      "impressions": 1362,
-      "membersReached": 786,
+      "fetchedAt": "2026-04-17T18:13:53.945Z",
+      "impressions": 1377,
+      "membersReached": 787,
       "reactions": 4,
       "comments": 19,
       "reposts": 1,
@@ -473,7 +482,8 @@
         "trust",
         "adoption"
       ],
-      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1775516545295.png"
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1775516545295.png",
+      "title": "Nuclear Licensing Timeline Acceleration"
     },
     "screening": {
       "cringeScore": 4,
@@ -490,9 +500,9 @@
     "publishedAt": "2026-04-07T13:22:09.247Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7447272290800611328/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:49.155Z",
-      "impressions": 501,
-      "membersReached": 141,
+      "fetchedAt": "2026-04-17T18:14:00.239Z",
+      "impressions": 524,
+      "membersReached": 145,
       "reactions": 3,
       "comments": 1,
       "reposts": 0,
@@ -525,7 +535,8 @@
       "recencyMultiplier": 1.3,
       "postContentFeedback": 1.0476445861293109,
       "contentTags": ["smr", "new-build", "reactor-design", "doe", "usa", "digital-twin", "licensing"],
-      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1775605008129.png"
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1775605008129.png",
+      "title": "Advanced Reactor Funding Competition"
     },
     "screening": {
       "cringeScore": 2,
@@ -543,9 +554,9 @@
     "publishedAt": "2026-04-08T13:57:39.691Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7447643628329394176/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:53.692Z",
-      "impressions": 1552,
-      "membersReached": 880,
+      "fetchedAt": "2026-04-17T18:14:05.486Z",
+      "impressions": 1590,
+      "membersReached": 888,
       "reactions": 7,
       "comments": 1,
       "reposts": 0,
@@ -568,7 +579,8 @@
       "imageUrl": "https://www.ans.org/file/23443/l/RS_Orano_1.jpg",
       "generatedImagePath": "generated_images\\img_softened_test.png",
       "wordCount": 210,
-      "contentTags": ["regulatory", "safety-case", "licensing", "nrc", "reactor-design", "llm", "document-automation", "usa"]
+      "contentTags": ["regulatory", "safety-case", "licensing", "nrc", "reactor-design", "llm", "document-automation", "usa"],
+      "title": "3D Printing Manufacturing Disruption"
     },
     "screening": {
       "cringeScore": 3,
@@ -586,9 +598,9 @@
     "publishedAt": "2026-04-09T16:57:45.976Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7448051334534172673/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:51:58.759Z",
-      "impressions": 316,
-      "membersReached": 140,
+      "fetchedAt": "2026-04-17T18:14:12.057Z",
+      "impressions": 341,
+      "membersReached": 153,
       "reactions": 1,
       "comments": 1,
       "reposts": 0,
@@ -610,7 +622,8 @@
       "generatedAt": "2026-04-10T16:20:07.240Z",
       "wordCount": 196,
       "contentTags": ["change-management", "llm", "adoption", "explainability", "trust"],
-      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1775838182971.png"
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1775838182971.png",
+      "title": "ADKAR Implementation Complexity"
     },
     "screening": {
       "cringeScore": 3,
@@ -628,9 +641,9 @@
     "publishedAt": "2026-04-10T16:25:39.959Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7448405648976822272/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:52:03.423Z",
-      "impressions": 225,
-      "membersReached": 79,
+      "fetchedAt": "2026-04-17T18:14:17.665Z",
+      "impressions": 244,
+      "membersReached": 89,
       "reactions": 0,
       "comments": 0,
       "reposts": 0,
@@ -663,7 +676,8 @@
       "recencyMultiplier": 1.3,
       "postContentFeedback": 1,
       "contentTags": ["smr", "reactor-design", "licensing", "nrc", "new-build", "usa", "doe", "regulatory", "decommissioning"],
-      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776122607973.png"
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776122607973.png",
+      "title": "Nuclear Licensing Acceleration Strategy"
     },
     "screening": {
       "cringeScore": 2,
@@ -681,13 +695,180 @@
     "publishedAt": "2026-04-14T12:13:49.546Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7449791844994924544/",
     "metrics": {
-      "fetchedAt": "2026-04-15T17:52:14.629Z",
-      "impressions": 477,
-      "membersReached": 214,
+      "fetchedAt": "2026-04-17T18:14:23.781Z",
+      "impressions": 643,
+      "membersReached": 308,
       "reactions": 3,
       "comments": 1,
       "reposts": 0,
       "saves": 0,
+      "sends": 0,
+      "newFollowers": 0
+    }
+  },
+  {
+    "id": "post_1776211357947",
+    "draft": {
+      "content": "The constraint isn't engineering. It's whether a community can trust the same technology that contaminated it.\n\nOntario just announced a 10,000 MW nuclear plant near Port Hope—a town still cleaning up 1940s contamination. Silicon Valley's \"move fast and break things\" doesn't work where fenced-off areas carry radiation signs and remediation won't finish until 2032.\n\nAt [[MENTION:Bruce Power]], I learned: earning operational trust takes years of consistency, not a single pitch. Port Hope residents aren't evaluating a business case—they're evaluating whether this industry has changed.\n\nThe [[MENTION:CNSC]] licensing process won't allow site prep until 2030. That timeline exists for a reason.\n\nEvery AI system we build for nuclear operators carries the same burden. If your model can't survive scrutiny from people who've been burned before, your accuracy metrics are irrelevant.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+      "firstComment": "Sourced from Toronto Star.\n\nAre communities near your site pushing back on new builds?",
+      "postType": "contrarian",
+      "sourceTitle": "Nuclear past and present collide in Ontario's Port Hope",
+      "sourceUrl": "https://www.thestar.com/politics/provincial/nuclear-past-and-present-collide-in-ontarios-port-hope/article_61ce8c2c-c30b-494a-902b-c7dae22e562d.html",
+      "sourceDate": "2026-04-13T13:00:00.000Z",
+      "sourceFeed": "NewsData: thestar",
+      "generatedAt": "2026-04-15T00:02:23.909Z",
+      "imageUrl": "https://bloximages.chicago2.vip.townnews.com/thestar.com/content/tncms/assets/v3/editorial/3/9b/39b972bd-823e-5d70-b486-eb5c3960c506/69d93df34a52e.image.jpg?crop=1662%2C873%2C0%2C187&resize=1200%2C630&order=crop%2Cresize",
+      "wordCount": 132,
+      "combinedScore": 9.75,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.25,
+      "contentTags": ["trust", "adoption", "regulatory", "licensing", "cnsc", "canada", "public-opinion", "explainability"],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776211670769.png",
+      "stockImageUrl": "https://images.unsplash.com/photo-1766788467067-d443f19314b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Juan Pablo",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/Gz6Yp4BcbbQ/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1766788467067-d443f19314b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Juan Pablo",
+          "downloadUrl": "https://api.unsplash.com/photos/Gz6Yp4BcbbQ/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA",
+          "description": "Industrial building with blue corrugated metal siding and yellow stripe."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1742112125630-dd2955dd6120?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxXb3JrZXJzJTIwaW4lMjBzYWZldHklMjBlcXVpcG1lbnQlMjB0YWxraW5nfGVufDF8fHx8MTc3NjIxMTY3Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "RONNAKORN TRIRAGANON",
+          "downloadUrl": "https://api.unsplash.com/photos/tEepjQhromE/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxXb3JrZXJzJTIwaW4lMjBzYWZldHklMjBlcXVpcG1lbnQlMjB0YWxraW5nfGVufDF8fHx8MTc3NjIxMTY3Nnww",
+          "description": "Construction workers are inspecting plans on the jobsite."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1640030104754-0a33c686c533?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxCcm9rZW4lMjB0cnVzdCUyMGJlaW5nJTIwcmVidWlsdCUyMHNsb3dseXxlbnwxfHx8fDE3NzYyMTE2Nzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Ronda Dorsey",
+          "downloadUrl": "https://api.unsplash.com/photos/ZoVR7mPHMGo/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxCcm9rZW4lMjB0cnVzdCUyMGJlaW5nJTIwcmVidWlsdCUyMHNsb3dseXxlbnwxfHx8fDE3NzYyMTE2Nzd8MA",
+          "description": "trust spelled with wooden letter blocks on a table"
+        }
+      ],
+      "title": "Nuclear Plant Contamination Risk"
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook uses a contrasting reframe pattern ('The constraint isn't engineering. It's whether...'), which is an automatic rewrite trigger. The content itself is strong, specific, and grounded in real experience. The scannability structure has issues: the second paragraph is too long for a one-liner and doesn't fit the 2:1 rhythm. The AI connection at the end feels slightly bolted on but is acceptable. The first comment question is a bit long and could be simpler.",
+      "revisedContent": "Ontario is building a 10,000 MW nuclear plant next to a town still cleaning up 1940s contamination.\n\nThat tension tells you everything about nuclear's real challenge.\n\nPort Hope has fenced-off areas with radiation signs. Remediation won't finish until 2032. Silicon Valley's \"move fast and break things\" doesn't work here.\n\nAt [[MENTION:Bruce Power]], I learned something: earning operational trust takes years of consistency, not a single pitch. Port Hope residents aren't evaluating a business case. They're evaluating whether this industry has changed.\n\nThe [[MENTION:CNSC]] licensing process won't allow site prep until 2030.\n\nThat timeline exists for a reason.\n\nEvery AI system we build for nuclear operators carries the same burden. If your model can't survive scrutiny from people who've been burned before, your accuracy metrics are irrelevant.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+      "revisedFirstComment": "Sourced from Toronto Star.\n\nAre communities near your site pushing back on new builds?"
+    },
+    "finalContent": "Ontario is building a 10,000 MW nuclear plant next to a town still cleaning up 1940s contamination.\n\nThat tension tells you everything about nuclear's real challenge.\n\nPort Hope has fenced-off areas with radiation signs. Remediation won't finish until 2032. Silicon Valley's \"move fast and break things\" doesn't work here.\n\nAt [[MENTION:Bruce Power]], I learned something: earning operational trust takes years of consistency, not a single pitch. Port Hope residents aren't evaluating a business case. They're evaluating whether this industry has changed.\n\nThe [[MENTION:CNSC]] licensing process won't allow site prep until 2030.\n\nThat timeline exists for a reason.\n\nEvery AI system we build for nuclear operators carries the same burden. If your model can't survive scrutiny from people who've been burned before, your accuracy metrics are irrelevant.\n\n#NuclearEnergy #EnergyPolicy #NuclearSafety",
+    "status": "published",
+    "createdAt": "2026-04-15T00:02:37.947Z",
+    "wordCount": 129,
+    "imageChoice": "ai",
+    "actedAt": "2026-04-15T00:09:32.600Z",
+    "scheduledFor": "2026-04-15T21:37:00.000Z",
+    "publishedAt": "2026-04-15T21:38:31.307Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7450296354158989313/",
+    "metrics": {
+      "fetchedAt": "2026-04-17T18:14:29.796Z",
+      "impressions": 8761,
+      "membersReached": 5994,
+      "reactions": 18,
+      "comments": 18,
+      "reposts": 0,
+      "saves": 3,
+      "sends": 0,
+      "newFollowers": 10
+    }
+  },
+  {
+    "id": "post_1776294080154",
+    "draft": {
+      "content": "Ontario owns Canada's entire nuclear playbook. Now Saskatchewan is calling to borrow the key chapters.\n\n[[MENTION:Bruce Power]] and SaskPower signed a MOU this week to share nuclear expertise.\n\nSaskatchewan is evaluating large reactors alongside its existing SMR project.\n\nHere is what caught my attention: Bruce Power operates eight CANDU reactors (pressurized heavy water reactors, a Canadian design), is planning up to 4,800 MW of new build at Bruce C, and has 25 years of operational history. That is an enormous volume of procedures, maintenance records, licensing documentation, and lessons learned. Transferring that knowledge across provinces manually would take years.\n\nLLM-assisted documentation tools could compress that timeline dramatically.\n\nThe knowledge transfer problem is really a retrieval problem.\n\nImagine an AI system trained on Bruce Power's operational documentation that lets SaskPower engineers query decades of maintenance history, safety case reasoning, and project development decisions in natural language. Not a chatbot gimmick. A structured, auditable retrieval layer with deterministic guardrails, so every answer traces back to a source document a [[MENTION:CNSC]] reviewer could verify.\n\nThis is exactly the kind of non-safety-critical AI deployment where nuclear operators should be building trust.\n\nSaskatchewan's energy demand is growing fast. The playbook exists. The question is whether we deliver it at the speed the grid actually needs.\n\n#NuclearEnergy #AdvancedReactors #NuclearInnovation #AIAutomation",
+      "firstComment": "Sourced from Bruce Power.\n\nHave any of you used AI tools for technical documentation retrieval in regulated environments?",
+      "postType": "bridge",
+      "sourceTitle": "Bruce Power and SaskPower sign memorandum of understanding to inform Saskatchewan large reactor technology assessment",
+      "sourceUrl": "https://www.brucepower.com/2026/04/15/bruce-power-and-saskpower-sign-memorandum-of-understanding-to-inform-saskatchewan-large-reactor-technology-assessment/",
+      "sourceDate": "2026-04-15T17:00:15.000Z",
+      "sourceFeed": "Bruce Power",
+      "generatedAt": "2026-04-15T23:01:06.291Z",
+      "imageUrl": "https://s32829.pcdn.co/wp-content/uploads/2026/04/Bruce-Site-6.jpg",
+      "wordCount": 214,
+      "combinedScore": 9.75,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.25,
+      "contentTags": [
+        "canada",
+        "candu",
+        "new-build",
+        "smr",
+        "llm",
+        "document-automation",
+        "safety-case",
+        "licensing",
+        "cnsc",
+        "trust",
+        "adoption",
+        "workforce"
+      ],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776294601507.png",
+      "stockImageUrl": "https://images.unsplash.com/photo-1494818889428-42c443ab9f69?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyOTQ2MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Scott Webb",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/KF6EEForBB0/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyOTQ2MDd8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1494818889428-42c443ab9f69?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyOTQ2MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Scott Webb",
+          "downloadUrl": "https://api.unsplash.com/photos/KF6EEForBB0/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyOTQ2MDd8MA",
+          "description": "white and gray power plant"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1742112125567-3e8967bad60f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxFbmdpbmVlcnMlMjByZXZpZXdpbmclMjB0ZWNobmljYWwlMjBkb2N1bWVudHMlMjB0b2dldGhlcnxlbnwxfHx8fDE3NzYyOTQ2MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "RONNAKORN TRIRAGANON",
+          "downloadUrl": "https://api.unsplash.com/photos/IvEYfb-3B70/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxFbmdpbmVlcnMlMjByZXZpZXdpbmclMjB0ZWNobmljYWwlMjBkb2N1bWVudHMlMjB0b2dldGhlcnxlbnwxfHx8fDE3NzYyOTQ2MDh8MA",
+          "description": "Construction workers review plans at a job site."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1775210727336-d2a2bab14f62?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxLZXklMjB1bmxvY2tpbmclMjBvcm5hdGUlMjB3b29kZW4lMjBkb29yfGVufDF8fHx8MTc3NjI5NDYwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Tanya Barrow",
+          "downloadUrl": "https://api.unsplash.com/photos/6KYtZCjbC2M/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxLZXklMjB1bmxvY2tpbmclMjBvcm5hdGUlMjB3b29kZW4lMjBkb29yfGVufDF8fHx8MTc3NjI5NDYwOXww",
+          "description": "Close-up view through a keyhole of a statue."
+        }
+      ],
+      "title": "Saskatchewan Seeks Ontario Nuclear Expertise"
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook is strong and under 140 chars. However, the post has several issues: a contrasting reframe ('Not a chatbot gimmick. A structured, auditable retrieval layer...'), stacked adjectives ('structured, auditable retrieval layer with deterministic guardrails'), the closing line is dangerously close to 'the question is no longer whether but when/how' territory, and the scannability structure violates the 2:1 rule with multiple consecutive mini-paragraphs. The MOU acronym is unexpanded. The AI/nuclear crossover content is genuinely specific, which saves it from a higher score.",
+      "revisedContent": "Ontario owns Canada's entire nuclear playbook. Now Saskatchewan is calling to borrow the key chapters.\n\n[[MENTION:Bruce Power]] and SaskPower signed an MOU (memorandum of understanding) this week.\n\nSaskatchewan is evaluating large reactors alongside its existing SMR project.\n\nHere is what caught my attention: Bruce Power operates eight CANDU reactors, is planning up to 4,800 MW of new build at Bruce C, and has 25 years of operational history. That is an enormous volume of procedures, maintenance records, licensing documentation, and lessons learned.\n\nTransferring that knowledge across provinces manually would take years.\n\nLLM-assisted documentation tools could compress that timeline dramatically.\n\nImagine an AI system trained on Bruce Power's operational documentation that lets SaskPower engineers query decades of maintenance history, safety case reasoning, and project decisions in natural language. Every answer traces back to a source document a [[MENTION:CNSC]] reviewer could verify. That is what makes it viable in a regulated setting.\n\nThis is exactly where nuclear operators should be building trust with AI.\n\nSaskatchewan's energy demand is growing fast. The playbook exists. The constraint is delivering it at the speed the grid actually needs.\n\n#NuclearEnergy #AdvancedReactors #AIAutomation",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Ontario owns Canada's entire nuclear playbook. Now Saskatchewan is calling to borrow the key chapters.\n\n[[MENTION:Bruce Power]] and SaskPower signed an MOU (memorandum of understanding) this week.\n\nSaskatchewan is evaluating large reactors alongside its existing SMR project.\n\nHere is what caught my attention: Bruce Power operates eight CANDU reactors, is planning up to 4,800 MW of new build at Bruce C, and has 25 years of operational history. That is an enormous volume of procedures, maintenance records, licensing documentation, and lessons learned.\n\nTransferring that knowledge across provinces manually would take years.\n\nLLM-assisted documentation tools could compress that timeline dramatically.\n\nImagine an AI system trained on Bruce Power's operational documentation that lets SaskPower engineers query decades of maintenance history, safety case reasoning, and project decisions in natural language. Every answer traces back to a source document a [[MENTION:CNSC]] reviewer could verify. That is what makes it viable in a regulated setting.\n\nThis is exactly where nuclear operators should be building trust with AI.\n\nSaskatchewan's energy demand is growing fast. The playbook exists. The constraint is delivering it at the speed the grid actually needs.\n\n#NuclearEnergy #AdvancedReactors #AIAutomation",
+    "status": "published",
+    "createdAt": "2026-04-15T23:01:20.154Z",
+    "wordCount": 186,
+    "imageChoice": "og",
+    "actedAt": "2026-04-15T23:11:03.922Z",
+    "scheduledFor": "2026-04-16T14:41:00.000Z",
+    "publishedAt": "2026-04-16T14:43:08.466Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7450554188226269185/",
+    "metrics": {
+      "fetchedAt": "2026-04-17T18:14:41.023Z",
+      "impressions": 664,
+      "membersReached": 317,
+      "reactions": 8,
+      "comments": 1,
+      "reposts": 0,
+      "saves": 1,
       "sends": 0,
       "newFollowers": 0
     }

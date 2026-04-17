@@ -1,5 +1,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import crypto from 'crypto';
+import { getProfileLiftBonus } from '../analytics/attribution.js';
+import { getOrganicProfileBonus } from '../analytics/organic-attribution.js';
 
 const STATE_FILE = 'outbound_state.json';
 const PROFILES_FILE = 'outbound_profiles.json';
@@ -32,6 +34,10 @@ export interface PendingComment {
   selectedOption?: 1 | 2;
   createdAt: string;
   postedAt?: string;
+  // Comment-level metrics (scraped by midnight snapshot)
+  commentImpressions?: number;
+  commentReactions?: number;
+  metricsScrapedAt?: string;
 }
 
 export interface CandidatePost {
@@ -145,7 +151,10 @@ export function getProfilesByPriority(maxProfiles?: number): OutboundProfile[] {
     const commentCooldown = hoursSinceLastComment(p.url);
     const commentPenalty = commentCooldown < 24 ? (24 - commentCooldown) * 0.5 : 0; // 1-day cooldown
 
-    const priority = hoursSinceChecked + frequencyBonus - commentPenalty;
+    const liftBonus = getProfileLiftBonus(p.url);
+    const organicBonus = getOrganicProfileBonus(p.url);
+    const attributionBonus = Math.max(liftBonus, organicBonus); // use the stronger signal
+    const priority = hoursSinceChecked + frequencyBonus - commentPenalty + attributionBonus;
     return { profile: p, priority };
   });
 

@@ -14,11 +14,11 @@ interface TimeWindow {
 
 // The 5 experimental time windows (Eastern time)
 export const TIME_WINDOWS: TimeWindow[] = [
-  { label: 'Early morning (7:30-8:30am)',  startHour: 7,  startMinute: 30, endHour: 8,  endMinute: 30 },
-  { label: 'Late morning (10:30-11:30am)', startHour: 10, startMinute: 30, endHour: 11, endMinute: 30 },
-  { label: 'Lunch (12-1pm)',               startHour: 12, startMinute: 0,  endHour: 13, endMinute: 0  },
-  { label: 'Mid-afternoon (3-4pm)',        startHour: 15, startMinute: 0,  endHour: 16, endMinute: 0  },
-  { label: 'Evening (5-6pm)',              startHour: 17, startMinute: 0,  endHour: 18, endMinute: 0  },
+  { label: '9-11am',  startHour: 9,  startMinute: 0, endHour: 11, endMinute: 0 },
+  { label: '11am-1pm', startHour: 11, startMinute: 0, endHour: 13, endMinute: 0 },
+  { label: '1-3pm',   startHour: 13, startMinute: 0, endHour: 15, endMinute: 0 },
+  { label: '3-5pm',   startHour: 15, startMinute: 0, endHour: 17, endMinute: 0 },
+  { label: '5-7pm',   startHour: 17, startMinute: 0, endHour: 19, endMinute: 0 },
 ];
 
 // Days we post on (Tue/Wed/Thu)

@@ -9,6 +9,8 @@ import {
 import { loadPostsWithMetrics, type PostAnalyticsRecord } from './post-data.js';
 import { getCorrelationInsights, type CorrelationInsight } from './feedback.js';
 import { getFollowerData } from './followers.js';
+import { getAttributionSummary, type AttributionSummary } from './attribution.js';
+import { getOrganicAttributionSummary } from './organic-attribution.js';
 
 export interface RankEntry {
   label: string;
@@ -45,6 +47,8 @@ export interface ReportData {
   wordCountBuckets: Record<string, { stats: GroupStats; significant: boolean }> | null;
   outliers: Array<{ snippet: string; score: number; sigma: number }>;
   bestPost: { snippet: string; postType: string; score: number; impressions: number } | null;
+  attribution: AttributionSummary | null;
+  organicAttribution: ReturnType<typeof getOrganicAttributionSummary>;
   // Recent period comparison
   recent: {
     postCount: number;
@@ -110,6 +114,19 @@ export function generateReportData(): ReportData {
     allTimeGrowth: followerData.allTimeGrowth,
     weeklyGrowth: followerData.weeklyGrowth,
   } : null;
+
+  // Outbound attribution — requires minimum 5 days of data
+  let attribution: AttributionSummary | null = null;
+  try {
+    const summary = getAttributionSummary();
+    if (summary.totalDays >= 5) attribution = summary;
+  } catch { /* graceful degradation */ }
+
+  // Organic follow attribution — impression-weighted decay model
+  let organicAttribution: ReturnType<typeof getOrganicAttributionSummary> = null;
+  try {
+    organicAttribution = getOrganicAttributionSummary(14);
+  } catch { /* graceful degradation */ }
 
   // Rankings (all-time)
   const typeRanking = rankBy(posts, p => p.postType);
@@ -198,7 +215,7 @@ export function generateReportData(): ReportData {
     avgWordCount, scoreStats, trend, correlations, allTimeAvgScore,
     typeRanking, tagRanking, hashtagRanking, feedRanking,
     dayRanking, windowRanking,
-    photoEntries, wordCountBuckets, outliers, bestPost, recent, followers,
+    photoEntries, wordCountBuckets, outliers, bestPost, recent, followers, attribution, organicAttribution,
   };
 }
 
@@ -212,7 +229,7 @@ function emptyReport(): ReportData {
     correlations: [], allTimeAvgScore: 0,
     typeRanking: [], tagRanking: [], hashtagRanking: [], feedRanking: [],
     dayRanking: [], windowRanking: [],
-    photoEntries: [], wordCountBuckets: null, outliers: [], bestPost: null, recent: null, followers: null,
+    photoEntries: [], wordCountBuckets: null, outliers: [], bestPost: null, recent: null, followers: null, attribution: null, organicAttribution: null,
   };
 }
 
@@ -241,6 +258,69 @@ export function formatReportMessage(d: ReportData): string {
     followerSection = `\n<b>Followers:</b> ${d.followers.current.toLocaleString()} total (+${d.followers.allTimeGrowth} since Mar 18) · ${weeklyStr}`;
   }
 
+  // Outbound attribution
+  let attributionSection = '';
+  if (d.attribution) {
+    const a = d.attribution;
+    const liftSign = a.overallLift >= 0 ? '+' : '';
+    const ctrlSign = a.controlledLift >= 0 ? '+' : '';
+    const conf = (c: string) => c === 'low' ? '?' : c === 'medium' ? '~' : '✓';
+    attributionSection = `\n<b>Outbound attribution</b> (${a.totalDays}d)
+<code>Comment  ${String(a.totalCommentDays).padStart(2)}d ${liftSign}${fmt(a.avgDeltaCommentDays)}/day
+Quiet    ${String(a.totalQuietDays).padStart(2)}d ${fmt(a.avgDeltaQuietDays)}/day
+Lift     ${liftSign}${fmt(a.overallLift)}/day [${conf(a.overallConfidence)}]
+Ctrl     ${ctrlSign}${fmt(a.controlledLift)}/day [${conf(a.controlledConfidence)}]</code>`;
+
+    const top = a.profileScores.filter(p => p.commentDays >= 2).slice(0, 5);
+    const bottom = a.profileScores.filter(p => p.commentDays >= 2).slice(-3).reverse();
+    if (top.length > 0) {
+      const profileLine = (p: typeof top[0]) => {
+        const sign = p.lift >= 0 ? '+' : '';
+        const tag = p.insider ? '🏠' : p.colleague ? '🤝' : '';
+        return `<code>${p.profileName.slice(0, 16).padEnd(16)} ${sign}${fmt(p.lift).padStart(5)} ${String(p.commentDays).padStart(2)}d</code> ${conf(p.confidence)}${tag}`;
+      };
+      attributionSection += `\n\n Top lift:
+${top.map(profileLine).join('\n')}`;
+      if (bottom.length > 0 && bottom[0].lift < top[top.length - 1].lift) {
+        attributionSection += `\n\n Bottom lift:
+${bottom.map(profileLine).join('\n')}`;
+      }
+    }
+  }
+
+  // Organic attribution (impression-weighted decay model)
+  let organicSection = '';
+  if (d.organicAttribution) {
+    const oa = d.organicAttribution;
+    const total = oa.postAttributed + oa.commentAttributed + oa.unattributed;
+    const postPct = total > 0 ? Math.round((oa.postAttributed / total) * 100) : 0;
+    const commentPct = total > 0 ? Math.round((oa.commentAttributed / total) * 100) : 0;
+    const unattPct = total > 0 ? Math.round((oa.unattributed / total) * 100) : 0;
+
+    const postSign = oa.postAttributed >= 0 ? '+' : '';
+    const commentSign = oa.commentAttributed >= 0 ? '+' : '';
+    const otherSign = oa.unattributed >= 0 ? '+' : '';
+
+    organicSection = `\n\n<b>Organic attribution</b> (14d, +${oa.totalGrowth} follows)
+<code> Posts     ${(postSign + fmt(oa.postAttributed)).padStart(6)} (${postPct}%)
+ Comments  ${(commentSign + fmt(oa.commentAttributed)).padStart(6)} (${commentPct}%)
+ Other     ${(otherSign + fmt(oa.unattributed)).padStart(6)} (${unattPct}%)</code>`;
+
+    if (oa.topPosts.length > 0) {
+      const postLines = oa.topPosts.slice(0, 3).map(p =>
+        `  <code>${p.label.slice(0, 28).padEnd(28)} ${('+' + fmt(p.totalAttributed)).padStart(5)} (LI: ${p.linkedInAttributed})</code>`
+      ).join('\n');
+      organicSection += `\n Top posts:\n${postLines}`;
+    }
+
+    if (oa.topProfiles.length > 0) {
+      const profileLines = oa.topProfiles.slice(0, 3).map(p =>
+        `  <code>${p.profileName.slice(0, 20).padEnd(20)} ${('+' + fmt(p.totalAttributed)).padStart(5)} (${p.commentCount} comments)</code>`
+      ).join('\n');
+      organicSection += `\n Top profiles:\n${profileLines}`;
+    }
+  }
+
   // Trend
   const trendEmoji = d.trend.direction === 'improving' ? '📈' : d.trend.direction === 'declining' ? '📉' : '➡️';
   const trendStr = d.trend.direction === 'flat'
@@ -258,11 +338,11 @@ export function formatReportMessage(d: ReportData): string {
   }
 
   // Filter rankings — require min count, sort by count desc then score desc, cap display
-  const minCount = 2;
+  const minCount = 3;
   const filterAndSort = (entries: RankEntry[], max = 8) =>
     entries
       .filter(r => r.count >= minCount)
-      .sort((a, b) => b.count - a.count || b.avg - a.avg)
+      .sort((a, b) => b.avg - a.avg || b.count - a.count)
       .slice(0, max);
   const filteredTags = filterAndSort(d.tagRanking);
   const filteredHashtags = filterAndSort(d.hashtagRanking);
@@ -304,7 +384,7 @@ Since ${d.firstPostDate} · ${d.postCount} posts
  Comments     ${String(d.totalComments).padStart(6)}
  Reposts      ${String(d.totalReposts).padStart(6)}
  Saves        ${String(d.totalSaves).padStart(6)}</code>
-${followerSection}
+${followerSection}${attributionSection}${organicSection}
 
 <b>Score:</b> med ${fmt(d.scoreStats.median)} · avg ${fmt(d.scoreStats.mean)} · sd ${fmt(d.scoreStats.stddev)}
 IQR ${fmt(d.scoreStats.p25)}–${fmt(d.scoreStats.p75)} · range ${fmt(d.scoreStats.min)}–${fmt(d.scoreStats.max)}${d.avgWordCount ? ` · ${d.avgWordCount}w avg` : ''}

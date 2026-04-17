@@ -56,7 +56,8 @@ import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../pos
 import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler, setOnMetricsHandler, setOnRewriteHandler } from '../hitl/telegram.js';
 import { runPipeline, rewritePost } from '../content/pipeline.js';
 import { sendDailyPrompt, sendFridayPrompt } from '../hitl/daily-notes.js';
-import { runMetricsFetch, runWeeklyReport } from '../cli/fetch-metrics.js';
+import { runWeeklyReport } from '../cli/fetch-metrics.js';
+import { runMidnightSnapshot } from '../analytics/midnight-snapshot.js';
 import { runCommentPoll, type CommentPollOptions, type CommentPollStats } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
 import { runOutboundPoll } from '../hitl/outbound-poll.js';
@@ -191,11 +192,9 @@ setOnOutboundHandler(async () => {
 });
 
 setOnMetricsHandler(async () => {
-  console.log('[/metrics] Running metrics fetch...');
-  await runMetricsFetch();
-  console.log('[/metrics] Sending performance report...');
+  console.log('[/metrics] Generating performance report (using data from midnight snapshot)...');
   await runWeeklyReport();
-  console.log('[/metrics] Metrics fetch and report complete.');
+  console.log('[/metrics] Report sent.');
 });
 
 setOnRewriteHandler(async (postId: string) => {
@@ -232,7 +231,8 @@ cron.schedule('* * * * *', async () => {
   await publishDuePosts();
 }, { timezone: 'America/Toronto' });
 
-// Daily maintenance at 8am ET: session check, metrics fetch, rejected post cleanup
+// Daily maintenance at 8am ET: session check, cleanup, weekly report (Mondays).
+// Scraping is handled by the midnight snapshot — 8am only reads local data.
 cron.schedule('0 8 * * *', async () => {
   console.log('[maintenance] Starting daily maintenance...');
 
@@ -245,44 +245,44 @@ cron.schedule('0 8 * * *', async () => {
   }
 
   console.log('[maintenance] Checking LinkedIn session...');
-  let sessionValid = false;
   try {
-    sessionValid = await pingSession();
+    const sessionValid = await pingSession();
+    if (!sessionValid) {
+      console.warn('[maintenance] LinkedIn session expired — sending Telegram alert.');
+      await sendAlert(
+        'LinkedIn session has expired and needs to be renewed.\n\n' +
+        'Send /login to this bot to open the browser directly, or run:\n' +
+        '`LINKEDIN_HEADLESS=false npm run scheduler`'
+      );
+    } else {
+      console.log('[maintenance] LinkedIn session OK.');
+    }
   } catch (err) {
     console.error('[maintenance] Session check failed:', err);
   }
 
-  if (!sessionValid) {
-    console.warn('[maintenance] LinkedIn session expired — sending Telegram alert.');
-    await sendAlert(
-      'LinkedIn session has expired and needs to be renewed.\n\n' +
-      'Send /login to this bot to open the browser directly, or run:\n' +
-      '`LINKEDIN_HEADLESS=false npm run scheduler`'
-    );
-  } else {
-    console.log('[maintenance] LinkedIn session OK.');
-
-    console.log('[maintenance] Fetching engagement metrics...');
+  // Send weekly report on Mondays (uses data scraped by midnight snapshot)
+  if (new Date().getDay() === 1) {
+    console.log('[maintenance] Sending weekly report...');
     try {
-      await runMetricsFetch();
-      console.log('[maintenance] Metrics fetch complete.');
+      await runWeeklyReport();
+      console.log('[maintenance] Weekly report sent.');
     } catch (err) {
-      console.error('[maintenance] Metrics fetch failed (non-fatal):', err);
-    }
-
-    // Send weekly report on Mondays
-    if (new Date().getDay() === 1) {
-      console.log('[maintenance] Sending weekly report...');
-      try {
-        await runWeeklyReport();
-        console.log('[maintenance] Weekly report sent.');
-      } catch (err) {
-        console.error('[maintenance] Weekly report failed (non-fatal):', err);
-      }
+      console.error('[maintenance] Weekly report failed (non-fatal):', err);
     }
   }
 
   console.log('[maintenance] Daily maintenance complete.');
+}, { timezone: 'America/Toronto' });
+
+// Midnight snapshot: follower count, post metrics, comment metrics, organic attribution
+cron.schedule('0 0 * * *', async () => {
+  console.log('[midnight] Running midnight snapshot...');
+  try {
+    await runMidnightSnapshot();
+  } catch (err) {
+    console.error('[midnight] Midnight snapshot failed:', err);
+  }
 }, { timezone: 'America/Toronto' });
 
 // --- Comment reply polling ---

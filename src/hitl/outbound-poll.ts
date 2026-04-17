@@ -20,6 +20,8 @@ import {
   type OutboundProfile,
   type PendingComment,
 } from '../outbound/outbound-queue.js';
+import { getProfileLiftBonus } from '../analytics/attribution.js';
+import { getOrganicProfileBonus } from '../analytics/organic-attribution.js';
 import { notifyOutboundComment, sendMessage } from './telegram.js';
 
 // Hashtags to monitor for commenting opportunities — scraped alongside curated profiles
@@ -41,9 +43,6 @@ const HASHTAGS: string[] = [
   // 'CriticalInfrastructure',
   // 'NuclearInnovation',
 ];
-
-// Profile bias: profile candidates get a small score bonus over hashtag candidates
-const PROFILE_BONUS = 0.1;
 
 type CandidateSource = 'profile' | 'hashtag';
 
@@ -309,9 +308,14 @@ export async function runOutboundPoll(): Promise<void> {
     // Diversity: 0–1 (1 = never commented or cooldown elapsed, 0 = just commented)
     const diversityScore = s.profileCooldown >= COMMENT_COOLDOWN_HOURS ? 1 : s.profileCooldown / COMMENT_COOLDOWN_HOURS;
 
-    // Weighted: 70% LLM relevance, 15% recency, 15% diversity + profile bonus
-    let score = relevanceScore * 0.7 + recencyScore * 0.15 + diversityScore * 0.15;
-    if (s.candidate.source === 'profile') score += PROFILE_BONUS;
+    // Attribution score: blend old lift signal with organic follow-per-comment data (0–1)
+    const profileUrl = s.candidate.profile?.url ?? '';
+    const rawLift = profileUrl ? getProfileLiftBonus(profileUrl) : 0;
+    const rawOrganic = profileUrl ? getOrganicProfileBonus(profileUrl) : 0;
+    const liftScore = Math.min(Math.max(rawLift, rawOrganic) / 10, 1); // use stronger signal, normalize to 0–1
+
+    // Weighted: 65% LLM relevance, 15% recency, 10% diversity, 10% lift
+    let score = relevanceScore * 0.65 + recencyScore * 0.15 + diversityScore * 0.10 + liftScore * 0.10;
 
     return { candidate: s.candidate, score, postAge, profileCooldown: s.profileCooldown, keywords: s.keywords, llmScore };
   }).filter(s => s.llmScore >= 4); // Drop posts the LLM scored below 4/10

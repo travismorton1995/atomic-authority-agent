@@ -65,7 +65,7 @@ All posts follow a strict character-count-based 2:1 structure for mobile dwell t
 
 ## Outbound Comment System
 - **Polls:** Weekdays 8am, 11am, 2pm, 5pm ET; Weekends 9am, 5pm ET
-- **Candidate scoring:** LLM relevance (70%) + recency (15%) + diversity (15%) + profile bonus
+- **Candidate scoring:** LLM relevance (65%) + recency (15%) + diversity (10%) + attribution bonus (10%)
 - **Keyword pre-filter** gates candidates before LLM scoring (zero-hit = skip)
 - **24-hour scrape window** for post discovery
 - **24-hour cooldown** per profile to prevent spam
@@ -81,7 +81,7 @@ All posts follow a strict character-count-based 2:1 structure for mobile dwell t
 - `/notes <text>` — Add a daily note
 - `/outbound` — Run outbound engagement poll manually
 - `/poll` — Check for new comments on published posts
-- `/metrics` — Fetch engagement metrics
+- `/metrics` — Send performance report (no scraping — uses midnight data)
 - `/login` — Renew LinkedIn session
 
 ## HITL Workflow
@@ -112,18 +112,49 @@ src/
   hitl/           # Telegram bot, daily notes, comment queue, outbound poll
   scheduler/      # cron jobs, time window picker
   poster/         # LinkedIn browser automation, browser lock, comments, mentions
-  outbound/       # Profile scraping, comment generation, relevance scoring
+  outbound/       # Profile scraping, comment generation, relevance scoring, comment metrics
   cli/            # approve/reject/generate/post-now CLI commands
-  analytics/      # Post data tracking, performance reports
+  analytics/      # Post data tracking, performance reports, organic attribution, midnight snapshot
 pending_posts.json
 posted_history.json
 outbound_state.json
 outbound_profiles.json
+impression_snapshots.json
+organic_attribution.json
 candidates.json
 daily_notes.json
 user_data/          # LinkedIn session persistence (gitignored)
 .env                # API keys (gitignored)
 ```
+
+## Organic Follow Attribution
+Attributes daily follower growth to posts and comments proportionally by same-day impressions.
+
+**How it works:**
+1. Midnight snapshot scrapes cumulative impressions for posts (90d) and comments (15d)
+2. Delta between consecutive days = new impressions that day
+3. Each day's follower delta is distributed proportionally by delta impressions
+4. Posts with direct follows (LinkedIn-attributed) get discounted weight: `discountedWeight = deltaImpressions - (directFollows × impressions/follow ratio)`
+5. Indirect pool = follower delta minus direct follows, distributed by discounted weights
+6. Once a day is computed, it's permanent — never revisited
+
+**Data files:**
+- `impression_snapshots.json` — daily cumulative impressions per item (compact `[date, impressions, newFollowers?]` tuples, 2 days retained)
+- `organic_attribution.json` — daily attribution breakdowns + post/profile rollups (90 days retained)
+
+**Feedback loop:** Profile attribution bonus feeds into outbound profile selection. Profiles whose comments generate more indirect follows per comment get higher priority (`getOrganicProfileBonus()`). Blended with the older lift-based bonus via `max()`.
+
+## Midnight Snapshot
+Single cron at midnight ET. One browser session handles all scraping:
+1. Follower count → `follower_history.json`
+2. Post metrics (90d) → `posted_history.json`
+3. Comment metrics (15d) → `outbound_state.json`
+4. Record impression snapshots → `impression_snapshots.json`
+5. Compute organic attribution → `organic_attribution.json`
+
+Retries up to 3 times with exponential backoff (1m, 2m, 4m). Telegram alert if all retries fail. Follower count + post metrics are critical (trigger retry); comment metrics + attribution are non-critical.
+
+8am maintenance does NOT scrape — only session check, cleanup, and Monday report PDF. `/metrics` command sends report from local data only.
 
 ## Key Constraints
 - Never post without human approval

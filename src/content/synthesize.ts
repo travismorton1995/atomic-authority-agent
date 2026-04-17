@@ -27,6 +27,7 @@ export type ContentTag = typeof CONTENT_TAGS[number];
 export interface DraftPost {
   content: string;
   firstComment: string;
+  title: string;            // short 3-5 word internal title for tracking/reporting
   postType: PostType;
   sourceTitle: string;
   sourceUrl: string;
@@ -351,9 +352,27 @@ Rules:
 
   const finalWordCount = content.split(/\s+/).filter(Boolean).length;
 
+  // Generate short internal title (3-5 words) for tracking and reporting
+  let title = '';
+  try {
+    const titleMessage = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 30,
+      messages: [{
+        role: 'user',
+        content: `Give this LinkedIn post a short internal title (3-5 words, no quotes, no punctuation).\n\n${content.split('\n')[0]}`,
+      }],
+    });
+    title = (titleMessage.content[0].type === 'text' ? titleMessage.content[0].text : '').trim();
+    console.log(`Post title: ${title}`);
+  } catch (err) {
+    console.warn(`Title generation failed: ${(err as Error).message}`);
+  }
+
   return {
     content,
     firstComment,
+    title,
     postType,
     sourceTitle: item.title,
     sourceUrl: item.link,
