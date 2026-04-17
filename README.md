@@ -5,11 +5,12 @@ A self-hosted, Human-in-the-Loop LinkedIn content engine for the Nuclear/AI nich
 ## Stack
 
 - Node.js v22+, TypeScript
-- `@anthropic-ai/sdk` — all LLM calls (Claude Haiku + Opus)
+- `@anthropic-ai/sdk` — all LLM calls (Claude Haiku + Sonnet)
 - `playwright` — LinkedIn browser automation
 - `node-cron` — scheduling
 - Telegram bot (Telegraf) — HITL notifications and approval flow
 - Cloudflare Workers AI — AI image generation (optional)
+- Unsplash API — stock photo search (optional, free tier)
 - NewsData.io — supplementary news coverage (optional)
 
 ## How it works
@@ -34,9 +35,10 @@ RSS + NewsData → Rank & score articles → Pick best → Fetch full article
 9. **Content tags** — Claude Haiku assigns tags from a 30+ tag bank. Tags feed the composite score feedback loop.
 10. **Mentions** — company/org names are wrapped in `[[MENTION:Name]]` markers using a verified dictionary. During posting, Playwright resolves these via LinkedIn's @mention autocomplete.
 11. **AI image generation** — Claude Haiku converts post content into a photorealistic image prompt with post-type-specific visual direction and anti-AI-art rules. Cloudflare Workers AI (FLUX.2 Dev for first image of the day, FLUX.1 Schnell after) generates a 1200x672 PNG.
-12. **Notify** — Telegram sends the draft with score breakdown, og:image preview, AI image preview, and inline buttons: Approve (article image), Approve (AI image), Approve (no image), Rewrite, Reject, Cancel.
-13. **Post** — the scheduler publishes via Playwright at the scheduled time, attaching the chosen image via clipboard paste and resolving @mention markers.
-14. **First comment** — posted immediately after: "Sourced from [Source]. [Simple question under 20 words]" followed by the article URL.
+12. **Stock photos** — Unsplash API search with 3 diverse angles per post (setting / people / metaphor). Each angle searches independently, filters clichés and previously-used images, then LLM picks the best from each search's top 5.
+13. **Notify** — Telegram sends the draft with score breakdown and up to 5 image options: article image, AI-generated, 3 stock photos, upload your own, or no image. Inline buttons for approve, rewrite, reject.
+14. **Post** — the scheduler publishes via Playwright at the scheduled time, attaching the chosen image via clipboard paste and resolving @mention markers.
+15. **First comment** — posted immediately after: "Sourced from [Source].\n\n[Question under 20 words]" — no URL in comment.
 
 ### Comment reply pipeline
 
@@ -63,9 +65,9 @@ Rank profiles by priority → Scrape posts (<12h) within 2-min time limit
 ```
 
 1. **Profiles** — curated list in `outbound_profiles.json`. Add profiles by sending a LinkedIn profile URL to the Telegram bot. Flags: `insider` (affiliated org), `colleague` (direct colleague).
-2. **Priority ranking** — profiles sorted by: hours since last checked + frequency bonus (recent posters score higher) - comment cooldown penalty (commented in last 24h deprioritized). All profiles eventually get checked via round-robin.
-3. **Time-bounded polling** — runs at 10am and 2pm ET weekdays. Scrapes as many profiles as fit within a 2-minute window, in priority order. Deferred profiles get highest priority next poll.
-4. **Relevance scoring** — posts scored against a 100-keyword bank. Weighted: 50% relevance, 30% recency, 20% profile diversity.
+2. **Priority ranking** — profiles sorted by: hours since last checked + frequency bonus (recent posters score higher) - comment cooldown penalty (commented in last 24h deprioritized) + attribution bonus (profiles whose comments historically generate follows). All profiles eventually get checked via round-robin.
+3. **Time-bounded polling** — Weekdays 8am, 11am, 2pm, 5pm ET; Weekends 9am, 5pm ET. Scrapes as many profiles as fit within a 2-minute window, in priority order.
+4. **Relevance scoring** — LLM relevance (65%) + recency (15%) + diversity (10%) + attribution bonus (10%). Keyword pre-filter gates candidates before LLM scoring.
 5. **Comment cooldown** — hard 24-hour cooldown per profile. Won't queue a comment for any profile commented on within 24 hours.
 6. **Generate** — 2 comment options. Default approaches: affirm-extend, add-context, support. Ask-question and counterpoint reserved for controversial/outlandish claims.
 7. **Ad-hoc comments** — send any LinkedIn post URL to the Telegram bot to generate comment options on demand. Tracks the profile and marks the post as seen for future polls.
@@ -73,20 +75,26 @@ Rank profiles by priority → Scrape posts (<12h) within 2-min time limit
 ### Metrics & analytics
 
 ```
-Scrape LinkedIn analytics pages → Extract impressions, engagement, followers
-  → Compute composite performance score → Update feedback loops → Weekly report
+Midnight snapshot → Scrape post analytics + comment impressions + follower count
+  → Record impression snapshots → Compute organic follow attribution
+  → Weekly PDF report (Mondays)
 ```
 
-1. **Per-post analytics** — scrapes `/analytics/post-summary/{urn}/` for each post. Captures: impressions, members reached, reactions, comments, reposts, saves, sends, new followers.
-2. **Composite score** — weighted metric that values audience growth:
+1. **Midnight snapshot** — single browser session at midnight ET scrapes all data: follower count, post metrics (90d), outbound comment impressions (15d). Retries 3x with exponential backoff. Telegram alert on failure.
+2. **Per-post analytics** — scrapes `/analytics/post-summary/{urn}/` for each post. Captures: impressions, members reached, reactions, comments, reposts, saves, sends, new followers.
+3. **Comment impressions** — scrapes inline impression counts from our outbound comments by matching our profile URL in the DOM. Groups by post URL to minimize navigations.
+4. **Composite score** — weighted metric that values audience growth:
    ```
    newFollowers x 10 + reposts x 5 + sends x 5 + comments x 3
    + saves x 3 + reactions x 1 + impressions x 0.01
    ```
-3. **Feedback loops** — composite scores feed back into the pipeline:
+5. **Organic follow attribution** — distributes each day's follower growth across posts and comments proportionally by same-day impression deltas. Posts with LinkedIn-attributed direct follows get discounted weight (their impressions already converted). Once computed, a day's attribution is permanent.
+6. **Impression snapshots** — daily cumulative impressions recorded per item in compact `[date, impressions, newFollowers?]` tuples. Deltas between consecutive days = actual daily exposure.
+7. **Feedback loops** — composite scores and organic attribution feed back into the pipeline:
    - Content tags with historically high scores boost future article ranking (1.0-1.25x multiplier)
-   - Hashtag performance guides Claude's hashtag selection (above/below average guidance)
-4. **Weekly report** (Mondays via Telegram) — posts published, total impressions, engagement rate, saves, new followers, avg composite score. Rankings by: post type, content tags, hashtags, source feeds, day of week, time window. Best post with score and impressions.
+   - Hashtag performance guides Claude's hashtag selection
+   - Profile attribution bonus prioritizes outbound profiles whose comments generate more indirect follows per comment
+8. **Weekly report** (Mondays via Telegram) — PDF report with: KPI dashboard, timing heatmap, content strategy analysis, top posts, follow attribution page (post scorecard with direct/indirect/total follows, outbound profile performance), and LLM-generated insights.
 
 ## Telegram bot
 
@@ -97,7 +105,7 @@ Scrape LinkedIn analytics pages → Extract impressions, engagement, followers
 | `/generate` | Run the content pipeline and generate a new draft |
 | `/poll` | Run a comment reply poll |
 | `/outbound` | Run the outbound engagement poll |
-| `/metrics` | Fetch engagement metrics and send weekly report |
+| `/metrics` | Send performance report (uses data from midnight snapshot) |
 | `/login` | Open a browser to renew your LinkedIn session |
 | `/help` | Show all commands |
 
@@ -300,7 +308,7 @@ Opens a headed LinkedIn browser and walks through each unverified entry in the m
 ```bash
 npm run poll-comments           # Manually trigger comment polling
 npm run poll-outbound           # Manually trigger outbound engagement polling
-npm run fetch-metrics           # Scrape metrics for all posts (last 90 days)
+npm run fetch-metrics           # Scrape post metrics (last 90 days) — standalone, no follower snapshot
 npm run status                  # Check if the background scheduler is running
 npm run restart-scheduler       # Kill and relaunch the scheduler
 npm run logs                    # Tail the scheduler log
@@ -325,26 +333,33 @@ npm run help                    # Show all available commands
 - Weekends: 8am and 8pm ET only
 
 ### Outbound engagement
-- Weekdays at 10am and 2pm ET
+- Weekdays: 8am, 11am, 2pm, 5pm ET
+- Weekends: 9am, 5pm ET
 - Time-bounded to 2 minutes per poll
+
+### Midnight snapshot (midnight ET)
+- Follower count, post metrics (90d), comment impressions (15d)
+- Impression snapshot recording
+- Organic follow attribution computation
+- Retries 3x with exponential backoff, Telegram alert on failure
 
 ### Daily maintenance (8am ET)
 - LinkedIn session health check
-- Metrics fetch (last 90 days)
 - Rejected post cleanup (older than 90 days)
-- Weekly report (Mondays only)
+- Weekly PDF report (Mondays only)
 
 ## Post types
 
 | Type | Weight | Description |
 |---|---|---|
 | bridge | 30% | Connect a regulatory/industry development to a concrete AI application |
-| change-management | 20% | Human/org side of AI adoption in regulated industries |
-| explainer | 15% | Translate a nuclear concept for an AI audience, or vice versa |
+| explainer | 20% | Translate a nuclear concept for an AI audience, or vice versa |
 | contrarian | 15% | Challenge a mainstream AI assumption through the nuclear lens |
+| change-management | 15% | Human/org side of AI adoption in regulated industries |
 | myth-busting | 10% | Identify and dismantle a widespread misconception |
 | hot-take | 8% | Short, pointed, designed for engagement |
 | prediction | 7% | Time-bounded claim with natural timeline variance |
+| insider | Weekly | Firsthand dispatch from NPX — not in random rotation |
 
 ## Article scoring
 
@@ -386,28 +401,34 @@ Combined score = `article score (1-10) x balance multiplier x recency multiplier
 | `NEWSDATA_API_KEY` | No | NewsData.io API key (supplements RSS) |
 | `CLOUDFLARE_ACCOUNT_ID` | No | Cloudflare account ID (for AI image generation) |
 | `CLOUDFLARE_API_TOKEN` | No | Cloudflare Workers AI token (for AI image generation) |
+| `UNSPLASH_ACCESS_KEY` | No | Unsplash API key (for stock photo search) |
 
 ## File structure
 
 ```
 src/
   content/        # RSS, NewsData, ranker, hooks, synthesizer, verifier, screener,
-                  #   image generator, reply generator, persona
-  hitl/           # post queue, comment queue, outbound poll, Telegram bot
+                  #   image generator, stock photo search, reply generator, persona
+  hitl/           # post queue, comment queue, outbound poll, daily notes, Telegram bot
   scheduler/      # cron logic, time window picker
   poster/         # LinkedIn automation (post, reply, outbound comment, @mentions)
   outbound/       # profile scraper, single-post scraper, comment generator,
-                  #   relevance keywords, outbound queue state
+                  #   comment metrics scraper, relevance keywords, outbound queue state
+  analytics/      # post data, composite scoring, feedback loops, organic attribution,
+                  #   midnight snapshot, followers, PDF/chart generation, statistics
   cli/            # generate, approve, reject, post-now, poll-comments,
                   #   poll-outbound, fetch-metrics CLI commands
-pending_posts.json      # active queue (pending and approved posts)
-rejected_posts.json     # rejected posts (24-hour cooldown)
-posted_history.json     # published posts with metrics and composite scores
-comment_state.json      # seen comment IDs, pending replies, last poll time
-outbound_state.json     # seen post IDs, pending outbound comments, daily count
-outbound_profiles.json  # curated profiles for outbound engagement
-candidates.json         # ranked article candidates (24h TTL)
-generated_images/       # AI-generated post images
-user_data/              # LinkedIn session persistence (gitignored)
-.env                    # API keys and config (gitignored)
+pending_posts.json          # active queue (pending and approved posts)
+posted_history.json         # published posts with metrics and composite scores
+comment_state.json          # seen comment IDs, pending replies, last poll time
+outbound_state.json         # seen post IDs, pending outbound comments (with impressions), daily count
+outbound_profiles.json      # curated profiles for outbound engagement
+impression_snapshots.json   # daily cumulative impressions per post/comment (2 days retained)
+organic_attribution.json    # daily follow attribution breakdowns + rollups (90 days retained)
+follower_history.json       # daily follower count snapshots
+candidates.json             # ranked article candidates (24h TTL)
+daily_notes.json            # insider post work notes
+generated_images/           # AI-generated post images
+user_data/                  # LinkedIn session persistence (gitignored)
+.env                        # API keys and config (gitignored)
 ```
