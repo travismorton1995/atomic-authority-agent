@@ -1,7 +1,49 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { screenReply } from '../content/reply.js';
+import { fetchArticle } from '../content/fetch-article.js';
 
 const client = new Anthropic();
+
+/** Extract the first HTTP(S) URL from post text, ignoring LinkedIn internal links. */
+function extractArticleUrl(text: string): string | null {
+  const urlPattern = /https?:\/\/[^\s"'<>)\]]+/gi;
+  const matches = text.match(urlPattern);
+  if (!matches) return null;
+
+  for (const url of matches) {
+    // Skip LinkedIn internal links — they don't lead to articles
+    if (url.includes('linkedin.com')) continue;
+    // Skip common non-article URLs
+    if (url.includes('bit.ly/') || url.includes('lnkd.in/')) {
+      // Short links could be articles — allow them
+      return url;
+    }
+    return url;
+  }
+  return null;
+}
+
+/** Try to fetch article text from a URL embedded in a post. Returns null on failure. */
+async function tryFetchArticleContext(postText: string): Promise<string | null> {
+  const url = extractArticleUrl(postText);
+  if (!url) return null;
+
+  try {
+    console.log(`    [outbound] Fetching linked article: ${url}`);
+    const article = await fetchArticle(url);
+    if (article.fullText && article.fullText.length > 100) {
+      // Cap at 1500 words to keep prompt manageable for comment generation
+      const words = article.fullText.split(/\s+/);
+      const capped = words.length > 1500 ? words.slice(0, 1500).join(' ') + ' [truncated]' : article.fullText;
+      console.log(`    [outbound] Article fetched: "${article.title}" (${words.length} words)`);
+      return `Article title: ${article.title}\n\n${capped}`;
+    }
+    console.log(`    [outbound] Article had no usable text.`);
+  } catch (err) {
+    console.warn(`    [outbound] Article fetch failed (non-fatal): ${(err as Error).message}`);
+  }
+  return null;
+}
 
 export interface CommentOption {
   label: string;
@@ -58,6 +100,13 @@ export async function generateOutboundComment(
     ? `You do not know this person. This post was found via a hashtag feed. Keep the tone respectful and constructive. Prefer ask-question or add-context approaches over counterpoint. Your goal is to start a genuine conversation, not to challenge a stranger.`
     : '';
 
+  // Try to fetch article context from any URL embedded in the post
+  const articleContext = await tryFetchArticleContext(post.text);
+
+  const articleSection = articleContext
+    ? `\n\nThe post links to an article. Use this for deeper context — but comment on the POST, not the article:\n---\n${articleContext}\n---`
+    : '';
+
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 400,
@@ -68,7 +117,7 @@ export async function generateOutboundComment(
 ${insiderContext}${colleagueContext ? `\n${colleagueContext}` : ''}${strangerContext ? `\n${strangerContext}` : ''}
 
 ${post.authorName} posted:
-"${post.text.slice(0, 800)}"
+"${post.text.slice(0, 800)}"${articleSection}
 
 Do four things and return a single JSON object:
 
