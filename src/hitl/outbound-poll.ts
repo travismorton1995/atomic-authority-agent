@@ -352,6 +352,7 @@ export async function runOutboundPoll(): Promise<void> {
     profileName: fb.profile?.name ?? fb.authorName,
     insider: fb.profile?.insider ?? false,
     colleague: fb.profile?.colleague ?? false,
+    articleUrl: fb.articleUrl,
   } : null);
 
   markPostSeen(best.id);
@@ -361,7 +362,7 @@ export async function runOutboundPoll(): Promise<void> {
   let generated;
   try {
     generated = await generateOutboundComment(
-      { text: best.text, authorName: best.authorName, url: best.url },
+      { text: best.text, authorName: best.authorName, url: best.url, articleUrl: best.articleUrl },
       {
         insider: best.profile?.insider ?? false,
         colleague: best.profile?.colleague ?? false,

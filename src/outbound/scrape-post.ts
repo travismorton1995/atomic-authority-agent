@@ -10,6 +10,7 @@ export interface ScrapedPost {
   profileUrl: string; // author's LinkedIn profile URL (for cooldown tracking)
   url: string;
   isRepost: boolean;
+  articleUrl?: string; // external URL from the post's link card
 }
 
 // Scrapes a single LinkedIn post URL and returns the post text and author name.
@@ -90,7 +91,22 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
         '.feed-shared-header'
       )?.textContent?.toLowerCase().match(/repost|reshare|shared/);
 
-      return { text, authorName, profileUrl, isRepost };
+      // Extract article URL from the post's link card (if any)
+      let articleUrl = '';
+      const linkCard = document.querySelector(
+        'a.feed-shared-article__meta, ' +
+        'a[data-tracking-control-name="feed-type-content"], ' +
+        '.feed-shared-article a[href], ' +
+        '.update-components-article a[href]'
+      );
+      if (linkCard) {
+        const href = linkCard.getAttribute('href') ?? '';
+        if (href && href.startsWith('http') && !href.includes('linkedin.com')) {
+          articleUrl = href;
+        }
+      }
+
+      return { text, authorName, profileUrl, isRepost, articleUrl };
     });
 
     if (!result.text || result.text.length < 20) {
@@ -107,6 +123,7 @@ export async function scrapePostByUrl(postUrl: string): Promise<ScrapedPost> {
         : '',
       url: postUrl,
       isRepost: result.isRepost ?? false,
+      articleUrl: result.articleUrl || undefined,
     };
   } finally {
     await context.close();

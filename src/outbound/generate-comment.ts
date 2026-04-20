@@ -4,33 +4,13 @@ import { fetchArticle } from '../content/fetch-article.js';
 
 const client = new Anthropic();
 
-/** Extract the first HTTP(S) URL from post text, ignoring LinkedIn internal links. */
-function extractArticleUrl(text: string): string | null {
-  const urlPattern = /https?:\/\/[^\s"'<>)\]]+/gi;
-  const matches = text.match(urlPattern);
-  if (!matches) return null;
-
-  for (const url of matches) {
-    // Skip LinkedIn internal links — they don't lead to articles
-    if (url.includes('linkedin.com')) continue;
-    // Skip common non-article URLs
-    if (url.includes('bit.ly/') || url.includes('lnkd.in/')) {
-      // Short links could be articles — allow them
-      return url;
-    }
-    return url;
-  }
-  return null;
-}
-
-/** Try to fetch article text from a URL embedded in a post. Returns null on failure. */
-async function tryFetchArticleContext(postText: string): Promise<string | null> {
-  const url = extractArticleUrl(postText);
-  if (!url) return null;
+/** Try to fetch article text from a URL. Returns null on failure. */
+async function tryFetchArticleContext(articleUrl: string | undefined): Promise<string | null> {
+  if (!articleUrl) return null;
 
   try {
-    console.log(`    [outbound] Fetching linked article: ${url}`);
-    const article = await fetchArticle(url);
+    console.log(`    [outbound] Fetching linked article: ${articleUrl}`);
+    const article = await fetchArticle(articleUrl);
     if (article.fullText && article.fullText.length > 100) {
       // Cap at 1500 words to keep prompt manageable for comment generation
       const words = article.fullText.split(/\s+/);
@@ -85,7 +65,7 @@ Hard constraints — any violation is a rewrite trigger:
 `.trim();
 
 export async function generateOutboundComment(
-  post: { text: string; authorName: string; url: string },
+  post: { text: string; authorName: string; url: string; articleUrl?: string },
   options: { insider?: boolean; colleague?: boolean; stranger?: boolean } = {},
 ): Promise<GeneratedComment> {
   const insiderContext = options.insider
@@ -100,8 +80,8 @@ export async function generateOutboundComment(
     ? `You do not know this person. This post was found via a hashtag feed. Keep the tone respectful and constructive. Prefer ask-question or add-context approaches over counterpoint. Your goal is to start a genuine conversation, not to challenge a stranger.`
     : '';
 
-  // Try to fetch article context from any URL embedded in the post
-  const articleContext = await tryFetchArticleContext(post.text);
+  // Try to fetch article context from the post's link card URL
+  const articleContext = await tryFetchArticleContext(post.articleUrl);
 
   const articleSection = articleContext
     ? `\n\nThe post links to an article. Use this for deeper context — but comment on the POST, not the article:\n---\n${articleContext}\n---`

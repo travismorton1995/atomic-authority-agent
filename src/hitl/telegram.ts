@@ -703,7 +703,7 @@ export function startBot(): void {
         let nextGenerated;
         try {
           nextGenerated = await generateOutboundComment(
-            { text: next.text, authorName: next.authorName, url: next.url },
+            { text: next.text, authorName: next.authorName, url: next.url, articleUrl: next.articleUrl },
             { insider: next.insider, colleague: next.colleague },
           );
         } catch (err: any) {
@@ -878,7 +878,7 @@ export function startBot(): void {
 
         const { generateOutboundComment } = await import('../outbound/generate-comment.js');
         const generated = await generateOutboundComment(
-          { text: scraped.text, authorName: scraped.authorName, url: postUrl },
+          { text: scraped.text, authorName: scraped.authorName, url: postUrl, articleUrl: scraped.articleUrl },
           {
             insider: tracked?.insider ?? false,
             colleague: tracked?.colleague ?? false,

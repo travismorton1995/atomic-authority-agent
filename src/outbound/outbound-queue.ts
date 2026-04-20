@@ -50,6 +50,7 @@ export interface CandidatePost {
   profileName: string;
   insider: boolean;
   colleague: boolean;
+  articleUrl?: string;  // external URL from the post's link card
 }
 
 interface OutboundState {

@@ -11,6 +11,7 @@ export interface ScrapedPost {
   text: string;
   authorName: string;
   ageHours: number | null;
+  articleUrl?: string;  // external URL from the post's link card (if any)
 }
 
 function parseAgeHours(timeText: string): number | null {
@@ -37,6 +38,7 @@ async function scrapeVisiblePosts(page: Page): Promise<ScrapedPost[]> {
       text: string;
       authorName: string;
       timeText: string;
+      articleUrl: string;
     }> = [];
 
     const containers = document.querySelectorAll<HTMLElement>(
@@ -70,7 +72,22 @@ async function scrapeVisiblePosts(page: Page): Promise<ScrapedPost[]> {
       );
       const timeText = timeEl?.textContent?.trim() ?? '';
 
-      results.push({ urn, text, authorName, timeText });
+      // Extract article URL from the post's link card (if any)
+      let articleUrl = '';
+      const linkCard = el.querySelector(
+        'a.feed-shared-article__meta, ' +
+        'a[data-tracking-control-name="feed-type-content"], ' +
+        '.feed-shared-article a[href], ' +
+        '.update-components-article a[href]'
+      );
+      if (linkCard) {
+        const href = linkCard.getAttribute('href') ?? '';
+        if (href && href.startsWith('http') && !href.includes('linkedin.com')) {
+          articleUrl = href;
+        }
+      }
+
+      results.push({ urn, text, authorName, timeText, articleUrl });
     });
 
     return results;
@@ -88,6 +105,7 @@ async function scrapeVisiblePosts(page: Page): Promise<ScrapedPost[]> {
         text: p.text,
         authorName: p.authorName,
         ageHours: parseAgeHours(p.timeText),
+        articleUrl: p.articleUrl || undefined,
       };
     })
     .filter(p => p.url && (p.ageHours === null || p.ageHours <= 24));
