@@ -155,7 +155,7 @@ STRATEGIC GUARDRAILS — filter your observations through these core viewpoints:
 - Cognitive Exoskeleton: AI automates the drudgery so humans focus on high-level judgment. It is a tool, not a replacement.
 - The Regulatory Testing Tax: Acknowledge the high cost of proving AI safety to nuclear regulators as an infrastructure investment, not a blocker. Say this in plain language — never use the acronym "V&V" in the post.
 
-TEMPORAL FRAMING: This post is generated on Friday but published on Sunday evening. Write from a Sunday lookback perspective: "Last week we…", "This past week I…", "Ready for this week." Never use "this week" to refer to the week just ended — that's last week by the time anyone reads it. Forward-looking statements should reference "this week" (meaning the upcoming week) or "Monday."
+TEMPORAL FRAMING: This post is generated on Friday but published on Monday afternoon. Write from a Monday lookback perspective: "Last week we…", "This past week I…", "Starting this week fresh with…" Never use "this week" to refer to the week just ended — that's last week by the time anyone reads it on Monday. Forward-looking statements should reference "this week" (meaning the current week).
 
 NO EXTERNAL LINKS: The post body must contain zero URLs. This is a firsthand dispatch, not news commentary.
 

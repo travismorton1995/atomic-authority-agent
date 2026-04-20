@@ -103,22 +103,24 @@ export function pickScheduledTime(): string {
   return target.toISOString();
 }
 
-/** Returns the next Sunday 7–8pm ET as an ISO timestamp for insider posts. */
+/** Returns the next Monday 3–5pm ET as an ISO timestamp for insider posts. */
 export function pickInsiderScheduledTime(): string {
   const nowET = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Toronto' }));
   const target = new Date(nowET);
 
-  // Advance to next Sunday (or stay if Sunday and before 8pm)
-  const daysUntilSunday = (7 - target.getDay()) % 7;
-  if (daysUntilSunday === 0) {
-    if (target.getHours() >= 20) target.setDate(target.getDate() + 7);
+  // Advance to next Monday (or stay if Monday and before 5pm)
+  const daysUntilMonday = (8 - target.getDay()) % 7; // 8 because Monday = 1
+  if (daysUntilMonday === 0) {
+    if (target.getHours() >= 17) target.setDate(target.getDate() + 7);
   } else {
-    target.setDate(target.getDate() + daysUntilSunday);
+    target.setDate(target.getDate() + (daysUntilMonday === 0 ? 7 : daysUntilMonday));
   }
 
-  // Random minute within 7:00–8:00 PM
-  const minute = Math.floor(Math.random() * 60);
-  target.setHours(19, minute, 0, 0);
-  console.log(`[windows] Insider post scheduled for Sunday ${target.toLocaleString('en-US', { timeZone: 'America/Toronto' })}`);
+  // Random minute within 3:00–5:00 PM (15:00–17:00)
+  const startMin = 15 * 60;
+  const endMin = 17 * 60;
+  const picked = startMin + Math.floor(Math.random() * (endMin - startMin));
+  target.setHours(Math.floor(picked / 60), picked % 60, 0, 0);
+  console.log(`[windows] Insider post scheduled for Monday ${target.toLocaleString('en-US', { timeZone: 'America/Toronto' })}`);
   return target.toISOString();
 }

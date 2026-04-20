@@ -53,7 +53,7 @@ All posts follow a strict character-count-based 2:1 structure for mobile dwell t
 ## Posting Schedule Rules
 - Max 1 post per day
 - **Regular posts:** Tuesday, Wednesday, Thursday — 5 experimental time windows (7:30am, 10:30am, 12pm, 3pm, 5pm ET), least-used bucket selected
-- **Insider posts:** Sunday 7:00–8:00pm ET
+- **Insider posts:** Monday 3:00–5:00pm ET
 - Location: Stratford, ON (Eastern timezone)
 
 ## Insider Post Flow
