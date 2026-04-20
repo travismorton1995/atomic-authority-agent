@@ -690,10 +690,18 @@ export function startBot(): void {
         await ctx.answerCbQuery('Skipped.').catch(() => {});
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
 
-        const next = popFallbackCandidate();
+        let next = popFallbackCandidate();
         if (!next) {
-          console.log('[oc_skip] No fallback candidate available.');
-          await ctx.reply('No more posts to show.').catch(() => {});
+          // Ranked list exhausted — run a fresh outbound poll to find more candidates
+          console.log('[oc_skip] Ranked list exhausted — running fresh outbound poll...');
+          await ctx.reply('List exhausted. Running a fresh poll...').catch(() => {});
+          try {
+            const { runOutboundPoll } = await import('./outbound-poll.js');
+            await runOutboundPoll();
+          } catch (err: any) {
+            console.error('[oc_skip] Fresh poll failed:', err);
+            await ctx.reply(`Fresh poll failed: ${err.message}`).catch(() => {});
+          }
           return;
         }
 
