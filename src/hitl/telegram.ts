@@ -1079,9 +1079,10 @@ function formatMessage(post: PendingPost): string {
       })
     : null;
   const safeTitle = escMd(post.draft.sourceTitle);
+  const sourceLink = post.draft.sourceUrl ? `\n${post.draft.sourceUrl}` : '';
   const sourceNote = sourceDateStr
-    ? `*Source:* ${safeTitle} _(${sourceDateStr})_`
-    : `*Source:* ${safeTitle}`;
+    ? `*Source:* ${safeTitle} _(${sourceDateStr})_${sourceLink}`
+    : `*Source:* ${safeTitle}${sourceLink}`;
 
   const feedNote = post.draft.sourceFeed ? `*Feed:* ${post.draft.sourceFeed}` : '';
   const bd = post.draft.scoreBreakdown;
