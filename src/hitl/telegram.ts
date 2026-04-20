@@ -661,6 +661,7 @@ export function startBot(): void {
                 inline_keyboard: [[
                   { text: '↩ Try again', callback_data: `oc_back:${commentId}` },
                   { text: '⏭ Skip', callback_data: `oc_skip:${commentId}` },
+                  { text: '✖ Exit', callback_data: `oc_exit:${commentId}` },
                 ]],
               },
             },
@@ -730,6 +731,14 @@ export function startBot(): void {
         addPendingComment(nextComment);
         console.log(`[oc_skip] Sending fallback comment notification for ${next.profileName}`);
         await notifyOutboundComment(nextComment);
+      }
+
+      if (action === 'oc_exit') {
+        console.log(`[oc_exit] User exited outbound flow, skipping comment ${payload}`);
+        updateCommentStatus(payload, { status: 'skipped' });
+        await ctx.answerCbQuery('Exited.').catch(() => {});
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        await ctx.reply('Outbound comment flow exited.').catch(() => {});
       }
 
     } catch (err: any) {
@@ -1133,6 +1142,7 @@ function buildOutboundKeyboard(comment: PendingComment) {
       { text: '1️⃣', callback_data: `oc_select:${comment.id}:1` },
       { text: '2️⃣', callback_data: `oc_select:${comment.id}:2` },
       { text: '⏭ Skip', callback_data: `oc_skip:${comment.id}` },
+      { text: '✖ Exit', callback_data: `oc_exit:${comment.id}` },
     ]],
   };
 }
