@@ -171,6 +171,7 @@ Return ONLY a valid JSON array (no markdown, no extra text):
 // Longer names are matched first to avoid partial replacements (e.g. "CNL" inside "Canadian Nuclear Laboratories").
 // Mentions are NOT injected into the hook (first paragraph) to keep it concise and readable.
 // If a name appears in the hook, the next occurrence in the body gets the mention marker instead.
+// The LLM screener is responsible for removing mentions that aren't primary subjects of the post.
 function injectMentionMarkers(text: string): string {
   const verified = verifiedMentions();
   if (Object.keys(verified).length === 0) return text;
