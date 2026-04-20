@@ -264,6 +264,28 @@ export async function runOutboundPoll(): Promise<void> {
     return { candidate: c, index, postAge, profileCooldown, keywords };
   });
 
+  // Rescue: for candidates with zero keyword hits but an article link,
+  // fetch the article and re-score using the combined text.
+  const zeroHitWithArticle = preScored.filter(s => s.keywords === 0 && s.candidate.articleUrl);
+  if (zeroHitWithArticle.length > 0) {
+    console.log(`  ${zeroHitWithArticle.length} candidate(s) with 0 keyword hits have article links — fetching...`);
+    const { fetchArticle } = await import('../content/fetch-article.js');
+    for (const s of zeroHitWithArticle) {
+      try {
+        const article = await fetchArticle(s.candidate.articleUrl!);
+        if (article.fullText && article.fullText.length > 100) {
+          const articleKeywords = relevanceHits(article.fullText);
+          if (articleKeywords > 0) {
+            console.log(`    ${s.candidate.authorName}: article "${article.title?.slice(0, 50)}" → ${articleKeywords} keyword hit(s) (rescued)`);
+            s.keywords = articleKeywords;
+          }
+        }
+      } catch (err) {
+        // Non-fatal — candidate stays at 0 hits and gets filtered
+      }
+    }
+  }
+
   // Hard filters (apply before LLM to save tokens):
   // 1. Profile candidates within comment cooldown — skip (prevents spam)
   // 2. Hashtag candidates with zero keyword hits — skip (strangers posting off-topic)
