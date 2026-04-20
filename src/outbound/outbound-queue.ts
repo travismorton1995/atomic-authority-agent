@@ -276,18 +276,39 @@ export function storeRankedCandidates(candidates: CandidatePost[]): void {
   saveState(state);
 }
 
-/** Pop the next candidate from the ranked list. Returns null if list is empty or stale (>15 min). */
+/** Pop the next candidate from the ranked list, skipping profiles on cooldown.
+ *  Returns null if list is empty, stale (>15 min), or all remaining candidates are on cooldown. */
 export function popNextRankedCandidate(): CandidatePost | null {
   const state = loadState();
   const list = state.rankedCandidates ?? [];
   const rankedAt = state.rankedAt ? new Date(state.rankedAt).getTime() : 0;
 
   if (list.length === 0 || (Date.now() - rankedAt) > RANKED_LIST_TTL_MS) {
-    return null; // list is empty or stale — caller should do a full poll
+    return null;
   }
 
-  const candidate = list.shift()!;
-  state.rankedCandidates = list;
+  // Check both posted comments (cooldown) and pending comments (just accepted, not yet posted)
+  const recentlyEngaged = new Set<string>();
+  for (const c of state.pendingComments) {
+    if (c.status === 'pending' || (c.status === 'posted' && c.postedAt &&
+        (Date.now() - new Date(c.postedAt).getTime()) < 24 * 60 * 60 * 1000)) {
+      recentlyEngaged.add(c.profileUrl);
+    }
+  }
+
+  // Find the first candidate whose profile isn't recently engaged
+  const cooldownIdx = list.findIndex(c => !recentlyEngaged.has(c.profileUrl));
+
+  if (cooldownIdx === -1) {
+    // All remaining candidates are on cooldown — clear the list
+    state.rankedCandidates = [];
+    saveState(state);
+    return null;
+  }
+
+  // Remove everything up to and including the chosen candidate
+  const candidate = list[cooldownIdx];
+  state.rankedCandidates = list.slice(cooldownIdx + 1);
   saveState(state);
   return candidate;
 }
