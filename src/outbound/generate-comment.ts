@@ -50,14 +50,14 @@ ONLY use these if the post makes a controversial, outlandish, or very niche clai
 
 const ANTI_AI_RULES = `
 Hard constraints — any violation is a rewrite trigger:
-- Never use: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock," "seamlessly," "it's worth noting," "this matters because," "at its core," "the [X] I keep hearing," "let me steelman that," or similar AI-ism phrases
+- Never use: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock," "seamlessly," "it's worth noting," "this matters because," "at its core," "the [X] I keep hearing," "let me steelman that," "landscape," "navigate," "leverage," "robust," "holistic," "paradigm," or similar AI-ism phrases
 - Never use contrasting reframe sentences. Banned: "It's not X, it's Y" / "This isn't about X, it's about Y" / "Not X. Y." / "Less X, more Y." / "Not just X — Y."
-- No em dashes (—). Use a comma or period instead.
+- No em dashes (—) or en dashes (–). Use a comma or period instead. This is critical — never use any type of dash longer than a hyphen.
 - No gerund openers ("Building on this...", "Recognizing the need...")
-- No pivot fillers ("But here's the thing." / "Here's what that means.")
+- No pivot fillers ("But here's the thing." / "Here's what that means." / "And that matters.")
 - Hollow openers like "Great post", "Thanks for sharing", "Interesting point" are OK ONLY when using affirm-extend or support approaches — they feel natural there. For add-context, ask-question, or counterpoint, skip them and lead with the substance.
 - Do not start with "I" unless using a support approach where sharing a brief personal observation is the point.
-- No validation phrases: "what you are describing is real", "this is spot on", "you nailed it"
+- No validation phrases or "is real" patterns: "is real," "what you are describing is real," "this is spot on," "you nailed it," "this resonates," "couldn't agree more," "[X] is real"
 - No stacked adjectives before nouns
 - Avoid "bottleneck" — use constraint, chokepoint, limiting factor, sticking point, friction, barrier, or describe the problem directly
 - Never reference your own posts, content, or experience directly
@@ -157,7 +157,7 @@ Return ONLY valid JSON:
     ? [parsed.options[0], parsed.options[1]]
     : [parsed.options[1], parsed.options[0]];
 
-  // Screen each option for AIisms
+  // Screen each option for AIisms via LLM
   const screened = await Promise.all(
     ordered.map(async (opt) => {
       const text = await screenReply(opt.text);
@@ -166,13 +166,28 @@ Return ONLY valid JSON:
     }),
   );
 
+  // Hard post-processing: catch patterns the LLM screening misses
+  const hardClean = (text: string): string => {
+    let cleaned = text;
+    // Replace em dashes and en dashes with comma-space
+    cleaned = cleaned.replace(/\s*[—–]\s*/g, ', ');
+    // Fix double commas that might result
+    cleaned = cleaned.replace(/,\s*,/g, ',');
+    return cleaned.trim();
+  };
+
+  const finalOptions = screened.map(opt => ({
+    label: opt.label,
+    text: hardClean(opt.text),
+  }));
+
   return {
     postSummary: parsed.postSummary ?? '',
     reasoning: parsed.reasoning ?? '',
     recommendationReason: parsed.recommendationReason ?? '',
     options: [
-      { label: screened[0].label, text: screened[0].text },
-      { label: screened[1].label, text: screened[1].text },
+      finalOptions[0],
+      finalOptions[1],
     ],
   };
 }

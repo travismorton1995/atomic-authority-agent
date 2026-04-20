@@ -16,9 +16,13 @@ import {
   updateProfileName,
   recordProfilePollResult,
   storeFallbackCandidate,
+  storeRankedCandidates,
+  popNextRankedCandidate,
+  hasRankedCandidates,
   hoursSinceLastComment,
   type OutboundProfile,
   type PendingComment,
+  type CandidatePost,
 } from '../outbound/outbound-queue.js';
 import { getProfileLiftBonus } from '../analytics/attribution.js';
 import { getOrganicProfileBonus } from '../analytics/organic-attribution.js';
@@ -127,6 +131,44 @@ Return ONLY a JSON array of scores in order, e.g. [7, 3, 8]. One number per post
 }
 
 export async function runOutboundPoll(): Promise<void> {
+  // Check if we have a fresh ranked list (within 15 min). If so, serve the next
+  // candidate without re-scraping — saves browser time and API tokens.
+  if (hasRankedCandidates()) {
+    const next = popNextRankedCandidate();
+    if (next) {
+      console.log(`Outbound poll: serving cached candidate [${next.profileName}] ${next.url}`);
+      try {
+        const generated = await generateOutboundComment(
+          { text: next.text, authorName: next.authorName, url: next.url, articleUrl: next.articleUrl },
+          { insider: next.insider, colleague: next.colleague },
+        );
+        const comment: PendingComment = {
+          id: `oc_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          profileUrl: next.profileUrl,
+          profileName: next.profileName,
+          postUrl: next.url,
+          postSnippet: next.text.slice(0, 100),
+          postSummary: generated.postSummary,
+          postAgeHours: next.ageHours,
+          commentOptions: [generated.options[0].text, generated.options[1].text],
+          commentLabels: [generated.options[0].label, generated.options[1].label],
+          recommendationReason: generated.recommendationReason,
+          reasoning: generated.reasoning,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+        addPendingComment(comment);
+        markPostSeen(next.id);
+        await notifyOutboundComment(comment);
+        console.log(`  Comment queued from cached list. ${hasRankedCandidates() ? 'More candidates available.' : 'List exhausted.'}`);
+      } catch (err) {
+        console.error(`  Failed to generate comment from cache: ${(err as Error).message}`);
+        await sendMessage(`Outbound (cached): failed to generate comment for ${next.profileName}.\n${(err as Error).message}`).catch(() => {});
+      }
+      return;
+    }
+  }
+
   const allProfiles = getActiveProfiles();
   if (allProfiles.length === 0 && HASHTAGS.length === 0) {
     console.log('Outbound poll: no active profiles or hashtags configured.');
@@ -359,23 +401,22 @@ export async function runOutboundPoll(): Promise<void> {
   const sourceTag = best.source === 'profile' ? 'profile' : best.sourceLabel;
   console.log(`  Picked: [${best.authorName || best.sourceLabel}] ${ageLabel}${inGoldenWindow ? ' ⚡ golden window' : ''} | LLM: ${pick.llmScore}/10 (${pick.keywords} kw) | ${sourceTag} | last comment: ${cooldownLabel}`);
 
-  // Store the next candidate from a DIFFERENT profile as the skip fallback
-  const fb = eligible.slice(1).find(s =>
-    s.candidate.id !== best.id &&
-    (s.candidate.profile?.url ?? '') !== (best.profile?.url ?? '')
-  )?.candidate ?? null;
-  storeFallbackCandidate(fb ? {
-    id: fb.id,
-    url: fb.url,
-    text: fb.text,
-    authorName: fb.authorName,
-    ageHours: fb.ageHours,
-    profileUrl: fb.profile?.url ?? '',
-    profileName: fb.profile?.name ?? fb.authorName,
-    insider: fb.profile?.insider ?? false,
-    colleague: fb.profile?.colleague ?? false,
-    articleUrl: fb.articleUrl,
-  } : null);
+  // Store the full ranked list (minus the winner) for caching and skip flow.
+  // Converts internal Candidate objects to CandidatePost for storage.
+  const remaining: CandidatePost[] = eligible.slice(1).map(s => ({
+    id: s.candidate.id,
+    url: s.candidate.url,
+    text: s.candidate.text,
+    authorName: s.candidate.authorName,
+    ageHours: s.candidate.ageHours,
+    profileUrl: s.candidate.profile?.url ?? '',
+    profileName: s.candidate.profile?.name ?? s.candidate.authorName,
+    insider: s.candidate.profile?.insider ?? false,
+    colleague: s.candidate.profile?.colleague ?? false,
+    articleUrl: s.candidate.articleUrl,
+  }));
+  storeRankedCandidates(remaining);
+  console.log(`  Cached ${remaining.length} remaining candidate(s) for next 15 min.`);
 
   markPostSeen(best.id);
 

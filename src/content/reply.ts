@@ -29,13 +29,13 @@ const REPLY_APPROACHES = `
 
 const ANTI_AI_RULES = `
 Hard constraints — any violation is a rewrite trigger:
-- Never use: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock," "seamlessly," "it's worth noting," "this matters because," "at its core," or similar AI-ism phrases
+- Never use: "transformative," "revolutionary," "dive in," "delve," "game-changer," "unlock," "seamlessly," "it's worth noting," "this matters because," "at its core," "landscape," "navigate," "leverage," "robust," "holistic," "paradigm," or similar AI-ism phrases
 - Never use contrasting reframe sentences. Banned: "It's not X, it's Y" / "This isn't about X, it's about Y" / "Not X. Y." / "Less X, more Y." / "Not just X — Y." Make the actual claim directly.
-- No em dashes (—). Use a comma or period instead.
+- No em dashes (—) or en dashes (–). Use a comma or period instead. This is critical — never use any type of dash longer than a hyphen.
 - No gerund openers ("Building on this...", "Recognizing the need...")
-- No pivot fillers ("But here's the thing." / "Here's what that means.")
+- No pivot fillers ("But here's the thing." / "Here's what that means." / "And that matters.")
 - Hollow openers ("Great question", "Thanks for", "Interesting point") are acceptable when the comment is supportive in tone. Only flag them if the comment is meant to challenge, question, or add independent context.
-- No validation phrases: "what you are describing is real", "this is spot on", "you nailed it"
+- No validation phrases or "is real" patterns: "is real," "what you are describing is real," "this is spot on," "you nailed it," "this resonates," "couldn't agree more," "[X] is real"
 - No stacked adjectives before nouns
 - Avoid "bottleneck" — use constraint, chokepoint, limiting factor, sticking point, friction, barrier, or describe the problem directly
 `.trim();
@@ -48,6 +48,16 @@ For "recommended" — pick the index (0, 1, or 2) of the best option using these
 4. Recommend disagreement (push-back, reframe) only if the commenter is clearly off-base or off-topic; otherwise prefer options that build on or extend the exchange
 5. Stay professional — never sharp or dismissive unless the comment is obtuse or bad-faith
 `.trim();
+
+/** Hard post-processing: catch patterns the LLM screening misses. */
+function hardClean(text: string): string {
+  let cleaned = text;
+  // Replace em dashes and en dashes with comma-space
+  cleaned = cleaned.replace(/\s*[—–]\s*/g, ', ');
+  // Fix double commas that might result
+  cleaned = cleaned.replace(/,\s*,/g, ',');
+  return cleaned.trim();
+}
 
 export async function screenReply(text: string): Promise<string> {
   const message = await client.messages.create({
@@ -67,7 +77,9 @@ Return ONLY the final reply text — no quotes, no explanation, no preamble.`,
   });
   const result = message.content[0].type === 'text' ? message.content[0].text.trim() : text;
   // Strip surrounding quotes if the model added them
-  return result.replace(/^["']|["']$/g, '');
+  const stripped = result.replace(/^["']|["']$/g, '');
+  // Hard clean: catch em dashes and patterns the LLM misses
+  return hardClean(stripped);
 }
 
 export async function generateReplies(

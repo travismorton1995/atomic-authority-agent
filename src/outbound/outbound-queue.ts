@@ -58,7 +58,9 @@ interface OutboundState {
   pendingComments: PendingComment[];
   lastPollAt: string | null;
   dailyCount: { date: string; count: number };
-  fallbackCandidate: CandidatePost | null;
+  fallbackCandidate: CandidatePost | null;         // legacy — kept for backward compat
+  rankedCandidates?: CandidatePost[];               // full ranked list from last poll
+  rankedAt?: string | null;                         // ISO timestamp of when list was ranked
 }
 
 interface ProfilesStore {
@@ -248,8 +250,52 @@ export function hoursSinceLastComment(profileUrl: string): number {
 
 export function popFallbackCandidate(): CandidatePost | null {
   const state = loadState();
+  // Try ranked list first, fall back to legacy single candidate
+  const list = state.rankedCandidates ?? [];
+  if (list.length > 0) {
+    const candidate = list.shift()!;
+    state.rankedCandidates = list;
+    state.fallbackCandidate = null;
+    saveState(state);
+    return candidate;
+  }
   const candidate = state.fallbackCandidate ?? null;
   state.fallbackCandidate = null;
   saveState(state);
   return candidate;
+}
+
+const RANKED_LIST_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+/** Store the full ranked candidate list after a poll. */
+export function storeRankedCandidates(candidates: CandidatePost[]): void {
+  const state = loadState();
+  state.rankedCandidates = candidates;
+  state.rankedAt = new Date().toISOString();
+  state.fallbackCandidate = null; // superseded by ranked list
+  saveState(state);
+}
+
+/** Pop the next candidate from the ranked list. Returns null if list is empty or stale (>15 min). */
+export function popNextRankedCandidate(): CandidatePost | null {
+  const state = loadState();
+  const list = state.rankedCandidates ?? [];
+  const rankedAt = state.rankedAt ? new Date(state.rankedAt).getTime() : 0;
+
+  if (list.length === 0 || (Date.now() - rankedAt) > RANKED_LIST_TTL_MS) {
+    return null; // list is empty or stale — caller should do a full poll
+  }
+
+  const candidate = list.shift()!;
+  state.rankedCandidates = list;
+  saveState(state);
+  return candidate;
+}
+
+/** Check if a fresh ranked list exists (within TTL and non-empty). */
+export function hasRankedCandidates(): boolean {
+  const state = loadState();
+  const list = state.rankedCandidates ?? [];
+  const rankedAt = state.rankedAt ? new Date(state.rankedAt).getTime() : 0;
+  return list.length > 0 && (Date.now() - rankedAt) <= RANKED_LIST_TTL_MS;
 }
