@@ -958,13 +958,26 @@ def render_page_5(c, data):
     footer_clearance = 50
     if y - mini_h > footer_clearance:
         act_y = y
-        mini_w = (CONTENT_W - 20) / 3
+        total_comments = stats.get('totalCommentsPosted', 0)
+        comment_follows = oa.get('commentAttributed', 0)
+        comments_per_follow = round(total_comments / comment_follows, 1) if comment_follows > 0.5 else 0
+
+        # Avg comment impressions from profile rollup
+        total_impr = sum(p.get('totalImpressions', 0) for p in profile_rollup)
+        avg_impr = round(total_impr / total_comments) if total_comments > 0 else 0
+
+        mini_w = (CONTENT_W - 40) / 5
+        gap = 10
         draw_kpi_card(c, MARGIN, act_y - mini_h, mini_w, mini_h,
-                      str(stats.get('totalCommentsPosted', 0)), 'Comments Posted')
-        draw_kpi_card(c, MARGIN + mini_w + 10, act_y - mini_h, mini_w, mini_h,
+                      str(total_comments), 'Comments Posted')
+        draw_kpi_card(c, MARGIN + (mini_w + gap), act_y - mini_h, mini_w, mini_h,
                       str(stats.get('uniqueProfilesCommented', 0)), 'Profiles Engaged')
-        draw_kpi_card(c, MARGIN + 2*(mini_w + 10), act_y - mini_h, mini_w, mini_h,
+        draw_kpi_card(c, MARGIN + 2*(mini_w + gap), act_y - mini_h, mini_w, mini_h,
                       f"{stats.get('avgCommentsPerDay', 0):.1f}", 'Comments/Day')
+        draw_kpi_card(c, MARGIN + 3*(mini_w + gap), act_y - mini_h, mini_w, mini_h,
+                      str(comments_per_follow) if comments_per_follow else '-', 'Comments/Follow')
+        draw_kpi_card(c, MARGIN + 4*(mini_w + gap), act_y - mini_h, mini_w, mini_h,
+                      str(avg_impr) if avg_impr else '-', 'Avg Impressions')
 
     draw_footer(c, 5, 6)
 
