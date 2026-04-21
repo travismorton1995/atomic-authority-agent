@@ -855,16 +855,16 @@ def render_page_5(c, data):
         ]
         for p in post_rollup[:8]:
             direct = p.get('directFollows', 0)
-            indirect = p.get('totalAttributed', 0)
-            total_follows = direct + indirect
+            indirect = p.get('indirectFollows', 0)
+            total = p.get('totalFollows', direct + indirect)
             eff = p.get('efficiency')
             eff_str = str(eff) if eff else '-'
             rows.append([
                 p.get('title', p.get('label', ''))[:34],
                 fmt(p.get('impressions', 0)),
                 str(direct),
-                f"+{indirect:.1f}",
-                f"+{total_follows:.1f}",
+                f"+{round(indirect)}",
+                f"+{round(total)}",
                 eff_str,
                 p.get('postType', '')[:10],
             ])

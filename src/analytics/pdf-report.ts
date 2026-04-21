@@ -363,16 +363,23 @@ export async function generatePdfReport(): Promise<Buffer> {
           }
         }
 
-        const postRollup = organicData.postRollup.map(r => ({
-          ...r,
-          title: directMap.get(r.id)?.title ?? r.label,
-          impressions: directMap.get(r.id)?.impressions ?? 0,
-          directFollows: directMap.get(r.id)?.direct ?? 0,
-          postType: directMap.get(r.id)?.postType ?? '',
-          efficiency: (r.totalAttributed + (directMap.get(r.id)?.direct ?? 0)) > 0.5
-            ? Math.round((directMap.get(r.id)?.impressions ?? 0) / (r.totalAttributed + (directMap.get(r.id)?.direct ?? 0)))
-            : null,
-        }));
+        const postRollup = organicData.postRollup.map(r => {
+          const direct = directMap.get(r.id)?.direct ?? 0;
+          const indirectOnly = Math.max(0, r.totalAttributed - direct);
+          const totalFollows = r.totalAttributed; // already includes direct
+          return {
+            ...r,
+            title: directMap.get(r.id)?.title ?? r.label,
+            impressions: directMap.get(r.id)?.impressions ?? 0,
+            directFollows: direct,
+            indirectFollows: Math.round(indirectOnly * 10) / 10,
+            totalFollows: Math.round(totalFollows * 10) / 10,
+            postType: directMap.get(r.id)?.postType ?? '',
+            efficiency: totalFollows > 0.5
+              ? Math.round((directMap.get(r.id)?.impressions ?? 0) / totalFollows)
+              : null,
+          };
+        });
 
         // Enrich profile rollup with impression data from outbound_state
         const stateFile = 'outbound_state.json';
