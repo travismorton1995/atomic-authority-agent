@@ -954,7 +954,7 @@ def render_page_5(c, data):
         y = y - th - 12
 
     # ── Outbound Activity KPIs (compact, bottom) — only if room ──
-    mini_h = 45
+    mini_h = 55
     footer_clearance = 50
     if y - mini_h > footer_clearance:
         act_y = y
