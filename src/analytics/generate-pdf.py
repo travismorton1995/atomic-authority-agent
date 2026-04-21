@@ -716,8 +716,8 @@ def render_page_4(c, data):
 
         direct = post.get('newFollowers', 0)
         indirect = post.get('indirectFollowers', 0)
-        if indirect > 0:
-            followers_val = f"{direct}+{indirect:.1f}"
+        if indirect > 0.5:
+            followers_val = f"{direct}+{round(indirect)}"
         else:
             followers_val = str(direct)
 

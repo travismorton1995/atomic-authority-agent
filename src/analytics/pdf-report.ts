@@ -114,13 +114,14 @@ async function buildTopPosts(tmpDir: string): Promise<TopPost[]> {
     new Date(p.publishedAt).getTime() >= cutoff
   );
 
-  // Load indirect follower attribution
+  // Load indirect-only follower attribution (total attributed minus LinkedIn direct)
   const indirectMap = new Map<string, number>();
   try {
     const organic = getOrganicAttribution();
     if (organic) {
       for (const entry of organic.postRollup) {
-        indirectMap.set(entry.id, entry.totalAttributed);
+        const indirectOnly = Math.max(0, entry.totalAttributed - entry.linkedInAttributed);
+        indirectMap.set(entry.id, indirectOnly);
       }
     }
   } catch { /* graceful */ }

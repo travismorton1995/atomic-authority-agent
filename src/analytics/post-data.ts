@@ -89,13 +89,14 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
 
   if (withMetrics.length === 0) return [];
 
-  // Load indirect follower attribution per post
+  // Load indirect-only follower attribution per post (total attributed minus LinkedIn direct)
   const indirectMap = new Map<string, number>();
   try {
     const organic = getOrganicAttribution();
     if (organic) {
       for (const entry of organic.postRollup) {
-        indirectMap.set(entry.id, entry.totalAttributed);
+        const indirectOnly = Math.max(0, entry.totalAttributed - entry.linkedInAttributed);
+        indirectMap.set(entry.id, indirectOnly);
       }
     }
   } catch { /* graceful */ }
