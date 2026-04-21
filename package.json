@@ -28,6 +28,7 @@
     "@google/generative-ai": "^0.24.1",
     "chart.js": "^4.5.1",
     "chartjs-node-canvas": "^5.0.0",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "dotenv": "^16.4.0",
     "node-cron": "^3.0.3",
     "playwright": "^1.58.2",

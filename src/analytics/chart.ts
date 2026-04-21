@@ -1,6 +1,7 @@
 // Generates report charts as PNG buffers for Telegram.
 
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { getFollowerData } from './followers.js';
 import { getOrganicAttribution } from './organic-attribution.js';
 import { loadPostsWithMetrics } from './post-data.js';
@@ -106,9 +107,20 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
     return Math.max(0, Math.round((delta - accounted) * 10) / 10);
   });
 
+  // Precompute comment % labels for each day
+  const commentPctLabels = snapshots.map((s, i) => {
+    const pf = postFollows[i];
+    const cf = commentFollows[i];
+    const ua = unattributed[i];
+    const total = pf + cf + ua;
+    if (total <= 0 || cf <= 0) return '';
+    return `${Math.round((cf / total) * 100)}%`;
+  });
+
   const canvas = makeCanvas();
   const buffer = await canvas.renderToBuffer({
     type: 'bar',
+    plugins: [ChartDataLabels],
     data: {
       labels,
       datasets: [
@@ -117,21 +129,32 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
           borderColor: '#1B2A4A', backgroundColor: 'rgba(27, 42, 74, 0.05)',
           fill: true, tension: 0.3, pointRadius: 2, pointBackgroundColor: '#1B2A4A',
           yAxisID: 'y', order: 0,
+          datalabels: { display: false },
         },
         {
           type: 'bar' as const, label: 'Post Follows', data: postFollows,
           backgroundColor: 'rgba(232, 136, 60, 0.85)', // amber
           yAxisID: 'y1', order: 1, stack: 'follows',
+          datalabels: { display: false },
         },
         {
           type: 'bar' as const, label: 'Comment Follows', data: commentFollows,
           backgroundColor: 'rgba(42, 157, 143, 0.85)', // teal
           yAxisID: 'y1', order: 2, stack: 'follows',
+          datalabels: { display: false },
         },
         {
           type: 'bar' as const, label: 'Unattributed', data: unattributed,
           backgroundColor: 'rgba(180, 180, 180, 0.4)',
           yAxisID: 'y1', order: 3, stack: 'follows',
+          datalabels: {
+            display: (ctx: any) => commentPctLabels[ctx.dataIndex] !== '',
+            formatter: (_: any, ctx: any) => commentPctLabels[ctx.dataIndex],
+            anchor: 'end' as const,
+            align: 'end' as const,
+            color: '#2A9D8F',
+            font: { size: 9, weight: 'bold' as const },
+          },
         },
       ],
     },
@@ -140,6 +163,7 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
       plugins: {
         title: { display: true, text: `Follower Growth: ${totals[0]} → ${totals[totals.length - 1]} (+${totals[totals.length - 1] - totals[0]})`, font: { size: 16 } },
         legend: { display: true, labels: { font: { size: 11 } } },
+        datalabels: {},  // global config (overridden per dataset)
       },
       scales: {
         y: { type: 'linear', position: 'left', title: { display: true, text: 'Total Followers' }, beginAtZero: false },
