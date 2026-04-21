@@ -254,17 +254,15 @@ def render_page_1(c, data):
     charts = data.get('charts', {})
     chart_h = draw_chart(c, charts.get('followerGrowth'), MARGIN, y_chart - 300, CONTENT_W, 300)
 
-    # Color legend under chart
+    # Color legend under chart — matches stacked bar colors
     legend_y = y_chart - 300 - 15
     legend_items = [
-        ('rgba(76, 175, 80, 0.7)', 'Post day'),
-        ('rgba(66, 133, 244, 0.7)', 'Outbound only'),
-        ('rgba(180, 180, 180, 0.5)', 'Quiet day'),
+        (HexColor('#E8883C'), 'Post Follows'),
+        (HexColor('#2A9D8F'), 'Comment Follows'),
+        (HexColor('#B4B4B4'), 'Unattributed'),
     ]
-    legend_colors = [HexColor('#4CAF50'), HexColor('#4285F4'), HexColor('#B4B4B4')]
-    lx = MARGIN + (CONTENT_W / 2) - 120  # roughly centered
-    for i, (_, label) in enumerate(legend_items):
-        color = legend_colors[i]
+    lx = MARGIN + (CONTENT_W / 2) - 130  # roughly centered
+    for color, label in legend_items:
         c.setFillColor(color)
         c.roundRect(lx, legend_y, 10, 10, 2, fill=1, stroke=0)
         c.setFillColor(MID_GRAY)
