@@ -252,6 +252,14 @@ export async function generateImage(postContent: string, postType: PostType = 'b
     console.log(`Calling Cloudflare Workers AI (${label})...`);
     let res = await callFlux(prompt);
 
+    // Retry on timeout or server errors (408, 500, 502, 503, 504)
+    if (res.status >= 408 && res.status < 600) {
+      const errText = await res.text();
+      console.warn(`Cloudflare AI returned ${res.status} — retrying in 10s... (${errText.substring(0, 100)})`);
+      await new Promise(r => setTimeout(r, 10_000));
+      res = await callFlux(prompt);
+    }
+
     // If content filter flagged, retry with a softened prompt
     if (res.status === 400) {
       const errText = await res.text();
