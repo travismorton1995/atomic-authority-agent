@@ -84,13 +84,18 @@ function daysBetween(dateA: string, dateB: string): number {
   return Math.round((b.getTime() - a.getTime()) / (24 * 60 * 60 * 1000));
 }
 
-/** Get the delta impressions and delta direct follows for an item on a specific date. */
+/**
+ * Get the delta impressions and delta direct follows for an item on a specific activity date.
+ * The activity date is the day the impressions accrued. The delta is computed from the snapshot
+ * at the START of that day (series[i-1]) to the snapshot at the END (series[i]).
+ * So we match series[i-1][0] === date (the activity date is the earlier snapshot's date).
+ */
 function getDeltas(itemKey: string, date: string, snapshots: ImpressionSnapshots): { impressions: number; directFollows: number } {
   const series = snapshots[itemKey];
   if (!series || series.length < 2) return { impressions: 0, directFollows: 0 };
 
   for (let i = 1; i < series.length; i++) {
-    if (series[i][0] === date) {
+    if (series[i - 1][0] === date) {
       const impressions = Math.max(0, series[i][1] - series[i - 1][1]);
       const currFollows = series[i][2] ?? 0;
       const prevFollows = series[i - 1][2] ?? 0;
@@ -449,7 +454,9 @@ export function computeAndSaveAttribution(): void {
   const newAttributions: DailyAttribution[] = [];
 
   for (let i = 1; i < followerSnapshots.length; i++) {
-    const date = followerSnapshots[i].date;
+    // The delta between snapshot[i] and snapshot[i-1] represents activity that
+    // happened on snapshot[i-1]'s date (e.g., midnight Apr 21 - midnight Apr 20 = Apr 20 activity)
+    const date = followerSnapshots[i - 1].date;
     if (computedDates.has(date)) continue;
 
     const delta = followerSnapshots[i].total - followerSnapshots[i - 1].total;

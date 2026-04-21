@@ -93,7 +93,8 @@ export function buildDailyLedger(): DailyLedgerEntry[] {
   const ledger: DailyLedgerEntry[] = [];
 
   for (let i = 1; i < snapshots.length; i++) {
-    const date = snapshots[i].date;
+    // Delta between snapshot[i] and snapshot[i-1] represents activity on snapshot[i-1]'s date
+    const date = snapshots[i - 1].date;
     const delta = snapshots[i].total - snapshots[i - 1].total;
     const profiles = commentsByDate.get(date) ?? [];
 
@@ -101,7 +102,7 @@ export function buildDailyLedger(): DailyLedgerEntry[] {
       date,
       followerDelta: delta,
       commentCount: profiles.length,
-      commentedProfiles: [...new Set(profiles)], // dedupe same profile commented multiple times
+      commentedProfiles: [...new Set(profiles)],
       hadOwnPost: ownPostDates.has(date),
     });
   }

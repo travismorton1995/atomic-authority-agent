@@ -87,13 +87,17 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
 
   const totals = snapshots.map(s => s.total);
 
-  // Stacked bar data: post-driven follows (direct + indirect) and comment follows
-  const postFollows = snapshots.map(s => {
-    const attr = attrByDate.get(s.date);
+  // Stacked bar data: post-driven follows (direct + indirect) and comment follows.
+  // Attribution date = activity date = snapshot[i-1].date (the day BEFORE the measurement).
+  // The bar at index i shows growth during snapshot[i-1]'s date.
+  const postFollows = snapshots.map((s, i) => {
+    if (i === 0) return 0;
+    const attr = attrByDate.get(snapshots[i - 1].date);
     return attr ? Math.round(attr.postFollows * 10) / 10 : 0;
   });
-  const commentFollows = snapshots.map(s => {
-    const attr = attrByDate.get(s.date);
+  const commentFollows = snapshots.map((s, i) => {
+    if (i === 0) return 0;
+    const attr = attrByDate.get(snapshots[i - 1].date);
     return attr ? Math.round(attr.commentFollows * 10) / 10 : 0;
   });
 
@@ -101,7 +105,7 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
   const unattributed = snapshots.map((s, i) => {
     if (i === 0) return 0;
     const delta = s.total - snapshots[i - 1].total;
-    const attr = attrByDate.get(s.date);
+    const attr = attrByDate.get(snapshots[i - 1].date);
     if (!attr) return Math.max(0, delta);
     const accounted = attr.postFollows + attr.commentFollows;
     return Math.max(0, Math.round((delta - accounted) * 10) / 10);
