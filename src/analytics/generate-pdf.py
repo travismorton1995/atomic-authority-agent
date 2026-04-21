@@ -714,12 +714,19 @@ def render_page_4(c, data):
         c.setLineWidth(0.5)
         c.line(MARGIN + 15, metrics_y + 30, RIGHT_EDGE - 15, metrics_y + 30)
 
+        direct = post.get('newFollowers', 0)
+        indirect = post.get('indirectFollowers', 0)
+        if indirect > 0:
+            followers_val = f"{direct}+{indirect:.1f}"
+        else:
+            followers_val = str(direct)
+
         metric_items = [
             ('Impressions', fmt(post.get('impressions', 0)), 'x0.01'),
             ('Reactions', str(post.get('reactions', 0)), 'x1'),
             ('Comments', str(post.get('comments', 0)), 'x3'),
             ('Reposts', str(post.get('reposts', 0)), 'x5'),
-            ('Followers', str(post.get('newFollowers', 0)), 'x10'),
+            ('Followers', followers_val, 'x10'),
         ]
         mx = MARGIN + 20
         spacing = (CONTENT_W - 30) / len(metric_items)

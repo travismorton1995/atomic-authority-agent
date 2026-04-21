@@ -2,6 +2,7 @@
 // Single source of truth for score weights and history loading.
 
 import { readFileSync, existsSync } from 'fs';
+import { getOrganicAttribution } from './organic-attribution.js';
 
 const HISTORY_FILE = 'posted_history.json';
 
@@ -16,10 +17,10 @@ export const SCORE_WEIGHTS = {
   impressions: 0.01,
 };
 
-/** Compute the weighted composite score from post metrics. */
-export function compositeScore(m: any): number {
+/** Compute the weighted composite score from post metrics + optional indirect followers. */
+export function compositeScore(m: any, indirectFollowers: number = 0): number {
   if (!m) return 0;
-  return (m.newFollowers ?? 0) * SCORE_WEIGHTS.newFollowers
+  return ((m.newFollowers ?? 0) + indirectFollowers) * SCORE_WEIGHTS.newFollowers
        + (m.reposts ?? 0)      * SCORE_WEIGHTS.reposts
        + (m.sends ?? 0)        * SCORE_WEIGHTS.sends
        + (m.comments ?? 0)     * SCORE_WEIGHTS.comments
@@ -49,6 +50,7 @@ export interface PostAnalyticsRecord {
   saves: number;
   sends: number;
   newFollowers: number;
+  indirectFollowers: number;
   dayIndex: number; // days since first post (for trend analysis)
   postSnippet: string;
 }
@@ -87,6 +89,17 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
 
   if (withMetrics.length === 0) return [];
 
+  // Load indirect follower attribution per post
+  const indirectMap = new Map<string, number>();
+  try {
+    const organic = getOrganicAttribution();
+    if (organic) {
+      for (const entry of organic.postRollup) {
+        indirectMap.set(entry.id, entry.totalAttributed);
+      }
+    }
+  } catch { /* graceful */ }
+
   // Find earliest publish date for dayIndex calculation
   const earliest = Math.min(...withMetrics.map((p: any) => new Date(p.publishedAt).getTime()));
 
@@ -99,9 +112,11 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
     const hashtags = (content.match(/#\w+/g) ?? []).map((t: string) => t.toLowerCase());
     const wc = p.wordCount ?? content.split(/\s+/).filter(Boolean).length;
 
+    const indirect = indirectMap.get(p.id) ?? 0;
+
     return {
       id: p.id,
-      compositeScore: compositeScore(p.metrics),
+      compositeScore: compositeScore(p.metrics, indirect),
       postType: p.draft?.postType ?? 'unknown',
       wordCount: wc,
       contentTags: p.draft?.contentTags ?? [],
@@ -123,6 +138,7 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
       saves: p.metrics?.saves ?? 0,
       sends: p.metrics?.sends ?? 0,
       newFollowers: p.metrics?.newFollowers ?? 0,
+      indirectFollowers: indirect,
       dayIndex: (pubDate.getTime() - earliest) / (1000 * 60 * 60 * 24),
       postSnippet: content.split('\n')[0]?.slice(0, 80) ?? '',
     };

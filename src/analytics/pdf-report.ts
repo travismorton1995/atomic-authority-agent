@@ -68,6 +68,7 @@ interface TopPost {
   reposts: number;
   saves: number;
   newFollowers: number;
+  indirectFollowers: number;
   publishedAt: string;
   imageChoice: string;
   imagePath: string | null;
@@ -113,9 +114,21 @@ async function buildTopPosts(tmpDir: string): Promise<TopPost[]> {
     new Date(p.publishedAt).getTime() >= cutoff
   );
 
+  // Load indirect follower attribution
+  const indirectMap = new Map<string, number>();
+  try {
+    const organic = getOrganicAttribution();
+    if (organic) {
+      for (const entry of organic.postRollup) {
+        indirectMap.set(entry.id, entry.totalAttributed);
+      }
+    }
+  } catch { /* graceful */ }
+
   const scored = recent.map((p: any) => ({
     raw: p,
-    score: compositeScore(p.metrics),
+    indirect: indirectMap.get(p.id) ?? 0,
+    score: compositeScore(p.metrics, indirectMap.get(p.id) ?? 0),
   })).sort((a, b) => b.score - a.score);
 
   return Promise.all(scored.slice(0, 3).map(async (entry, i) => {
@@ -182,6 +195,7 @@ async function buildTopPosts(tmpDir: string): Promise<TopPost[]> {
       reposts: p.metrics?.reposts ?? 0,
       saves: p.metrics?.saves ?? 0,
       newFollowers: p.metrics?.newFollowers ?? 0,
+      indirectFollowers: entry.indirect,
       publishedAt: p.publishedAt ?? '',
       imageChoice: choice,
       imagePath,
