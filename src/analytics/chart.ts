@@ -2,6 +2,7 @@
 
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { getFollowerData } from './followers.js';
+import { getOrganicAttribution } from './organic-attribution.js';
 import { loadPostsWithMetrics } from './post-data.js';
 import { POST_TYPE_WEIGHTS } from '../content/persona.js';
 import { readFileSync, existsSync, unlinkSync, writeFileSync } from 'fs';
@@ -55,15 +56,28 @@ const TYPE_COLORS: Record<string, string> = {
   'hot-take': '#FF6D00', prediction: '#00ACC1', insider: '#607D8B',
 };
 
-// ─── 1. Follower growth ─────────────────────────────────────────────
+// ─── 1. Follower growth — stacked bar (post follows vs comment follows) + line ──
 
 export async function generateFollowerChart(): Promise<Buffer | null> {
   const data = getFollowerData();
   if (!data || data.snapshots.length < 3) return null;
 
   const snapshots = data.snapshots;
-  const ownPostDates = loadOwnPostDates();
-  const commentCounts = loadCommentCountsByDate();
+  const attribution = getOrganicAttribution();
+
+  // Build per-day attribution breakdown
+  const attrByDate = new Map<string, { postFollows: number; commentFollows: number }>();
+  if (attribution) {
+    for (const day of attribution.dailyAttributions) {
+      let postFollows = 0;
+      let commentFollows = 0;
+      for (const item of day.items) {
+        if (item.type === 'post') postFollows += item.attributedFollows;
+        else commentFollows += item.attributedFollows;
+      }
+      attrByDate.set(day.date, { postFollows, commentFollows });
+    }
+  }
 
   const labels = snapshots.map(s => {
     const d = new Date(s.date + 'T12:00:00');
@@ -71,12 +85,25 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
   });
 
   const totals = snapshots.map(s => s.total);
-  const deltas = snapshots.map((s, i) => i === 0 ? 0 : s.total - snapshots[i - 1].total);
 
-  const barColors = snapshots.map(s => {
-    if (ownPostDates.has(s.date)) return 'rgba(76, 175, 80, 0.7)';
-    if ((commentCounts.get(s.date) ?? 0) > 0) return 'rgba(66, 133, 244, 0.7)';
-    return 'rgba(180, 180, 180, 0.5)';
+  // Stacked bar data: post-driven follows (direct + indirect) and comment follows
+  const postFollows = snapshots.map(s => {
+    const attr = attrByDate.get(s.date);
+    return attr ? Math.round(attr.postFollows * 10) / 10 : 0;
+  });
+  const commentFollows = snapshots.map(s => {
+    const attr = attrByDate.get(s.date);
+    return attr ? Math.round(attr.commentFollows * 10) / 10 : 0;
+  });
+
+  // For days with no attribution data, show the raw delta as unattributed (gray)
+  const unattributed = snapshots.map((s, i) => {
+    if (i === 0) return 0;
+    const delta = s.total - snapshots[i - 1].total;
+    const attr = attrByDate.get(s.date);
+    if (!attr) return Math.max(0, delta);
+    const accounted = attr.postFollows + attr.commentFollows;
+    return Math.max(0, Math.round((delta - accounted) * 10) / 10);
   });
 
   const canvas = makeCanvas();
@@ -87,13 +114,24 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
       datasets: [
         {
           type: 'line' as const, label: 'Total Followers', data: totals,
-          borderColor: '#1a73e8', backgroundColor: 'rgba(26, 115, 232, 0.1)',
-          fill: true, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#1a73e8',
+          borderColor: '#1B2A4A', backgroundColor: 'rgba(27, 42, 74, 0.05)',
+          fill: true, tension: 0.3, pointRadius: 2, pointBackgroundColor: '#1B2A4A',
           yAxisID: 'y', order: 0,
         },
         {
-          type: 'bar' as const, label: 'Daily Change', data: deltas,
-          backgroundColor: barColors, yAxisID: 'y1', order: 1,
+          type: 'bar' as const, label: 'Post Follows', data: postFollows,
+          backgroundColor: 'rgba(232, 136, 60, 0.85)', // amber
+          yAxisID: 'y1', order: 1, stack: 'follows',
+        },
+        {
+          type: 'bar' as const, label: 'Comment Follows', data: commentFollows,
+          backgroundColor: 'rgba(42, 157, 143, 0.85)', // teal
+          yAxisID: 'y1', order: 2, stack: 'follows',
+        },
+        {
+          type: 'bar' as const, label: 'Unattributed', data: unattributed,
+          backgroundColor: 'rgba(180, 180, 180, 0.4)',
+          yAxisID: 'y1', order: 3, stack: 'follows',
         },
       ],
     },
@@ -105,8 +143,8 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
       },
       scales: {
         y: { type: 'linear', position: 'left', title: { display: true, text: 'Total Followers' }, beginAtZero: false },
-        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Daily Change' }, grid: { drawOnChartArea: false } },
-        x: { ticks: { maxRotation: 45, font: { size: 10 } } },
+        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Daily Follows' }, grid: { drawOnChartArea: false }, stacked: true },
+        x: { stacked: true, ticks: { maxRotation: 45, font: { size: 10 } } },
       },
     },
   });
@@ -341,7 +379,7 @@ export async function generateAllCharts(): Promise<ChartResult[]> {
   const results: ChartResult[] = [];
 
   const charts: Array<{ name: string; fn: () => Promise<Buffer | null>; caption: string }> = [
-    { name: 'followers', fn: generateFollowerChart, caption: 'Follower growth — green: post day, blue: outbound only, gray: quiet' },
+    { name: 'followers', fn: generateFollowerChart, caption: 'Follower growth — amber: post follows, teal: comment follows, gray: unattributed' },
     { name: 'types', fn: generatePostTypeChart, caption: 'Post type balance — red: over target, blue: under target' },
     { name: 'heatmap', fn: generateHeatmapChart, caption: 'Engagement heatmap — day × time, color: composite score' },
     { name: 'trend', fn: generateScoreTrendChart, caption: 'Score trend — dots colored by post type, red: 3-post moving avg' },

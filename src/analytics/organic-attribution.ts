@@ -11,6 +11,7 @@ import type { PendingComment } from '../outbound/outbound-queue.js';
 const ATTRIBUTION_RETENTION_DAYS = 90;
 const POST_SNAPSHOT_DAYS = 90;      // track post impressions — matches metrics scrape window
 const COMMENT_SNAPSHOT_DAYS = 15;   // track comment impressions for 15 days
+const POST_IMPRESSION_MULTIPLIER = 5; // post impressions are 5x more valuable than comment impressions for driving follows
 const SNAPSHOT_BUFFER_DAYS = 1;     // keep 1 extra day for delta computation
 
 const ATTRIBUTION_FILE = 'organic_attribution.json';
@@ -316,9 +317,10 @@ function attributeDay(
   const ratio = followerDelta > 0 ? totalDeltaImpressions / followerDelta : 0;
   const indirectPool = Math.max(0, followerDelta - totalDirectFollows);
 
-  // Build items with discounted weights
+  // Build items with discounted weights.
+  // Post impressions are weighted 5x higher than comment impressions.
   for (const { post, impressions, directFollows } of postDeltas) {
-    const discountedWeight = Math.max(0, impressions - directFollows * ratio);
+    const discountedWeight = Math.max(0, impressions - directFollows * ratio) * POST_IMPRESSION_MULTIPLIER;
     items.push({
       type: 'post', id: post.id, date: post.publishedDate,
       impressions, ageInDays: daysBetween(post.publishedDate, date),
