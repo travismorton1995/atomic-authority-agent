@@ -917,7 +917,7 @@ def render_page_5(c, data):
             ['Outbound Comment Attribution', '', '', '', ''],
             ['Profile', 'Comments', 'Tot Impressions', 'Avg Impr', 'Indirect Follows'],
         ]
-        for p in profile_rollup[:10]:
+        for p in profile_rollup[:8]:
             rows.append([
                 p.get('profileName', '')[:28],
                 str(p.get('commentCount', 0)),
@@ -953,16 +953,18 @@ def render_page_5(c, data):
         t.drawOn(c, MARGIN, y - th)
         y = y - th - 12
 
-    # ── Outbound Activity KPIs (compact, bottom) ──
-    act_y = y
-    mini_w = (CONTENT_W - 20) / 3
+    # ── Outbound Activity KPIs (compact, bottom) — only if room ──
     mini_h = 45
-    draw_kpi_card(c, MARGIN, act_y - mini_h, mini_w, mini_h,
-                  str(stats.get('totalCommentsPosted', 0)), 'Comments Posted')
-    draw_kpi_card(c, MARGIN + mini_w + 10, act_y - mini_h, mini_w, mini_h,
-                  str(stats.get('uniqueProfilesCommented', 0)), 'Profiles Engaged')
-    draw_kpi_card(c, MARGIN + 2*(mini_w + 10), act_y - mini_h, mini_w, mini_h,
-                  f"{stats.get('avgCommentsPerDay', 0):.1f}", 'Comments/Day')
+    footer_clearance = 50
+    if y - mini_h > footer_clearance:
+        act_y = y
+        mini_w = (CONTENT_W - 20) / 3
+        draw_kpi_card(c, MARGIN, act_y - mini_h, mini_w, mini_h,
+                      str(stats.get('totalCommentsPosted', 0)), 'Comments Posted')
+        draw_kpi_card(c, MARGIN + mini_w + 10, act_y - mini_h, mini_w, mini_h,
+                      str(stats.get('uniqueProfilesCommented', 0)), 'Profiles Engaged')
+        draw_kpi_card(c, MARGIN + 2*(mini_w + 10), act_y - mini_h, mini_w, mini_h,
+                      f"{stats.get('avgCommentsPerDay', 0):.1f}", 'Comments/Day')
 
     draw_footer(c, 5, 6)
 

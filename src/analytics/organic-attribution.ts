@@ -397,12 +397,14 @@ function buildProfileRollup(attributions: DailyAttribution[], comments: CommentF
       const comment = comments.find(c => c.id === item.id);
       if (!comment) continue;
 
-      const existing = totals.get(comment.profileUrl);
+      // Use profileUrl as key, fall back to profileName if URL is empty
+      const key = comment.profileUrl || comment.profileName;
+      const existing = totals.get(key);
       if (existing) {
         existing.attributed += item.attributedFollows;
         existing.commentIds.add(item.id);
       } else {
-        totals.set(comment.profileUrl, {
+        totals.set(key, {
           profileName: comment.profileName,
           attributed: item.attributedFollows,
           commentIds: new Set([item.id]),
