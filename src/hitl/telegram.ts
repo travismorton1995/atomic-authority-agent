@@ -67,7 +67,7 @@ export async function updateDraftStatus(postId: string, status: string): Promise
 
 // --- Interactive hook selection ---
 export interface HookSelectionResult {
-  action: 'hook' | 'skip' | 'exit';
+  action: 'hook' | 'skip' | 'exit' | 'regenerate';
   selectedHook?: string;
 }
 
@@ -262,10 +262,15 @@ export function startBot(): void {
       return;
     }
     console.log(`Telegram /insider command received (${count} note(s))`);
+    // Dynamic import to check pipeline state
+    const { runInsiderPipeline, isPipelineRunning } = await import('../content/pipeline.js');
+    if (isPipelineRunning()) {
+      await ctx.reply('Pipeline is already running — try again shortly.');
+      return;
+    }
     await ctx.reply(`Generating insider post from ${count} note(s)...`);
     const stopTyping = startTypingIndicator();
     try {
-      const { runInsiderPipeline } = await import('../content/pipeline.js');
       const post = await runInsiderPipeline(notes);
       if (!post) {
         await ctx.reply('Insider pipeline exited — no post generated.').catch(() => {});
@@ -799,6 +804,19 @@ export function startBot(): void {
         session.resolve({ action: 'hook', selectedHook: chosen.hook });
       }
 
+      if (action === 'hk_regen') {
+        const session = hookSessions.get(payload);
+        if (!session) {
+          await ctx.answerCbQuery('Session expired.').catch(() => {});
+          return;
+        }
+        await ctx.answerCbQuery('Regenerating hooks...').catch(() => {});
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        console.log(`[hk_regen] Regenerating hooks for: "${session.articleTitle.slice(0, 50)}"`);
+        hookSessions.delete(payload);
+        session.resolve({ action: 'regenerate' });
+      }
+
       if (action === 'hk_skip') {
         const session = hookSessions.get(payload);
         if (!session) {
@@ -1252,6 +1270,7 @@ export async function notifyHookSelection(
   const keyboard = [
     ...hookRows,
     [
+      { text: '🔄 Regenerate', callback_data: `hk_regen:${sessionId}` },
       { text: 'Skip article', callback_data: `hk_skip:${sessionId}` },
       { text: 'Exit', callback_data: `hk_exit:${sessionId}` },
     ],

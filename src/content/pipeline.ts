@@ -17,6 +17,8 @@ const anthropic = new Anthropic();
 
 let pipelineRunning = false;
 
+export function isPipelineRunning(): boolean { return pipelineRunning; }
+
 // Strip [[MENTION:X]] markers from text, returning cleaned text and the marker positions.
 function stripMentionMarkers(text: string): { clean: string; markers: Array<{ name: string; plainName: string }> } {
   const markers: Array<{ name: string; plainName: string }> = [];
@@ -391,42 +393,7 @@ async function interactiveHookSelection(
     // Fetch article and generate hooks
     await fetchArticleForCandidate(candidate);
 
-    console.log('Generating hook candidates...');
     const articleText = candidate.item.fullText ?? candidate.item.summary ?? '';
-    let hooks = await generateHookCandidates(candidate.item, candidate.postType);
-
-    // Screen hooks and backfill if any are dropped — always aim for 5
-    const TARGET_HOOKS = 5;
-    const MAX_BACKFILL_ROUNDS = 2;
-    let backfillRound = 0;
-
-    while (hooks.length > 0 && backfillRound <= MAX_BACKFILL_ROUNDS) {
-      console.log(`Screening ${hooks.length} hook(s) for factual accuracy...`);
-      hooks = await screenHookCandidates(hooks, candidate.item.title, articleText);
-
-      if (hooks.length >= TARGET_HOOKS) break;
-      if (backfillRound >= MAX_BACKFILL_ROUNDS) break;
-
-      const needed = TARGET_HOOKS - hooks.length;
-      console.log(`${hooks.length} hook(s) passed — generating ${needed} replacement(s)...`);
-      backfillRound++;
-      const extra = await generateHookCandidates(candidate.item, candidate.postType);
-      // Deduplicate against existing hooks
-      const existingTexts = new Set(hooks.map(h => h.hook.toLowerCase()));
-      const newHooks = extra.filter(h => !existingTexts.has(h.hook.toLowerCase())).slice(0, needed);
-      hooks = [...hooks, ...newHooks];
-    }
-
-    if (hooks.length === 0) {
-      console.warn('No hooks survived screening — skipping to next article.');
-      continue;
-    }
-
-    // Trim to 5 if we ended up with more
-    hooks = hooks.slice(0, TARGET_HOOKS);
-    console.log(`${hooks.length} hook(s) ready. Sending to Telegram for selection...`);
-
-    // Build summary and next-up list
     const summary = await generateArticleSummary(candidate.item);
     const nextUp: NextUpCandidate[] = candidates
       .slice(idx + 1, idx + 4)
@@ -434,45 +401,90 @@ async function interactiveHookSelection(
       .slice(0, 3)
       .map(c => ({ title: c.item.title, combinedScore: c.combinedScore, postType: c.postType }));
 
-    const sessionId = `hk_${Date.now()}`;
+    // Hook generation + selection loop (allows regeneration)
+    const allPreviousHooks: string[] = [];
+    const MAX_REGEN_ROUNDS = 3;
 
-    // Send Telegram message and wait for user response
-    await notifyHookSelection(sessionId, {
-      title: candidate.item.title,
-      link: candidate.item.link,
-      summary,
-      score: candidate.combinedScore,
-      scoreBreakdown: candidate.scoreBreakdown,
-      postType: candidate.postType,
-      balanceMultiplier: candidate.balanceMultiplier,
-      recencyMultiplier: candidate.recencyMultiplier,
-      postContentFeedback: candidate.postContentFeedback,
-    }, hooks, nextUp);
+    for (let regenRound = 0; regenRound < MAX_REGEN_ROUNDS; regenRound++) {
+      console.log(regenRound === 0 ? 'Generating hook candidates...' : `Regenerating hooks (round ${regenRound + 1})...`);
+      let hooks = await generateHookCandidates(candidate.item, candidate.postType);
 
-    const result: HookSelectionResult = await waitForHookSelection(sessionId, hooks, candidate.item.title);
+      // Remove any hooks we've already shown
+      if (allPreviousHooks.length > 0) {
+        const prevSet = new Set(allPreviousHooks.map(h => h.toLowerCase()));
+        hooks = hooks.filter(h => !prevSet.has(h.hook.toLowerCase()));
+      }
 
-    if (result.action === 'exit') {
-      // Don't advance pointer — same article stays at top of queue next time
-      writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx }, null, 2));
-      console.log('[hook-selection] User exited pipeline.');
-      return null;
-    }
+      // Screen hooks and backfill if any are dropped — always aim for 5
+      const TARGET_HOOKS = 5;
+      const MAX_BACKFILL_ROUNDS = 2;
+      let backfillRound = 0;
 
-    if (result.action === 'skip') {
-      // Advance pointer past this article
+      while (hooks.length > 0 && backfillRound <= MAX_BACKFILL_ROUNDS) {
+        console.log(`Screening ${hooks.length} hook(s) for factual accuracy...`);
+        hooks = await screenHookCandidates(hooks, candidate.item.title, articleText);
+
+        if (hooks.length >= TARGET_HOOKS) break;
+        if (backfillRound >= MAX_BACKFILL_ROUNDS) break;
+
+        const needed = TARGET_HOOKS - hooks.length;
+        console.log(`${hooks.length} hook(s) passed — generating ${needed} replacement(s)...`);
+        backfillRound++;
+        const extra = await generateHookCandidates(candidate.item, candidate.postType);
+        const existingTexts = new Set([...hooks.map(h => h.hook.toLowerCase()), ...allPreviousHooks.map(h => h.toLowerCase())]);
+        const newHooks = extra.filter(h => !existingTexts.has(h.hook.toLowerCase())).slice(0, needed);
+        hooks = [...hooks, ...newHooks];
+      }
+
+      if (hooks.length === 0) {
+        console.warn('No hooks survived screening — skipping to next article.');
+        break;
+      }
+
+      hooks = hooks.slice(0, TARGET_HOOKS);
+      allPreviousHooks.push(...hooks.map(h => h.hook));
+      console.log(`${hooks.length} hook(s) ready. Sending to Telegram for selection...`);
+
+      const sessionId = `hk_${Date.now()}`;
+
+      await notifyHookSelection(sessionId, {
+        title: candidate.item.title,
+        link: candidate.item.link,
+        summary,
+        score: candidate.combinedScore,
+        scoreBreakdown: candidate.scoreBreakdown,
+        postType: candidate.postType,
+        balanceMultiplier: candidate.balanceMultiplier,
+        recencyMultiplier: candidate.recencyMultiplier,
+        postContentFeedback: candidate.postContentFeedback,
+      }, hooks, nextUp);
+
+      const result: HookSelectionResult = await waitForHookSelection(sessionId, hooks, candidate.item.title);
+
+      if (result.action === 'exit') {
+        writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx }, null, 2));
+        console.log('[hook-selection] User exited pipeline.');
+        return null;
+      }
+
+      if (result.action === 'skip') {
+        writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx + 1 }, null, 2));
+        console.log(`[hook-selection] Skipping "${candidate.item.title.slice(0, 50)}"...`);
+        break; // break inner loop, continue outer article loop
+      }
+
+      if (result.action === 'regenerate') {
+        console.log('[hook-selection] Regenerating hooks...');
+        continue; // continue inner regen loop
+      }
+
+      // Hook selected — advance pointer and finalize
       writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx + 1 }, null, 2));
-      console.log(`[hook-selection] Skipping "${candidate.item.title.slice(0, 50)}"...`);
-      continue;
+      console.log(`[hook-selection] Proceeding with hook: "${result.selectedHook?.slice(0, 60)}..."`);
+      return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown,
+        { balance: candidate.balanceMultiplier, recency: candidate.recencyMultiplier, postContent: candidate.postContentFeedback },
+        result.selectedHook);
     }
-
-    // Hook selected — advance pointer past this article
-    writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx + 1 }, null, 2));
-
-    // User picked a hook — finalize with it
-    console.log(`[hook-selection] Proceeding with hook: "${result.selectedHook?.slice(0, 60)}..."`);
-    return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown,
-      { balance: candidate.balanceMultiplier, recency: candidate.recencyMultiplier, postContent: candidate.postContentFeedback },
-      result.selectedHook);
   }
 
   console.log('[hook-selection] All candidates exhausted.');
@@ -593,68 +605,92 @@ export async function runInsiderPipeline(assembledNotes: string): Promise<Pendin
       pubDate: new Date().toISOString(),
     };
 
-    // Interactive hook selection for insider posts
-    console.log('[insider] Generating hook candidates...');
+    // Interactive hook selection for insider posts (with regeneration)
     const articleText = item.fullText ?? item.summary ?? '';
-    let hooks = await generateHookCandidates(item, 'insider');
-
-    const TARGET_HOOKS = 5;
-    const MAX_BACKFILL_ROUNDS = 2;
-    let backfillRound = 0;
-
-    while (hooks.length > 0 && backfillRound <= MAX_BACKFILL_ROUNDS) {
-      console.log(`[insider] Screening ${hooks.length} hook(s) for factual accuracy...`);
-      hooks = await screenHookCandidates(hooks, item.title, articleText);
-
-      if (hooks.length >= TARGET_HOOKS) break;
-      if (backfillRound >= MAX_BACKFILL_ROUNDS) break;
-
-      const needed = TARGET_HOOKS - hooks.length;
-      console.log(`[insider] ${hooks.length} hook(s) passed — generating ${needed} replacement(s)...`);
-      backfillRound++;
-      const extra = await generateHookCandidates(item, 'insider');
-      const existingTexts = new Set(hooks.map(h => h.hook.toLowerCase()));
-      const newHooks = extra.filter(h => !existingTexts.has(h.hook.toLowerCase())).slice(0, needed);
-      hooks = [...hooks, ...newHooks];
-    }
-
-    if (hooks.length === 0) {
-      console.warn('[insider] No hooks survived screening — falling back to auto-generation.');
-      return await finalize(item, 'insider');
-    }
-
-    hooks = hooks.slice(0, TARGET_HOOKS);
-    console.log(`[insider] ${hooks.length} hook(s) ready. Sending to Telegram for selection...`);
-
     const summary = 'Weekly insider dispatch from NPX — firsthand observations from building AI tools for the nuclear sector.';
-    const sessionId = `hk_${Date.now()}`;
+    const allPreviousHooks: string[] = [];
+    const MAX_REGEN_ROUNDS = 3;
 
-    await notifyHookSelection(sessionId, {
-      title: item.title,
-      link: '',
-      summary,
-      score: 0,
-      scoreBreakdown: { intersection: 0, novelty: 0, geography: 0, npx: 1 },
-      postType: 'insider',
-      balanceMultiplier: 1,
-      recencyMultiplier: 1,
-      postContentFeedback: 1,
-    }, hooks, []);
+    for (let regenRound = 0; regenRound < MAX_REGEN_ROUNDS; regenRound++) {
+      console.log(regenRound === 0 ? '[insider] Generating hook candidates...' : `[insider] Regenerating hooks (round ${regenRound + 1})...`);
+      let hooks = await generateHookCandidates(item, 'insider');
 
-    const result: HookSelectionResult = await waitForHookSelection(sessionId, hooks, item.title);
+      // Remove previously shown hooks
+      if (allPreviousHooks.length > 0) {
+        const prevSet = new Set(allPreviousHooks.map(h => h.toLowerCase()));
+        hooks = hooks.filter(h => !prevSet.has(h.hook.toLowerCase()));
+      }
 
-    if (result.action === 'exit') {
-      console.log('[insider] User exited pipeline.');
-      return null;
+      const TARGET_HOOKS = 5;
+      const MAX_BACKFILL_ROUNDS = 2;
+      let backfillRound = 0;
+
+      while (hooks.length > 0 && backfillRound <= MAX_BACKFILL_ROUNDS) {
+        console.log(`[insider] Screening ${hooks.length} hook(s) for factual accuracy...`);
+        hooks = await screenHookCandidates(hooks, item.title, articleText);
+
+        if (hooks.length >= TARGET_HOOKS) break;
+        if (backfillRound >= MAX_BACKFILL_ROUNDS) break;
+
+        const needed = TARGET_HOOKS - hooks.length;
+        console.log(`[insider] ${hooks.length} hook(s) passed — generating ${needed} replacement(s)...`);
+        backfillRound++;
+        const extra = await generateHookCandidates(item, 'insider');
+        const existingTexts = new Set([...hooks.map(h => h.hook.toLowerCase()), ...allPreviousHooks.map(h => h.toLowerCase())]);
+        const newHooks = extra.filter(h => !existingTexts.has(h.hook.toLowerCase())).slice(0, needed);
+        hooks = [...hooks, ...newHooks];
+      }
+
+      if (hooks.length === 0) {
+        if (regenRound === 0) {
+          console.warn('[insider] No hooks survived screening — falling back to auto-generation.');
+          return await finalize(item, 'insider');
+        }
+        console.warn('[insider] No more unique hooks available.');
+        return null;
+      }
+
+      hooks = hooks.slice(0, TARGET_HOOKS);
+      allPreviousHooks.push(...hooks.map(h => h.hook));
+      console.log(`[insider] ${hooks.length} hook(s) ready. Sending to Telegram for selection...`);
+
+      const sessionId = `hk_${Date.now()}`;
+
+      await notifyHookSelection(sessionId, {
+        title: item.title,
+        link: '',
+        summary,
+        score: 0,
+        scoreBreakdown: { intersection: 0, novelty: 0, geography: 0, npx: 1 },
+        postType: 'insider',
+        balanceMultiplier: 1,
+        recencyMultiplier: 1,
+        postContentFeedback: 1,
+      }, hooks, []);
+
+      const result: HookSelectionResult = await waitForHookSelection(sessionId, hooks, item.title);
+
+      if (result.action === 'exit') {
+        console.log('[insider] User exited pipeline.');
+        return null;
+      }
+
+      if (result.action === 'skip') {
+        console.log('[insider] User skipped — no alternative articles for insider posts.');
+        return null;
+      }
+
+      if (result.action === 'regenerate') {
+        console.log('[insider] Regenerating hooks...');
+        continue;
+      }
+
+      console.log(`[insider] Proceeding with hook: "${result.selectedHook?.slice(0, 60)}..."`);
+      return await finalize(item, 'insider', undefined, undefined, undefined, result.selectedHook);
     }
 
-    if (result.action === 'skip') {
-      console.log('[insider] User skipped — no alternative articles for insider posts.');
-      return null;
-    }
-
-    console.log(`[insider] Proceeding with hook: "${result.selectedHook?.slice(0, 60)}..."`);
-    return await finalize(item, 'insider', undefined, undefined, undefined, result.selectedHook);
+    console.log('[insider] Max regeneration rounds reached.');
+    return null;
   } finally {
     pipelineRunning = false;
   }
