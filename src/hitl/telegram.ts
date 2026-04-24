@@ -800,6 +800,7 @@ export function startBot(): void {
         const session = hookSessions.get(sessionId);
         if (!session) {
           await ctx.answerCbQuery('Session expired.').catch(() => {});
+          await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
           return;
         }
         const chosen = session.hooks[hookIndex];
@@ -816,12 +817,9 @@ export function startBot(): void {
 
       if (action === 'hk_regen') {
         const session = hookSessions.get(payload);
-        if (!session) {
-          await ctx.answerCbQuery('Session expired.').catch(() => {});
-          return;
-        }
-        await ctx.answerCbQuery('Regenerating hooks...').catch(() => {});
+        await ctx.answerCbQuery(session ? 'Regenerating hooks...' : 'Session expired.').catch(() => {});
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        if (!session) return;
         startTypingIndicator(); // restart typing while generating new hooks
         console.log(`[hk_regen] Regenerating hooks for: "${session.articleTitle.slice(0, 50)}"`);
         hookSessions.delete(payload);
@@ -830,12 +828,9 @@ export function startBot(): void {
 
       if (action === 'hk_skip') {
         const session = hookSessions.get(payload);
-        if (!session) {
-          await ctx.answerCbQuery('Session expired.').catch(() => {});
-          return;
-        }
-        await ctx.answerCbQuery('Skipping to next article...').catch(() => {});
+        await ctx.answerCbQuery(session ? 'Skipping to next article...' : 'Session expired.').catch(() => {});
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        if (!session) return;
         console.log(`[hk_skip] Skipping article: "${session.articleTitle.slice(0, 50)}"`);
         hookSessions.delete(payload);
         session.resolve({ action: 'skip' });
@@ -843,12 +838,9 @@ export function startBot(): void {
 
       if (action === 'hk_exit') {
         const session = hookSessions.get(payload);
-        if (!session) {
-          await ctx.answerCbQuery('Session expired.').catch(() => {});
-          return;
-        }
-        await ctx.answerCbQuery('Pipeline exited.').catch(() => {});
+        await ctx.answerCbQuery(session ? 'Pipeline exited.' : 'Session expired.').catch(() => {});
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        if (!session) return;
         console.log(`[hk_exit] User exited hook selection`);
         hookSessions.delete(payload);
         session.resolve({ action: 'exit' });
