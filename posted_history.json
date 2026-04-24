@@ -16,10 +16,10 @@
         "reactor-design",
         "safety-case",
         "digital-twin",
-        "usa",
         "machine-learning",
         "new-build",
-        "regulatory"
+        "regulatory",
+        "northwest-us"
       ],
       "title": "Advanced Reactor Licensing Milestone"
     },
@@ -37,8 +37,8 @@
     "publishedAt": "2026-03-19T16:09:57.579Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440428997878013952/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:11.044Z",
-      "impressions": 889,
+      "fetchedAt": "2026-04-24T04:00:16.418Z",
+      "impressions": 890,
       "membersReached": 367,
       "reactions": 3,
       "comments": 1,
@@ -86,8 +86,8 @@
     "publishedAt": "2026-03-20T12:46:53.367Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7440740463885746176/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:17.076Z",
-      "impressions": 2020,
+      "fetchedAt": "2026-04-24T04:00:22.689Z",
+      "impressions": 2021,
       "membersReached": 1088,
       "reactions": 2,
       "comments": 14,
@@ -113,7 +113,6 @@
         "safety-case",
         "licensing",
         "nrc",
-        "usa",
         "trust",
         "adoption",
         "new-build",
@@ -137,9 +136,9 @@
     "publishedAt": "2026-03-23T12:44:48.919Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7441827081430282240/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:22.074Z",
-      "impressions": 778,
-      "membersReached": 369,
+      "fetchedAt": "2026-04-24T04:00:29.489Z",
+      "impressions": 782,
+      "membersReached": 371,
       "reactions": 1,
       "comments": 1,
       "reposts": 0,
@@ -167,8 +166,7 @@
         "licensing",
         "adoption",
         "regulatory",
-        "document-automation",
-        "usa"
+        "document-automation"
       ],
       "title": "Nuclear Energy Confidence Resurgence"
     },
@@ -186,9 +184,9 @@
     "publishedAt": "2026-03-24T13:25:33.050Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442199752626094080/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:27.558Z",
-      "impressions": 631,
-      "membersReached": 286,
+      "fetchedAt": "2026-04-24T04:00:34.315Z",
+      "impressions": 644,
+      "membersReached": 291,
       "reactions": 2,
       "comments": 1,
       "reposts": 0,
@@ -209,7 +207,7 @@
       "sourceFeed": "Canadian Nuclear Laboratories",
       "generatedAt": "2026-03-24T23:14:56.659Z",
       "combinedScore": 11.200000000000001,
-      "contentTags": ["cybersecurity", "safety-case", "canada", "anomaly-detection", "regulatory", "trust"],
+      "contentTags": ["cybersecurity", "safety-case", "anomaly-detection", "regulatory", "trust", "eastern-canada"],
       "title": "Nuclear Cybersecurity Exercise Romania"
     },
     "screening": {
@@ -227,9 +225,9 @@
     "publishedAt": "2026-03-25T15:29:43.169Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442593340212236288/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:33.248Z",
-      "impressions": 691,
-      "membersReached": 282,
+      "fetchedAt": "2026-04-24T04:00:38.623Z",
+      "impressions": 700,
+      "membersReached": 287,
       "reactions": 2,
       "comments": 1,
       "reposts": 0,
@@ -251,18 +249,7 @@
       "generatedAt": "2026-03-25T23:35:01.611Z",
       "imageUrl": "https://www.ans.org/file/23729/l/eielson afb.jpg",
       "combinedScore": 21,
-      "contentTags": [
-        "smr",
-        "licensing",
-        "new-build",
-        "usa",
-        "public-opinion",
-        "regulatory",
-        "nrc",
-        "northeast-us",
-        "midwest-us",
-        "southeast-us"
-      ],
+      "contentTags": ["smr", "licensing", "new-build", "public-opinion", "regulatory", "nrc", "northeast-us", "midwest-us", "southeast-us"],
       "title": "Alaska Microreactors Strategic Deployment"
     },
     "screening": {
@@ -280,9 +267,9 @@
     "publishedAt": "2026-03-26T16:12:32.549Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7442966521708158976/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:37.987Z",
-      "impressions": 552,
-      "membersReached": 150,
+      "fetchedAt": "2026-04-24T04:00:43.385Z",
+      "impressions": 562,
+      "membersReached": 156,
       "reactions": 3,
       "comments": 1,
       "reposts": 0,
@@ -310,7 +297,7 @@
         "geography": 1,
         "npx": 0
       },
-      "contentTags": ["llm", "safety-case", "document-automation", "regulatory", "nrc", "fusion", "doe", "usa", "change-management"],
+      "contentTags": ["llm", "safety-case", "document-automation", "regulatory", "nrc", "fusion", "doe", "change-management"],
       "title": "OpenAI Nuclear Energy Deal"
     },
     "screening": {
@@ -328,9 +315,9 @@
     "publishedAt": "2026-03-31T13:23:58.129Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7444736016478846976/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:42.670Z",
-      "impressions": 1644,
-      "membersReached": 1075,
+      "fetchedAt": "2026-04-24T04:00:48.422Z",
+      "impressions": 1674,
+      "membersReached": 1081,
       "reactions": 3,
       "comments": 3,
       "reposts": 0,
@@ -358,7 +345,7 @@
         "geography": 2,
         "npx": 0
       },
-      "contentTags": ["candu", "canada", "new-build", "reactor-design"],
+      "contentTags": ["candu", "new-build", "reactor-design", "ontario"],
       "title": "Cobalt Harvest Technology Upgrade"
     },
     "screening": {
@@ -376,10 +363,10 @@
     "publishedAt": "2026-04-01T19:08:47.067Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445185194199834624/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:48.096Z",
-      "impressions": 7523,
-      "membersReached": 5035,
-      "reactions": 107,
+      "fetchedAt": "2026-04-24T04:00:52.915Z",
+      "impressions": 7669,
+      "membersReached": 5074,
+      "reactions": 108,
       "comments": 4,
       "reposts": 6,
       "saves": 1,
@@ -418,8 +405,7 @@
         "document-automation",
         "explainability",
         "new-build",
-        "texas",
-        "usa"
+        "southwest-us"
       ],
       "title": "Texas Advanced Nuclear Funding"
     },
@@ -437,9 +423,9 @@
     "publishedAt": "2026-04-02T15:35:25.147Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7445493857913360384/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:13:53.945Z",
-      "impressions": 1377,
-      "membersReached": 787,
+      "fetchedAt": "2026-04-24T04:00:57.111Z",
+      "impressions": 1405,
+      "membersReached": 789,
       "reactions": 4,
       "comments": 19,
       "reposts": 1,
@@ -500,9 +486,9 @@
     "publishedAt": "2026-04-07T13:22:09.247Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7447272290800611328/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:14:00.239Z",
-      "impressions": 524,
-      "membersReached": 145,
+      "fetchedAt": "2026-04-24T04:01:01.285Z",
+      "impressions": 580,
+      "membersReached": 151,
       "reactions": 3,
       "comments": 1,
       "reposts": 0,
@@ -534,7 +520,7 @@
       "balanceMultiplier": 0.8,
       "recencyMultiplier": 1.3,
       "postContentFeedback": 1.0476445861293109,
-      "contentTags": ["smr", "new-build", "reactor-design", "doe", "usa", "digital-twin", "licensing"],
+      "contentTags": ["smr", "new-build", "reactor-design", "doe", "digital-twin", "licensing"],
       "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1775605008129.png",
       "title": "Advanced Reactor Funding Competition"
     },
@@ -554,9 +540,9 @@
     "publishedAt": "2026-04-08T13:57:39.691Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7447643628329394176/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:14:05.486Z",
-      "impressions": 1590,
-      "membersReached": 888,
+      "fetchedAt": "2026-04-24T04:01:05.734Z",
+      "impressions": 1658,
+      "membersReached": 903,
       "reactions": 7,
       "comments": 1,
       "reposts": 0,
@@ -579,7 +565,7 @@
       "imageUrl": "https://www.ans.org/file/23443/l/RS_Orano_1.jpg",
       "generatedImagePath": "generated_images\\img_softened_test.png",
       "wordCount": 210,
-      "contentTags": ["regulatory", "safety-case", "licensing", "nrc", "reactor-design", "llm", "document-automation", "usa"],
+      "contentTags": ["regulatory", "safety-case", "licensing", "nrc", "reactor-design", "llm", "document-automation", "southeast-us"],
       "title": "3D Printing Manufacturing Disruption"
     },
     "screening": {
@@ -598,9 +584,9 @@
     "publishedAt": "2026-04-09T16:57:45.976Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7448051334534172673/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:14:12.057Z",
-      "impressions": 341,
-      "membersReached": 153,
+      "fetchedAt": "2026-04-24T04:01:10.216Z",
+      "impressions": 387,
+      "membersReached": 169,
       "reactions": 1,
       "comments": 1,
       "reposts": 0,
@@ -641,9 +627,9 @@
     "publishedAt": "2026-04-10T16:25:39.959Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7448405648976822272/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:14:17.665Z",
-      "impressions": 244,
-      "membersReached": 89,
+      "fetchedAt": "2026-04-24T04:01:14.271Z",
+      "impressions": 290,
+      "membersReached": 100,
       "reactions": 0,
       "comments": 0,
       "reposts": 0,
@@ -675,7 +661,7 @@
       "balanceMultiplier": 0.9904761904761905,
       "recencyMultiplier": 1.3,
       "postContentFeedback": 1,
-      "contentTags": ["smr", "reactor-design", "licensing", "nrc", "new-build", "usa", "doe", "regulatory", "decommissioning"],
+      "contentTags": ["smr", "reactor-design", "licensing", "nrc", "new-build", "doe", "regulatory", "decommissioning", "northwest-us"],
       "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776122607973.png",
       "title": "Nuclear Licensing Acceleration Strategy"
     },
@@ -695,10 +681,10 @@
     "publishedAt": "2026-04-14T12:13:49.546Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7449791844994924544/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:14:23.781Z",
-      "impressions": 643,
-      "membersReached": 308,
-      "reactions": 3,
+      "fetchedAt": "2026-04-24T04:01:18.641Z",
+      "impressions": 1006,
+      "membersReached": 530,
+      "reactions": 4,
       "comments": 1,
       "reposts": 0,
       "saves": 0,
@@ -729,7 +715,7 @@
       "balanceMultiplier": 1.2,
       "recencyMultiplier": 1.3,
       "postContentFeedback": 1.25,
-      "contentTags": ["trust", "adoption", "regulatory", "licensing", "cnsc", "canada", "public-opinion", "explainability"],
+      "contentTags": ["trust", "adoption", "regulatory", "licensing", "cnsc", "public-opinion", "explainability", "ontario"],
       "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776211670769.png",
       "stockImageUrl": "https://images.unsplash.com/photo-1766788467067-d443f19314b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHxNb2Rlcm4lMjBpbmR1c3RyaWFsJTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyMTE2NzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "stockImagePhotographer": "Juan Pablo",
@@ -772,15 +758,15 @@
     "publishedAt": "2026-04-15T21:38:31.307Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7450296354158989313/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:14:29.796Z",
-      "impressions": 8761,
-      "membersReached": 5994,
-      "reactions": 18,
-      "comments": 18,
-      "reposts": 0,
-      "saves": 3,
-      "sends": 0,
-      "newFollowers": 10
+      "fetchedAt": "2026-04-24T04:01:22.977Z",
+      "impressions": 14000,
+      "membersReached": 9688,
+      "reactions": 26,
+      "comments": 19,
+      "reposts": 1,
+      "saves": 4,
+      "sends": 1,
+      "newFollowers": 14
     }
   },
   {
@@ -807,7 +793,6 @@
       "recencyMultiplier": 1.3,
       "postContentFeedback": 1.25,
       "contentTags": [
-        "canada",
         "candu",
         "new-build",
         "smr",
@@ -818,7 +803,9 @@
         "cnsc",
         "trust",
         "adoption",
-        "workforce"
+        "workforce",
+        "ontario",
+        "western-canada"
       ],
       "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776294601507.png",
       "stockImageUrl": "https://images.unsplash.com/photo-1494818889428-42c443ab9f69?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwZmFjaWxpdHklMjBleHRlcmlvcnxlbnwxfHx8fDE3NzYyOTQ2MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -862,10 +849,301 @@
     "publishedAt": "2026-04-16T14:43:08.466Z",
     "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7450554188226269185/",
     "metrics": {
-      "fetchedAt": "2026-04-17T18:14:41.023Z",
-      "impressions": 664,
-      "membersReached": 317,
-      "reactions": 8,
+      "fetchedAt": "2026-04-24T04:01:27.031Z",
+      "impressions": 1040,
+      "membersReached": 462,
+      "reactions": 9,
+      "comments": 1,
+      "reposts": 0,
+      "saves": 1,
+      "sends": 0,
+      "newFollowers": 0
+    }
+  },
+  {
+    "id": "post_1776460115780",
+    "draft": {
+      "content": "The companies moving fastest in product development are the ones slowing down to listen to ops teams first.\n\nLast week we built the \"Execute\" stage of our OCM module at [[MENTION:NPX]]. OCM is organizational change management—the structured process nuclear operators use to roll out new procedures or systems.\n\nThis sub-module takes a plan of change tasks and uses a LLM agent to generate deliverables: email communications, training documentation, and meeting schedules. The goal is to strip away logistical friction so project managers can focus on judgment calls.\n\nWe got here faster because of a feedback session the week prior. Change management professionals flagged concrete improvements to the planning stage, which we turned around in two days.\n\nThat internal loop—building alongside practitioners who will actually use the tool—kept us from over-engineering features nobody asked for. The same principle applies to nuclear AI broadly: earn trust incrementally by building for people closest to the work.\n\nThis week I'm handing the Execute front-end to Elena for UI work, then we move into testing—which in nuclear-adjacent software is its own significant phase.\n\n#NuclearEnergy #NPX #FutureOfWork #EnergyPolicy",
+      "firstComment": "Has building alongside your end users ever actually shortened your development timeline?",
+      "title": "Ops Teams Drive Product Speed",
+      "postType": "insider",
+      "sourceTitle": "Weekly insider observations from NPX",
+      "sourceUrl": "",
+      "sourceDate": "2026-04-17T21:07:55.178Z",
+      "sourceFeed": "Daily Notes",
+      "generatedAt": "2026-04-17T21:08:18.183Z",
+      "wordCount": 182,
+      "contentTags": ["change-management", "llm", "adoption", "trust", "workforce", "document-automation"],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776460252080.png",
+      "stockImageUrl": "https://images.unsplash.com/photo-1742860861441-80465e4aeaca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw2fHxwZXJzb24lMjBsaXN0ZW5pbmclMjBpbnRlbnRseSUyMGluJTIwbWVldGluZ3xlbnwxfHx8fDE3NzY0NjAyNTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Macourt Media",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/gvpK54EkbRE/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw2fHxwZXJzb24lMjBsaXN0ZW5pbmclMjBpbnRlbnRseSUyMGluJTIwbWVldGluZ3xlbnwxfHx8fDE3NzY0NjAyNTV8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1742860861441-80465e4aeaca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw2fHxwZXJzb24lMjBsaXN0ZW5pbmclMjBpbnRlbnRseSUyMGluJTIwbWVldGluZ3xlbnwxfHx8fDE3NzY0NjAyNTV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Macourt Media",
+          "downloadUrl": "https://api.unsplash.com/photos/gvpK54EkbRE/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw2fHxwZXJzb24lMjBsaXN0ZW5pbmclMjBpbnRlbnRseSUyMGluJTIwbWVldGluZ3xlbnwxfHx8fDE3NzY0NjAyNTV8MA",
+          "description": "A group of people attend a business conference."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1714976327088-b5615e52594e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHx0ZWFtJTIwZ2F0aGVyZWQlMjBhcm91bmQlMjB0YWJsZSUyMHBsYW5uaW5nfGVufDF8fHx8MTc3NjQ2MDI1OHww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Vitaly Gariev",
+          "downloadUrl": "https://api.unsplash.com/photos/ZEaR7RoXR_o/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwzfHx0ZWFtJTIwZ2F0aGVyZWQlMjBhcm91bmQlMjB0YWJsZSUyMHBsYW5uaW5nfGVufDF8fHx8MTc3NjQ2MDI1OHww",
+          "description": "a group of people sitting around a table working on a project"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1742729096780-600245031d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxnZWFycyUyMGZpdHRpbmclMjB0b2dldGhlciUyMHNtb290aGx5fGVufDF8fHx8MTc3NjQ2MDI1OXww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Shahabudin Ibragimov",
+          "downloadUrl": "https://api.unsplash.com/photos/calQQkP-fKs/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxnZWFycyUyMGZpdHRpbmclMjB0b2dldGhlciUyMHNtb290aGx5fGVufDF8fHx8MTc3NjQ2MDI1OXww",
+          "description": "Gears interlock, showing intricate mechanical design."
+        }
+      ]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook is solid and under 140 characters, creating a nice tension (slowing down to go faster). However, the post has scannability issues: the structure doesn't follow the 2:1 One-Liner/Mini-Para rhythm, with multiple consecutive Mini-Paragraphs. The list of three things ('email communications, training documentation, and meeting schedules') is a mild AI pattern. The contrasting reframe in the hook ('moving fastest... slowing down') is acceptable as genuine irony rather than the 'It's not X, it's Y' pattern. Overall tone is authentic and grounded with real project detail, but formatting needs restructuring.",
+      "revisedContent": "The companies moving fastest in product development are the ones slowing down to listen to ops teams first.\n\nLast week we built the \"Execute\" stage of our OCM module at [[MENTION:NPX]].\n\nOCM is organizational change management, the structured process nuclear operators use to roll out new procedures or systems.\n\nThis sub-module takes a plan of change tasks and uses an LLM agent to generate deliverables like email comms, training docs, and meeting schedules. The goal is to strip away logistical friction so project managers can focus on judgment calls.\n\nWe got here faster because of a feedback session the week prior.\n\nChange management professionals flagged concrete improvements to the planning stage. We turned them around in two days.\n\nBuilding alongside practitioners who will actually use the tool kept us from over-engineering features nobody asked for. The same principle applies to nuclear AI broadly: earn trust incrementally by building for the people closest to the work.\n\nThis week I'm handing the Execute front-end to Elena for UI work.\n\nThen we move into testing, which in nuclear-adjacent software is its own significant phase.\n\n#NuclearEnergy #NPX #FutureOfWork",
+      "revisedFirstComment": "Has building alongside your end users ever actually shortened your development timeline?"
+    },
+    "finalContent": "The companies moving fastest in product development are the ones slowing down to listen to ops teams first.\n\nLast week we built the \"Execute\" stage of our OCM module at [[MENTION:NPX]].\n\nOCM is organizational change management, the structured process nuclear operators use to roll out new procedures or systems.\n\nThis sub-module takes a plan of change tasks and uses an LLM agent to generate deliverables like email comms, training docs, and meeting schedules. The goal is to strip away logistical friction so project managers can focus on judgment calls.\n\nWe got here faster because of a feedback session the week prior.\n\nChange management professionals flagged concrete improvements to the planning stage. We turned them around in two days.\n\nBuilding alongside practitioners who will actually use the tool kept us from over-engineering features nobody asked for. The same principle applies to nuclear AI broadly: earn trust incrementally by building for the people closest to the work.\n\nThis week we integrate the front-end UI for Execute.\n\nThen we move into testing, which in nuclear-adjacent software is its own significant phase.\n\n#NuclearEnergy #NPX #FutureOfWork",
+    "status": "published",
+    "createdAt": "2026-04-17T21:08:35.780Z",
+    "wordCount": 184,
+    "imageChoice": "ai",
+    "actedAt": "2026-04-17T21:11:15.644Z",
+    "scheduledFor": "2026-04-19T23:42:00.000Z",
+    "publishedAt": "2026-04-19T23:43:32.318Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7451777367926165504/",
+    "metrics": {
+      "fetchedAt": "2026-04-24T04:01:31.351Z",
+      "impressions": 413,
+      "membersReached": 125,
+      "reactions": 1,
+      "comments": 1,
+      "reposts": 0,
+      "saves": 0,
+      "sends": 0,
+      "newFollowers": 0
+    }
+  },
+  {
+    "id": "post_1776729000812",
+    "draft": {
+      "content": "MISO expects 35% load growth by 2035. Problem: nobody knows if half those data centers will actually get built.\n\nThis is a grid planning problem that nuclear people already understand.\n\nThe concept is called \"speculative versus committed load.\"\n\nMISO distinguishes \"high confidence\" data center projects, ones with interconnection agreements, regulatory awareness, and active construction, from speculative announcements. That 8 to 14 GW range they forecast for 2026-2027 reflects genuine uncertainty about which projects materialize. EY's Stephanie Chesnick Cutter is advising utilities to demand larger deposits and contractual commitments to separate real demand from press releases.\n\nNuclear licensing uses a similar filter constantly.\n\nThe [[MENTION:CNSC]] and [[MENTION:NRC]] don't plan around announced reactor projects.\n\nThey plan around projects that have submitted formal applications, posted financial guarantees, and demonstrated site-specific safety cases (the documented argument proving a reactor design is safe at a specific location). The nuclear sector learned decades ago that announcement-stage forecasts are unreliable. Grid operators are now relearning that lesson under pressure from hyperscaler commitments that may or may not hold.\n\nThe grids that survive this uncertainty will borrow nuclear's discipline around committed evidence.\n\n#EnergyPolicy #NuclearEnergy #AIinEnergy #SMR",
+      "firstComment": "Sourced from Utility Dive.\n\nAre data center developers in your region actually putting down serious deposits yet?",
+      "title": "Data Center Demand Uncertainty",
+      "postType": "explainer",
+      "sourceTitle": "MISO expects load to jump 35% by 2035 on data center growth",
+      "sourceUrl": "https://www.utilitydive.com/news/miso-long-range-forecast-data-center/817917/",
+      "sourceDate": "2026-04-20T12:48:17.000Z",
+      "sourceFeed": "Utility Dive",
+      "generatedAt": "2026-04-20T23:49:30.448Z",
+      "imageUrl": "https://imgproxy.divecdn.com/8AsP3Yd1BsDTHfk9YOmCKc7mF-dRzHTQHI9PgeV6HmI/g:ce/rs:fit:770:435/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy0yMjcxNDAwNTcxLmpwZw==.webp",
+      "wordCount": 188,
+      "combinedScore": 7.800000000000001,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1,
+      "contentTags": ["regulatory", "safety-case", "licensing", "cnsc", "nrc", "smr", "new-build", "midwest-us"],
+      "stockImageUrl": "https://images.unsplash.com/photo-1743619027771-bad0add063a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw5fHxvZmZpY2UlMjBidWlsZGluZ3MlMjB1bmRlciUyMGNvbnN0cnVjdGlvbnxlbnwxfHx8fDE3NzY3Mjk0Mjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Adriane Chaves",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/bHplTS0DkZU/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw5fHxvZmZpY2UlMjBidWlsZGluZ3MlMjB1bmRlciUyMGNvbnN0cnVjdGlvbnxlbnwxfHx8fDE3NzY3Mjk0Mjh8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1743619027771-bad0add063a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw5fHxvZmZpY2UlMjBidWlsZGluZ3MlMjB1bmRlciUyMGNvbnN0cnVjdGlvbnxlbnwxfHx8fDE3NzY3Mjk0Mjh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Adriane Chaves",
+          "downloadUrl": "https://api.unsplash.com/photos/bHplTS0DkZU/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw5fHxvZmZpY2UlMjBidWlsZGluZ3MlMjB1bmRlciUyMGNvbnN0cnVjdGlvbnxlbnwxfHx8fDE3NzY3Mjk0Mjh8MA",
+          "description": "Construction site with unfinished buildings and cranes"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1705579611777-ed5eced0a9e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxlbmdpbmVlcnMlMjByZXZpZXdpbmclMjBibHVlcHJpbnRzJTIwdG9nZXRoZXJ8ZW58MXx8fHwxNzc2NzI5NDI5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "ThisisEngineering",
+          "downloadUrl": "https://api.unsplash.com/photos/Fc9jeKBxlBI/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxlbmdpbmVlcnMlMjByZXZpZXdpbmclMjBibHVlcHJpbnRzJTIwdG9nZXRoZXJ8ZW58MXx8fHwxNzc2NzI5NDI5fDA",
+          "description": "two men looking at a piece of paper on a table"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1484069560501-87d72b0c3669?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw3fHxxdWVzdGlvbiUyMG1hcmslMjBuZW9uJTIwc2lnbnxlbnwxfHx8fDE3NzY3Mjk0MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Emily Morter",
+          "downloadUrl": "https://api.unsplash.com/photos/8xAA0f9yQnE/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw3fHxxdWVzdGlvbiUyMG1hcmslMjBuZW9uJTIwc2lnbnxlbnwxfHx8fDE3NzY3Mjk0MzB8MA",
+          "description": "question mark neon signage"
+        }
+      ],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\custom_1776729576245.jpg"
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The content is solid and shows genuine domain knowledge. The hook is strong — specific, under 140 chars, creates tension. However, the post has significant scannability violations: multiple mini-paragraphs appear back-to-back (the MISO paragraph and the CNSC/NRC paragraph are both well over 350 chars), and the structure doesn't follow the 2:1 rhythm. That's a mandatory rewrite trigger with a 2-point bump. The closing line ('The grids that survive this uncertainty will borrow nuclear's discipline around committed evidence') is a bit grandiose but not terrible. No contrasting reframe patterns or major AI-isms detected.",
+      "revisedContent": "MISO expects 35% load growth by 2035. Problem: nobody knows if half those data centers will actually get built.\n\nThis is a grid planning problem that nuclear people already understand.\n\nThe concept is called \"speculative versus committed load.\"\n\nMISO separates \"high confidence\" data center projects from speculative announcements. High confidence means interconnection agreements, regulatory awareness, and active construction. That 8 to 14 GW range they forecast for 2026-2027 reflects genuine uncertainty about which projects materialize.\n\nEY's Stephanie Chesnick Cutter is advising utilities to demand larger deposits.\n\nThe goal: separate real demand from press releases.\n\nNuclear licensing uses a similar filter. The [[MENTION:CNSC]] and [[MENTION:NRC]] don't plan around announced reactor projects. They plan around formal applications, posted financial guarantees, and site-specific safety cases (the documented argument proving a reactor design is safe at a particular location).\n\nThe nuclear sector learned decades ago that announcement-stage forecasts are unreliable.\n\nGrid operators are relearning that lesson under hyperscaler pressure.\n\nThe grids that handle this uncertainty best will borrow nuclear's discipline: plan around committed evidence, not announced intentions.\n\n#EnergyPolicy #NuclearEnergy #AIinEnergy #SMR",
+      "revisedFirstComment": null
+    },
+    "finalContent": "MISO expects 35% load growth by 2035. Problem: nobody knows if half those data centers will actually get built.\n\nThis is a grid planning problem that nuclear people already understand.\n\nThe concept is called \"speculative versus committed load.\"\n\nMISO separates \"high confidence\" data center projects from speculative announcements. High confidence means interconnection agreements, regulatory awareness, and active construction. That 8 to 14 GW range they forecast for 2026-2027 reflects genuine uncertainty about which projects materialize.\n\nEY's Stephanie Chesnick Cutter is advising utilities to demand larger deposits.\n\nThe goal: separate real demand from press releases.\n\nNuclear licensing uses a similar filter. The [[MENTION:CNSC]] and [[MENTION:NRC]] don't plan around announced reactor projects. They plan around formal applications, posted financial guarantees, and site-specific safety cases (the documented argument proving a reactor design is safe at a particular location).\n\nThe nuclear sector learned decades ago that announcement-stage forecasts are unreliable.\n\nGrid operators are relearning that lesson under hyperscaler pressure.\n\nThe grids that handle this uncertainty best will borrow nuclear's discipline: plan around committed evidence, not announced intentions.\n\n#EnergyPolicy #NuclearEnergy #AIinEnergy #SMR",
+    "status": "published",
+    "createdAt": "2026-04-20T23:50:00.812Z",
+    "wordCount": 177,
+    "imageChoice": "custom",
+    "actedAt": "2026-04-20T23:59:36.259Z",
+    "scheduledFor": "2026-04-21T18:00:00.000Z",
+    "publishedAt": "2026-04-21T18:02:12.988Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7452416175512383488/",
+    "metrics": {
+      "fetchedAt": "2026-04-24T04:01:35.832Z",
+      "impressions": 255,
+      "membersReached": 64,
+      "reactions": 3,
+      "comments": 1,
+      "reposts": 0,
+      "saves": 0,
+      "sends": 0,
+      "newFollowers": 0
+    }
+  },
+  {
+    "id": "post_1776806980971",
+    "draft": {
+      "content": "Canada's betting on nuclear microreactors to power the Moon. The real play? Arctic dominance first.\n\n[[MENTION:CSMC]] just landed $1.2M in federal funding to build manufacturing capacity for exactly this.\n\nTheir CEO says fleets of reactors could power the Arctic by the early 2030s.\n\nHere's where it gets interesting for AI. Microreactors deployed in remote Arctic locations won't have a full control room staff on site. You need autonomous monitoring, anomaly detection models running on edge hardware that can flag deviations from the reactor's safety case before a human operator hundreds of kilometers away even checks a dashboard. The licensing basis for these units will almost certainly require some form of AI-assisted surveillance to compensate for reduced crew presence.\n\nThis is a textbook case for aggressive incrementalism.\n\nProve your AI monitoring stack works reliably in Arctic microreactors first.\n\nThat operational track record, years of logged predictions versus actual outcomes in a harsh but non-lunar environment, becomes your safety argument for deploying the same architecture on the Moon. CSMC's partner network with Samuel Automation and [[MENTION:Stern Laboratories]] suggests they're thinking about manufacturing scale. The AI layer for remote operations deserves the same early investment.\n\nThe SMR companies building remote-deployable reactors should be co-developing their autonomy software right now, not bolting it on after construction.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyPolicy",
+      "firstComment": "Sourced from BetaKit.\n\nAre any of you actually deploying AI monitoring in remote infrastructure today?",
+      "title": "Nuclear Power Arctic Strategy",
+      "postType": "bridge",
+      "sourceTitle": "Canadian Strategic Missions Corporation takes one small step to support life on the Moon",
+      "sourceUrl": "https://betakit.com/canadian-strategic-missions-corporation-takes-one-small-step-to-support-life-on-the-moon/",
+      "sourceDate": "2026-04-20T21:26:39.000Z",
+      "sourceFeed": "NewsData: Betakit",
+      "generatedAt": "2026-04-21T21:29:07.430Z",
+      "imageUrl": "https://cdn.betakit.com/wp-content/uploads/2025/12/DSC01023.jpg",
+      "wordCount": 216,
+      "combinedScore": 7.3709999999999996,
+      "scoreBreakdown": {
+        "intersection": 3,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 0.9,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 0.9,
+      "contentTags": ["smr", "anomaly-detection", "machine-learning", "safety-case", "licensing", "cnsc"],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\custom_1776817201602.jpg",
+      "stockImageUrl": "https://images.unsplash.com/photo-1766699623159-3b31f89be61d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxBcmN0aWMlMjBsYW5kc2NhcGUlMjBzbm93JTIwbW91bnRhaW5zJTIwcmVtb3RlfGVufDF8fHx8MTc3NjgxNjg0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Gunnar Ridderström",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/8aLLLx0mxyM/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxBcmN0aWMlMjBsYW5kc2NhcGUlMjBzbm93JTIwbW91bnRhaW5zJTIwcmVtb3RlfGVufDF8fHx8MTc3NjgxNjg0NXww",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1766699623159-3b31f89be61d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxBcmN0aWMlMjBsYW5kc2NhcGUlMjBzbm93JTIwbW91bnRhaW5zJTIwcmVtb3RlfGVufDF8fHx8MTc3NjgxNjg0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Gunnar Ridderström",
+          "downloadUrl": "https://api.unsplash.com/photos/8aLLLx0mxyM/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxBcmN0aWMlMjBsYW5kc2NhcGUlMjBzbm93JTIwbW91bnRhaW5zJTIwcmVtb3RlfGVufDF8fHx8MTc3NjgxNjg0NXww",
+          "description": "Snow-covered mountains on the horizon over the ocean."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1685720543547-cc4873188c75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxFbmdpbmVlcnMlMjBtb25pdG9yaW5nJTIwc2NyZWVucyUyMGNvbnRyb2wlMjByb29tfGVufDF8fHx8MTc3NjgxNjg0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Dmitrijs Safrans",
+          "downloadUrl": "https://api.unsplash.com/photos/2CakbXfm_gM/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxFbmdpbmVlcnMlMjBtb25pdG9yaW5nJTIwc2NyZWVucyUyMGNvbnRyb2wlMjByb29tfGVufDF8fHx8MTc3NjgxNjg0Nnww",
+          "description": "a control room filled with lots of electronic equipment"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1775457480957-d3719d3e593f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxTbWFsbCUyMG1vZHVsYXIlMjB0ZWNobm9sb2d5JTIwaW5ub3ZhdGlvbiUyMGZ1dHVyZXxlbnwxfHx8fDE3NzY4MTY4NDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Moe Salih",
+          "downloadUrl": "https://api.unsplash.com/photos/QazgZUEICv8/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw1fHxTbWFsbCUyMG1vZHVsYXIlMjB0ZWNobm9sb2d5JTIwaW5ub3ZhdGlvbiUyMGZ1dHVyZXxlbnwxfHx8fDE3NzY4MTY4NDh8MA",
+          "description": "Several electronic circuit boards arranged on a blue surface"
+        }
+      ]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook is strong — punchy, under 140 chars, creates genuine tension with the Moon-to-Arctic pivot. However, the post has significant scannability violations: multiple mini-paragraphs appear back-to-back (the long AI paragraph, the 'operational track record' paragraph), and several paragraphs fall outside the required character ranges. 'Here's where it gets interesting' is a mild pivot filler. 'Textbook case' and 'aggressive incrementalism' feel slightly polished. The AI-in-Arctic paragraph reads more like a white paper than a LinkedIn post. 'Safety case' and 'licensing basis' are unexplained technical terms that need inline clarification for a mixed audience.",
+      "revisedContent": "Canada's betting on nuclear microreactors to power the Moon. The real play? Arctic dominance first.\n\n[[MENTION:CSMC]] just landed $1.2M in federal funding to build manufacturing capacity for exactly this.\n\nTheir CEO says fleets of reactors could power the Arctic by the early 2030s.\n\nMicroreactors in remote Arctic locations won't have full control room staff on site. You need autonomous monitoring, anomaly detection models running on edge hardware that can flag deviations before a human operator hundreds of kilometers away even checks a dashboard. The licensing basis (the regulatory conditions a reactor must meet to operate) will almost certainly require AI-assisted surveillance to compensate for reduced crew presence.\n\nThis is where the Arctic proves its value beyond energy supply.\n\nProve your AI monitoring stack works reliably in harsh, remote conditions first. Log years of predictions versus actual outcomes. That operational track record becomes your safety argument for deploying the same architecture on the Moon.\n\nCSMC's partner network with Samuel Automation and [[MENTION:Stern Laboratories]] suggests they're thinking about manufacturing scale. The AI layer for remote operations deserves the same early investment.\n\nSMR companies building remote-deployable reactors should be co-developing their autonomy software now, not bolting it on after construction.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyPolicy",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Canada's betting on nuclear microreactors to power the Moon. The real play? Arctic dominance first.\n\n[[MENTION:CSMC]] just landed $1.2M in federal funding to build manufacturing capacity for exactly this.\n\nTheir CEO says fleets of reactors could power the Arctic by the early 2030s.\n\nMicroreactors in remote Arctic locations won't have full control room staff on site. You need autonomous monitoring, anomaly detection models running on edge hardware that can flag deviations before a human operator hundreds of kilometers away even checks a dashboard. The licensing basis (the regulatory conditions a reactor must meet to operate) will almost certainly require AI-assisted surveillance to compensate for reduced crew presence.\n\nThis is where the Arctic proves its value beyond energy supply.\n\nProve your AI monitoring stack works reliably in harsh, remote conditions first. Log years of predictions versus actual outcomes. That operational track record becomes your safety argument for deploying the same architecture on the Moon.\n\nCSMC's partner network with Samuel Automation and [[MENTION:Stern Laboratories]] suggests they're thinking about manufacturing scale. The AI layer for remote operations deserves the same early investment.\n\nSMR companies building remote-deployable reactors should be co-developing their autonomy software now, not bolting it on after construction.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyPolicy",
+    "status": "published",
+    "createdAt": "2026-04-21T21:29:40.971Z",
+    "wordCount": 201,
+    "imageChoice": "custom",
+    "actedAt": "2026-04-22T00:20:01.616Z",
+    "scheduledFor": "2026-04-22T17:15:00.000Z",
+    "publishedAt": "2026-04-22T17:16:47.970Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7452767198789603328/",
+    "metrics": {
+      "fetchedAt": "2026-04-24T04:01:39.978Z",
+      "impressions": 242,
+      "membersReached": 63,
+      "reactions": 4,
+      "comments": 1,
+      "reposts": 0,
+      "saves": 0,
+      "sends": 0,
+      "newFollowers": 0
+    }
+  },
+  {
+    "id": "post_1776902096033",
+    "draft": {
+      "content": "The constraint isn't AI capability. It's explainability.\n\nThe OECD Nuclear Energy Agency just published findings from its first RegLab cycle.\n\nThe focus: AI for real-time anomaly detection in operating reactors.\n\nTheir conclusion landed where I expected. For high-consequence decisions, explainability alone is insufficient. The report recommends \"hybrid modeling,\" where AI output gets corroborated by deterministic, rule-based layers or physics models. Think of it as a trust architecture: the AI flags the anomaly, but a physics-based system independently confirms whether that flag makes sense before anyone acts on it.\n\nThis is Defense-in-Depth applied to software, not just hardware.\n\nNuclear already does this with redundant safety systems in the physical plant.\n\nThe RegLab participants want the same layered validation for AI recommendations.\n\nFor AI developers unfamiliar with nuclear culture, this is the key insight. Regulators will never accept a model that says \"trust me, here's my attention map.\" They need a second, independent analytical layer that can verify or override the AI using known physical constraints. Accuracy without auditability is a dead end in this sector.\n\nThe report also calls for industry-wide data standardization, which I've been beating the drum on for a while now.\n\n#NuclearEnergy #AIinEnergy #EnergyPolicy #NuclearSafety",
+      "firstComment": "Sourced from ANS Newswire.\n\nAre you already layering AI with rule-based verification at your facility?",
+      "title": "AI Explainability Challenge",
+      "postType": "explainer",
+      "sourceTitle": "OECD NEA project gets ahead of AI use in nuclear industry",
+      "sourceUrl": "https://www.ans.org/news/2026-04-22/article-7969/oecd-nea-project-gets-ahead-of-ai-use-in-nuclear-industry/",
+      "sourceDate": "2026-04-22T18:03:45.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-04-22T23:54:25.076Z",
+      "imageUrl": "https://www.ans.org/file/23909/l/RegLab.jpg",
+      "wordCount": 197,
+      "combinedScore": 12.58464727482838,
+      "scoreBreakdown": {
+        "intersection": 4,
+        "novelty": 3,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.008385198303556,
+      "contentTags": ["anomaly-detection", "explainability", "machine-learning", "regulatory", "safety-case", "trust", "iaea"],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\img_1776905492634.png",
+      "stockImageUrl": "https://images.unsplash.com/photo-1685720543547-cc4873188c75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxDb250cm9sJTIwcm9vbSUyMHdpdGglMjBtdWx0aXBsZSUyMG1vbml0b3JzJTIwYW5kJTIwaW5zdHJ1bWVudHN8ZW58MXx8fHwxNzc2OTA1NTA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Dmitrijs Safrans",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/2CakbXfm_gM/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxDb250cm9sJTIwcm9vbSUyMHdpdGglMjBtdWx0aXBsZSUyMG1vbml0b3JzJTIwYW5kJTIwaW5zdHJ1bWVudHN8ZW58MXx8fHwxNzc2OTA1NTA3fDA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1685720543547-cc4873188c75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxDb250cm9sJTIwcm9vbSUyMHdpdGglMjBtdWx0aXBsZSUyMG1vbml0b3JzJTIwYW5kJTIwaW5zdHJ1bWVudHN8ZW58MXx8fHwxNzc2OTA1NTA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Dmitrijs Safrans",
+          "downloadUrl": "https://api.unsplash.com/photos/2CakbXfm_gM/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxDb250cm9sJTIwcm9vbSUyMHdpdGglMjBtdWx0aXBsZSUyMG1vbml0b3JzJTIwYW5kJTIwaW5zdHJ1bWVudHN8ZW58MXx8fHwxNzc2OTA1NTA3fDA",
+          "description": "a control room filled with lots of electronic equipment"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1710579682564-b5b99e7da147?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxQdXp6bGUlMjBwaWVjZXMlMjBmaXR0aW5nJTIwdG9nZXRoZXIlMjBvbiUyMHdvb2RlbiUyMHN1cmZhY2V8ZW58MXx8fHwxNzc2OTA1NTA4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "engin akyurt",
+          "downloadUrl": "https://api.unsplash.com/photos/gFxHUrGU_2E/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxQdXp6bGUlMjBwaWVjZXMlMjBmaXR0aW5nJTIwdG9nZXRoZXIlMjBvbiUyMHdvb2RlbiUyMHN1cmZhY2V8ZW58MXx8fHwxNzc2OTA1NTA4fDA",
+          "description": "a close up view of a wooden surface"
+        }
+      ]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook uses a contrasting reframe pattern ('The constraint isn't AI capability. It's explainability.'), which is an automatic rewrite trigger. The hook itself is punchy and under 140 characters, which is good. The content is substantive and specific, with real industry knowledge. However, the post has scannability violations: the middle section has a mini-paragraph followed by several one-liners in a row (more than two), and the structure doesn't follow the 2:1 rhythm. 'OECD' is an uncommon acronym that isn't expanded. Otherwise the tone is confident and grounded, not breathless.",
+      "revisedContent": "Most AI models can detect reactor anomalies. Few can prove why they flagged one.\n\nThe OECD (Organisation for Economic Co-operation and Development) Nuclear Energy Agency just published findings from its first RegLab cycle.\n\nThe focus: AI for real-time anomaly detection in operating reactors.\n\nTheir conclusion landed where I expected. For high-consequence decisions, explainability alone is insufficient. The report recommends \"hybrid modeling,\" where AI output gets corroborated by deterministic, rule-based layers or physics models. Think of it as a trust architecture: the AI flags the anomaly, but a physics-based system independently confirms whether that flag makes sense before anyone acts on it.\n\nThis is Defense-in-Depth applied to software, not just hardware.\n\nNuclear already does this with redundant safety systems in the physical plant.\n\nThe RegLab participants want the same layered validation for AI recommendations. For AI developers unfamiliar with nuclear culture, this is the key insight. Regulators will never accept a model that says \"trust me, here's my attention map.\" They need a second, independent analytical layer that can verify or override the AI using known physical constraints.\n\nAccuracy without auditability is a dead end in this sector.\n\nThe report also calls for industry-wide data standardization, something I've been beating the drum on for a while.\n\n#NuclearEnergy #AIinEnergy #NuclearSafety",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Most AI models can detect reactor anomalies. Few can prove why they flagged one.\n\nThe OECD (Organisation for Economic Co-operation and Development) Nuclear Energy Agency just published findings from its first RegLab cycle.\n\nThe focus: AI for real-time anomaly detection in operating reactors.\n\nTheir conclusion landed where I expected. For high-consequence decisions, explainability alone is insufficient. The report recommends \"hybrid modeling,\" where AI output gets corroborated by deterministic, rule-based layers or physics models. Think of it as a trust architecture: the AI flags the anomaly, but a physics-based system independently confirms whether that flag makes sense before anyone acts on it.\n\nThis is Defense-in-Depth applied to software, not just hardware.\n\nNuclear already does this with redundant safety systems in the physical plant.\n\nThe RegLab participants want the same layered validation for AI recommendations. For AI developers unfamiliar with nuclear culture, this is the key insight. Regulators will never accept a model that says \"trust me, here's my attention map.\" They need a second, independent analytical layer that can verify or override the AI using known physical constraints.\n\nAccuracy without auditability is a dead end in this sector.\n\nThe report also calls for industry-wide data standardization, something I've been beating the drum on for a while.\n\n#NuclearEnergy #AIinEnergy #NuclearSafety",
+    "status": "published",
+    "createdAt": "2026-04-22T23:54:56.033Z",
+    "wordCount": 208,
+    "imageChoice": "ai",
+    "actedAt": "2026-04-23T00:53:41.074Z",
+    "scheduledFor": "2026-04-23T19:37:00.000Z",
+    "publishedAt": "2026-04-23T19:38:47.083Z",
+    "linkedInPostUrl": "https://www.linkedin.com/feed/update/urn:li:activity:7453165306858070016/",
+    "metrics": {
+      "fetchedAt": "2026-04-24T04:01:44.096Z",
+      "impressions": 347,
+      "membersReached": 184,
+      "reactions": 6,
       "comments": 1,
       "reposts": 0,
       "saves": 1,

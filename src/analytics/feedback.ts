@@ -76,7 +76,7 @@ export function getConfidenceWeightedTagScores(): {
     }, 0) / matched.length;
 
     const multiplier = 1.0 + (rawMultiplier - 1.0) * avgConfidence;
-    return Math.min(1.25, Math.max(1.0, multiplier));
+    return Math.min(1.3, Math.max(0.9, multiplier));
   }
 
   return { tagScores, computeMultiplier };

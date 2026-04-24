@@ -47,6 +47,10 @@ async function main() {
   let action: 'approved' | 'rejected' | 'cancelled';
   do {
     const post = await runPipeline(options);
+    if (!post) {
+      console.log('Pipeline exited — no post generated.');
+      process.exit(0);
+    }
     console.log('Waiting for your approval in Telegram...');
     action = schedulerRunning ? await pollForAction(post.id) : await waitForAction(post.id);
     if (action === 'cancelled') {

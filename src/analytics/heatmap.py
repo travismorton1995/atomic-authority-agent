@@ -1,5 +1,6 @@
 """Generate a day × time-window engagement heatmap as PNG."""
 import json
+import os
 import sys
 import numpy as np
 import seaborn as sns
@@ -7,6 +8,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 HISTORY_FILE = 'posted_history.json'
+ORGANIC_FILE = 'organic_attribution.json'
 
 DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 WINDOWS = ['7-9a', '9-11a', '11a-1p', '1-3p', '3-5p', '5-7p', '7-9p']
@@ -27,15 +29,34 @@ SCORE_WEIGHTS = {
     'comments': 3, 'saves': 3, 'reactions': 1, 'impressions': 0.01,
 }
 
-def composite_score(m):
+def composite_score(m, indirect=0):
     if not m: return 0
-    return sum((m.get(k, 0) or 0) * w for k, w in SCORE_WEIGHTS.items())
+    return sum((m.get(k, 0) or 0) * w for k, w in SCORE_WEIGHTS.items()) + indirect * 10
+
+def load_indirect_map():
+    """Load indirect followers per post from organic attribution."""
+    if not os.path.exists(ORGANIC_FILE):
+        return {}
+    try:
+        with open(ORGANIC_FILE, 'r') as f:
+            data = json.load(f)
+        result = {}
+        for entry in data.get('postRollup', []):
+            direct = 0
+            # Find direct follows from history
+            indirect_only = max(0, entry.get('totalAttributed', 0) - entry.get('linkedInAttributed', 0))
+            result[entry['id']] = indirect_only
+        return result
+    except Exception:
+        return {}
 
 def main():
     output_path = sys.argv[1] if len(sys.argv) > 1 else 'heatmap.png'
 
     with open(HISTORY_FILE, 'r') as f:
         history = json.load(f)
+
+    indirect_map = load_indirect_map()
 
     # Build grid
     grid = {(d, w): [] for d in DAYS for w in WINDOWS}
@@ -44,13 +65,13 @@ def main():
         if post.get('status') != 'published' or not post.get('metrics') or not post.get('publishedAt'):
             continue
         dt = datetime.fromisoformat(post['publishedAt'].replace('Z', '+00:00'))
-        # Convert to ET (UTC-4 or UTC-5 — approximate with UTC-4 for simplicity)
         from zoneinfo import ZoneInfo
         dt_et = dt.astimezone(ZoneInfo('America/Toronto'))
         day = dt_et.strftime('%a')
         window = get_time_window(dt_et.hour, dt_et.minute)
         if day in DAYS and window in WINDOWS:
-            score = composite_score(post['metrics'])
+            indirect = indirect_map.get(post.get('id', ''), 0)
+            score = composite_score(post['metrics'], indirect)
             grid[(day, window)].append(score)
 
     # Build matrix: avg score per cell, NaN for empty

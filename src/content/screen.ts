@@ -10,32 +10,21 @@ export interface ScreeningResult {
   revisedFirstComment: string | null;
 }
 
-const SOURCED_COMMENT_RULES = `The first comment must follow this exact structure:
+const SOURCED_COMMENT_RULES = `The first comment is an engagement hook only — no source attribution, no "Sourced from" line. Rules:
+- Use one of these styles: a poll (A or B?), a story prompt (ask for a specific experience), a tag challenge (tag someone), a prediction game (state a bet, ask for theirs), or a meta/humor comment (break the fourth wall, be human).
+- Under 25 words. Casual tone — like texting a colleague.
+- Address the AUDIENCE, not the article's author.
+- No URLs, no em dashes, no preamble, no sign-off, no source attribution.
+- BANNED generic questions: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "What's your take?" — revise if present.
+- If the comment contains a "Sourced from" line, a URL, or a generic question, provide a revised version in revisedFirstComment.`;
 
-"Sourced from [Source Name].
-
-[One simple question.]"
-
-That is: "Sourced from [Source Name]." on its own line, then a blank line, then the question on its own line. No URL. Rules:
-- Use "Sourced from", never "Via"
-- Use a period after the source name, never an em dash or any dash
-- The question must be SHORT and SIMPLE — under 20 words, something a reader could answer casually. Write it the way you'd ask a colleague, not an exam question.
-- Address the question to the AUDIENCE (your fellow professionals), not to the article's author.
-- Good: "Are you seeing this at your site?" / "Would this actually speed things up?"
-- Bad: long multi-clause academic questions that nobody wants to answer
-- Generic questions do not meet the bar: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "What's your take?"
-- If the comment contains a URL, remove it in the revision.
-- If the format is wrong, uses "Via", uses a dash, or the question isn't simple enough, provide a revised version in revisedFirstComment.`;
-
-const INSIDER_COMMENT_RULES = `This is an insider post (firsthand observations, not news commentary). The first comment must be ONLY a short, simple question — no "Sourced from" line, no source attribution. Rules:
-- One question only, under 20 words
-- Address the question to the AUDIENCE (your fellow professionals reading the post), not to the author
-- The question should invite readers to share their own experience or perspective on the topic
-- Good: "Are you seeing this at your site?" / "Has anyone else hit this wall?" / "Would this fly in your org?"
-- Bad: "What inspired you to write this?" / "Can you tell us more?" (these address the author, not the audience)
-- Generic questions do not meet the bar: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "What's your take?"
-- No em dashes, no preamble, no sign-off
-- If the comment includes a source line, a "Sourced from" prefix, or addresses the author instead of the audience, provide a revised version in revisedFirstComment.`;
+const INSIDER_COMMENT_RULES = `This is an insider post — no "Sourced from" line, no source attribution. The first comment is an engagement hook only. Rules:
+- Use one of these styles: a poll (A or B?), a story prompt (ask for a specific experience), a tag challenge (tag someone), a prediction game (state a bet, ask for theirs), or a meta/humor comment (break the fourth wall, be human).
+- Under 25 words. Casual tone — like texting a colleague.
+- Address the AUDIENCE, not the author.
+- No URLs, no em dashes, no preamble, no sign-off.
+- BANNED generic questions: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "What's your take?" — revise if present.
+- If the comment includes a source line or "Sourced from" prefix, revise in revisedFirstComment.`;
 
 function buildScreenerSystem(postType: string): string {
   const commentRules = postType === 'insider' ? INSIDER_COMMENT_RULES : SOURCED_COMMENT_RULES;
@@ -79,7 +68,9 @@ HASHTAG RULE: Count all hashtags in the post. If there are more than 5, the revi
 SCANNABILITY CHECK (mandatory 2:1 structure — this is the most important formatting rule):
 - Every paragraph after the hook must be either a One-Liner (80–120 chars, single sentence) or a Mini-Paragraph (250–350 chars, 2–3 sentences).
 - The post MUST follow a strict 2:1 rhythm: [Hook] → [One-Liner] → [One-Liner] → [Mini-Para] → [One-Liner] → [One-Liner] → [Mini-Para] → ...
-- Count the paragraphs. If two Mini-Paragraphs appear in a row, or three+ One-Liners appear in a row, or any paragraph falls outside the character ranges: this is a MANDATORY rewrite trigger regardless of cringe score. Reformat in the revision to restore the 2:1 pattern while preserving all content.
+- Count the characters in EVERY paragraph after the hook. Label each as One-Liner (80–120) or Mini-Para (250–350). If any paragraph falls outside BOTH ranges, or two Mini-Paragraphs are adjacent, or three+ One-Liners are adjacent: this is a MANDATORY rewrite trigger regardless of cringe score.
+- When rewriting for scannability: split long paragraphs into shorter ones, merge short fragments, and reorder to restore the 2:1 pattern. Preserve all facts and meaning.
+- A post with ANY structural violation MUST have revisedContent provided — never return null if structure is broken.
 - Bump the cringe score by at least 2 for any structural violation.
 
 ${postType === 'insider' ? `INSIDER LINK CHECK: The post body must contain zero URLs or hyperlinks. If any URL appears in the post body (not the first comment), bump the cringe score and remove the URL in the revised version.\n\n` : ''}FIRST COMMENT FORMAT AND QUALITY:
@@ -89,7 +80,7 @@ Respond ONLY in this exact JSON format:
 {
   "cringeScore": <number 1-10>,
   "reasoning": "<one or two sentences explaining the score, calling out hook quality specifically if it is weak>",
-  "revisedContent": <null if score <= 3 AND no contrasting reframe pattern was found, otherwise a rewritten version of the post as a string>,
+  "revisedContent": <null ONLY if score <= 3 AND no structural violations AND no contrasting reframe pattern; otherwise ALWAYS provide a rewritten version of the post as a string>,
   "revisedFirstComment": <null if the comment is clean, otherwise a revised version with no URLs>
 }`;
 }

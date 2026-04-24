@@ -78,7 +78,10 @@ async function runGenerate(articleUrl?: string): Promise<'started' | 'already_ru
   try {
     for (let attempt = 1; attempt <= GENERATE_MAX_RETRIES; attempt++) {
       try {
-        await runPipeline(articleUrl ? { url: articleUrl } : {});
+        const post = await runPipeline(articleUrl ? { url: articleUrl } : {});
+        if (!post) {
+          console.log('Pipeline exited — no post generated.');
+        }
         return 'started';
       } catch (err: any) {
         const isOverloaded = err?.status === 529 || err?.error?.error?.type === 'overloaded_error';
@@ -152,6 +155,8 @@ async function publishDuePosts() {
       console.log(`Post ${post.id} marked as published.`);
       const urlLine = linkedInPostUrl ? `\n${linkedInPostUrl}` : '';
       await sendMessage(`✅ *Published* | ${post.draft.postType}\n_${post.draft.sourceTitle}_${urlLine}`).catch(() => {});
+      const { updateDraftStatus } = await import('../hitl/telegram.js');
+      await updateDraftStatus(post.id, `✅ Published${urlLine}`).catch(() => {});
     } catch (err) {
       if (err instanceof LinkedInSessionExpiredError) {
         console.error(err.message);

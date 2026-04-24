@@ -306,7 +306,7 @@ export async function generatePdfReport(): Promise<Buffer> {
       ['followerGrowth', generateFollowerChart],
       ['postTypeDivergence', generatePostTypeChart],
       ['heatmap', generateHeatmapChart],
-      ['scoreTrend', generateScoreTrendChart],
+      // ['scoreTrend', generateScoreTrendChart],  // replaced by recent posts table on page 3
       ['tagPerformance', generateTagChart],
     ];
 
@@ -326,6 +326,35 @@ export async function generatePdfReport(): Promise<Buffer> {
     // Top posts
     console.log('[pdf] Building top posts...');
     const topPosts = await buildTopPosts(tmpDir);
+
+    // Recent posts table (newest first, up to 8)
+    const allPosts = loadPostsWithMetrics();
+    // Build title lookup from raw history
+    const titleLookup = new Map<string, string>();
+    try {
+      const rawHistory: any[] = JSON.parse(readFileSync(HISTORY_FILE, 'utf-8'));
+      for (const p of rawHistory) {
+        if (p.id && p.draft?.title) titleLookup.set(p.id, p.draft.title);
+      }
+    } catch { /* graceful */ }
+
+    const recentPostsTable = [...allPosts]
+      .sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime())
+      .slice(0, 8)
+      .map(p => ({
+        date: p.publishedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Toronto' }),
+        title: (titleLookup.get(p.id) ?? p.postSnippet).slice(0, 22),
+        postType: p.postType,
+        impressions: p.impressions,
+        reactions: p.reactions,
+        comments: p.comments,
+        reposts: p.reposts,
+        saves: p.saves,
+        sends: p.sends,
+        directFollows: p.newFollowers,
+        indirectFollows: Math.round(p.indirectFollowers),
+        compositeScore: Math.round(p.compositeScore),
+      }));
 
     // Attribution
     let attribution: AttributionSummary | null = null;
@@ -426,10 +455,18 @@ export async function generatePdfReport(): Promise<Buffer> {
     console.log('[pdf] Generating insights...');
     const insights = await generateInsights(reportData, attribution);
 
-    // Build date range string
+    // Build date range string — use follower history for full coverage (not just post dates)
     const posts = loadPostsWithMetrics();
     let dateRange = '';
-    if (posts.length > 0) {
+    const fData = getFollowerData();
+    if (fData && fData.snapshots.length >= 2) {
+      const firstDate = new Date(fData.snapshots[0].date + 'T12:00:00');
+      // Last activity date = second-to-last snapshot (last snapshot is today's measurement, not yet a complete day)
+      const lastDate = new Date(fData.snapshots[fData.snapshots.length - 2].date + 'T12:00:00');
+      const first = firstDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Toronto' });
+      const last = lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' });
+      dateRange = `${first} – ${last}`;
+    } else if (posts.length > 0) {
       const sorted = [...posts].sort((a, b) => a.publishedAt.getTime() - b.publishedAt.getTime());
       const first = sorted[0].publishedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Toronto' });
       const last = sorted[sorted.length - 1].publishedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'America/Toronto' });
@@ -478,6 +515,7 @@ export async function generatePdfReport(): Promise<Buffer> {
       ) : null,
       correlations: reportData.correlations,
       topPosts,
+      recentPostsTable,
       attribution: attribution ? {
         totalDays: attribution.totalDays,
         totalCommentDays: attribution.totalCommentDays,

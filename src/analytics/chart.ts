@@ -80,39 +80,40 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
     }
   }
 
-  const labels = snapshots.map(s => {
-    const d = new Date(s.date + 'T12:00:00');
+  // Labels use the activity date (snapshot[i-1].date), not the measurement date.
+  // Skip the first snapshot (baseline) — it has no delta/bar, just the line starting point.
+  const withBars = snapshots.slice(1);
+  const labels = withBars.map((_, i) => {
+    const dateStr = snapshots[i].date; // activity date = prior snapshot's date
+    const d = new Date(dateStr + 'T12:00:00');
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Toronto' });
   });
 
-  const totals = snapshots.map(s => s.total);
+  // Line data uses all snapshots from index 1 onward (matched to withBars)
+  const totals = withBars.map(s => s.total);
 
   // Stacked bar data: post-driven follows (direct + indirect) and comment follows.
-  // Attribution date = activity date = snapshot[i-1].date (the day BEFORE the measurement).
-  // The bar at index i shows growth during snapshot[i-1]'s date.
-  const postFollows = snapshots.map((s, i) => {
-    if (i === 0) return 0;
-    const attr = attrByDate.get(snapshots[i - 1].date);
+  // withBars[i] = snapshots[i+1], activity date = snapshots[i].date
+  const postFollows = withBars.map((_, i) => {
+    const attr = attrByDate.get(snapshots[i].date);
     return attr ? Math.round(attr.postFollows * 10) / 10 : 0;
   });
-  const commentFollows = snapshots.map((s, i) => {
-    if (i === 0) return 0;
-    const attr = attrByDate.get(snapshots[i - 1].date);
+  const commentFollows = withBars.map((_, i) => {
+    const attr = attrByDate.get(snapshots[i].date);
     return attr ? Math.round(attr.commentFollows * 10) / 10 : 0;
   });
 
   // For days with no attribution data, show the raw delta as unattributed (gray)
-  const unattributed = snapshots.map((s, i) => {
-    if (i === 0) return 0;
-    const delta = s.total - snapshots[i - 1].total;
-    const attr = attrByDate.get(snapshots[i - 1].date);
+  const unattributed = withBars.map((s, i) => {
+    const delta = s.total - snapshots[i].total;
+    const attr = attrByDate.get(snapshots[i].date);
     if (!attr) return Math.max(0, delta);
     const accounted = attr.postFollows + attr.commentFollows;
     return Math.max(0, Math.round((delta - accounted) * 10) / 10);
   });
 
   // Precompute comment % labels for each day
-  const commentPctLabels = snapshots.map((s, i) => {
+  const commentPctLabels = withBars.map((_, i) => {
     const pf = postFollows[i];
     const cf = commentFollows[i];
     const ua = unattributed[i];
@@ -121,7 +122,7 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
     return `${Math.round((cf / total) * 100)}%`;
   });
 
-  const canvas = makeCanvas();
+  const canvas = makeCanvas(1600, 800);
   const buffer = await canvas.renderToBuffer({
     type: 'bar',
     plugins: [ChartDataLabels],
@@ -131,7 +132,7 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
         {
           type: 'line' as const, label: 'Total Followers', data: totals,
           borderColor: '#1B2A4A', backgroundColor: 'rgba(27, 42, 74, 0.05)',
-          fill: true, tension: 0.3, pointRadius: 2, pointBackgroundColor: '#1B2A4A',
+          fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#1B2A4A', borderWidth: 3,
           yAxisID: 'y', order: 0,
           datalabels: { display: false },
         },
@@ -157,7 +158,7 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
             anchor: 'end' as const,
             align: 'end' as const,
             color: '#2A9D8F',
-            font: { size: 9, weight: 'bold' as const },
+            font: { size: 18, weight: 'bold' as const },
           },
         },
       ],
@@ -165,14 +166,14 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
     options: {
       responsive: false,
       plugins: {
-        title: { display: true, text: `Follower Growth: ${totals[0]} → ${totals[totals.length - 1]} (+${totals[totals.length - 1] - totals[0]})`, font: { size: 16 } },
-        legend: { display: true, labels: { font: { size: 11 } } },
+        title: { display: true, text: `Follower Growth: ${totals[0]} → ${totals[totals.length - 1]} (+${totals[totals.length - 1] - totals[0]})`, font: { size: 28 } },
+        legend: { display: true, labels: { font: { size: 18 } } },
         datalabels: {},  // global config (overridden per dataset)
       },
       scales: {
-        y: { type: 'linear', position: 'left', title: { display: true, text: 'Total Followers' }, beginAtZero: false },
-        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Daily Follows' }, grid: { drawOnChartArea: false }, stacked: true },
-        x: { stacked: true, ticks: { maxRotation: 45, font: { size: 10 } } },
+        y: { type: 'linear', position: 'left', title: { display: true, text: 'Total Followers', font: { size: 18 } }, ticks: { font: { size: 14 } }, beginAtZero: false },
+        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Daily Follows', font: { size: 18 } }, ticks: { font: { size: 14 } }, grid: { drawOnChartArea: false }, stacked: true },
+        x: { stacked: true, ticks: { maxRotation: 45, font: { size: 16 } } },
       },
     },
   });

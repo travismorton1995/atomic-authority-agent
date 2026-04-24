@@ -88,6 +88,7 @@ ANTI-AI RULES (things that make images look obviously AI-generated):
 - NO obvious HDR or hyperreal color grading with oversaturated blues and oranges
 - NO clean, sterile environments with perfect lighting. Real facilities have dust, wear, and imperfect lighting
 - NO stock photo clichés: handshakes, glowing brains, light bulbs, puzzle pieces
+- NO default cooling tower imagery unless the post specifically discusses a plant with cooling towers. Cooling towers are the most overused nuclear cliché — industry professionals notice immediately when they're used for plants that don't have them
 - NO people looking at transparent floating data. People look at real screens, real paper, real equipment
 
 CONTENT FILTER AVOIDANCE (critical — prompts with these terms get blocked by the image model):
@@ -97,7 +98,7 @@ CONTENT FILTER AVOIDANCE (critical — prompts with these terms get blocked by t
   - Radiation → "heat waves" or "shimmering air" or "thermal distortion"
   - Transport cask → "heavy industrial casing" or "reinforced shipping container"
   - Nuclear plant → "power plant" or "industrial generating station" or "large-scale energy facility"
-  - Cooling towers → "hyperbolic concrete towers with steam rising"
+  - Cooling towers → "hyperbolic concrete towers with steam rising" (ONLY if the article/post mentions a plant that actually uses cooling towers. Many plants, especially Canadian CANDU plants like Darlington, Bruce Power, and Pickering, use lake water cooling and have NO cooling towers. Do NOT default to cooling tower imagery unless contextually accurate.)
   - Control room → "industrial control room with banks of monitors and analog gauges"
   - Reactor → "large industrial vessel" or "containment structure"
   - Safety equipment → "industrial protective gear" or "engineering safety systems"

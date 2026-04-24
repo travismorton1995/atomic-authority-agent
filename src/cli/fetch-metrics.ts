@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { chromium } from 'playwright';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { sendMessage, sendPhotoBuffer, sendDocumentBuffer } from '../hitl/telegram.js';
 import { acquireBrowserLock } from '../poster/browser-lock.js';
@@ -180,6 +180,8 @@ export async function scrapeAllPostMetrics(page: import('playwright').Page): Pro
   console.log(`Fetching metrics for ${postsWithUrl.length} post(s) (last 90 days)...`);
 
   let sessionChecked = false;
+  let consecutiveFailures = 0;
+  const CIRCUIT_BREAKER_LIMIT = 3;
 
   for (const post of postsWithUrl) {
     const urn = extractUrn(post.linkedInPostUrl);
@@ -194,18 +196,29 @@ export async function scrapeAllPostMetrics(page: import('playwright').Page): Pro
       const hasData = metrics.impressions !== null || metrics.reactions !== null || metrics.comments !== null;
       if (hasData) {
         sessionChecked = true;
+        consecutiveFailures = 0;
         post.metrics = metrics;
         console.log(`  Impressions: ${metrics.impressions ?? 'n/a'} | Reactions: ${metrics.reactions ?? 'n/a'} | Comments: ${metrics.comments ?? 'n/a'} | Reposts: ${metrics.reposts ?? 'n/a'} | Saves: ${metrics.saves ?? 'n/a'} | Followers: ${metrics.newFollowers ?? 'n/a'}`);
       } else {
-        console.warn(`  Scrape returned no data — keeping previous metrics.`);
+        consecutiveFailures++;
+        console.warn(`  Scrape returned no data — keeping previous metrics. (${consecutiveFailures} consecutive failures)`);
         // If the very first post returns no data, session is likely dead — abort early
         if (!sessionChecked) {
           console.error('Metrics fetch: first post returned no data — session may be expired. Aborting.');
           break;
         }
+        if (consecutiveFailures >= CIRCUIT_BREAKER_LIMIT) {
+          console.error(`Metrics fetch: ${CIRCUIT_BREAKER_LIMIT} consecutive failures — circuit breaker tripped. Aborting.`);
+          break;
+        }
       }
     } catch (err) {
-      console.warn(`  Failed to fetch metrics: ${(err as Error).message}`);
+      consecutiveFailures++;
+      console.warn(`  Failed to fetch metrics: ${(err as Error).message} (${consecutiveFailures} consecutive failures)`);
+      if (consecutiveFailures >= CIRCUIT_BREAKER_LIMIT) {
+        console.error(`Metrics fetch: ${CIRCUIT_BREAKER_LIMIT} consecutive failures — circuit breaker tripped. Aborting.`);
+        break;
+      }
     }
   }
 
@@ -237,6 +250,8 @@ export async function runMetricsFetch() {
   }
 }
 
+const REPORT_CACHE_DIR = 'generated_reports';
+
 export async function runWeeklyReport(): Promise<void> {
   const { generateReportData, formatReportMessage } = await import('../analytics/report.js');
   const { loadPostsWithMetrics } = await import('../analytics/post-data.js');
@@ -244,6 +259,18 @@ export async function runWeeklyReport(): Promise<void> {
   const posts = loadPostsWithMetrics();
   if (posts.length === 0) {
     console.log('No published posts with metrics — skipping report.');
+    return;
+  }
+
+  const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+  const cachedPdfPath = `${REPORT_CACHE_DIR}/atomic-dispatch-${dateStr}.pdf`;
+
+  // Check if today's report already exists — resend instead of regenerating
+  if (existsSync(cachedPdfPath)) {
+    console.log(`Report already generated today — resending cached PDF: ${cachedPdfPath}`);
+    const cached = readFileSync(cachedPdfPath);
+    await sendDocumentBuffer(cached, `atomic-dispatch-${dateStr}.pdf`, 'Performance Report');
+    console.log('Cached PDF report sent to Telegram.');
     return;
   }
 
@@ -255,20 +282,22 @@ export async function runWeeklyReport(): Promise<void> {
   try {
     const { generatePdfReport } = await import('../analytics/pdf-report.js');
     const pdfBuffer = await generatePdfReport();
-    const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+
+    // Cache the PDF locally
+    if (!existsSync(REPORT_CACHE_DIR)) mkdirSync(REPORT_CACHE_DIR, { recursive: true });
+    writeFileSync(cachedPdfPath, pdfBuffer);
+
     await sendDocumentBuffer(pdfBuffer, `atomic-dispatch-${dateStr}.pdf`, 'Performance Report');
     pdfSent = true;
-    console.log('PDF report sent to Telegram.');
+    console.log('PDF report generated, cached, and sent to Telegram.');
   } catch (err) {
     console.warn(`PDF generation failed (falling back to text+charts): ${(err as Error).message}`);
   }
 
-  // Always send text report as supplement (quick-glance in chat)
-  console.log('Sending text report to Telegram...');
-  await sendMessage(message, 'HTML');
-
-  // Send chart images only if PDF failed (avoid duplicate visuals)
+  // Send text report and charts only if PDF failed (fallback)
   if (!pdfSent) {
+    console.log('Sending text report to Telegram (PDF fallback)...');
+    await sendMessage(message, 'HTML');
     let charts: Array<{ name: string; buffer: Buffer; caption: string }> = [];
     try {
       const { generateAllCharts } = await import('../analytics/chart.js');

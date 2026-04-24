@@ -193,10 +193,24 @@ export async function scrapeCommentMetrics(page: Page): Promise<void> {
   }
 
   let updated = 0;
+  let consecutiveFailures = 0;
+  const CIRCUIT_BREAKER_LIMIT = 3;
 
   for (const [postUrl, comments] of byPostUrl) {
     console.log(`  [comment-metrics] Checking ${postUrl} (${comments.length} comment(s))...`);
     const scraped = await scrapeCommentsOnPost(page, postUrl);
+
+    if (scraped.length === 0 && comments.length > 0) {
+      consecutiveFailures++;
+      console.warn(`    No comments by us found on page (${consecutiveFailures} consecutive failures)`);
+      if (consecutiveFailures >= CIRCUIT_BREAKER_LIMIT) {
+        console.error(`[comment-metrics] ${CIRCUIT_BREAKER_LIMIT} consecutive failures — circuit breaker tripped. Aborting.`);
+        break;
+      }
+      continue;
+    }
+
+    consecutiveFailures = 0;
 
     // Match scraped results to our comment records.
     // We typically have 1 comment per post. If multiple, match by order (oldest first).
@@ -214,10 +228,6 @@ export async function scrapeCommentMetrics(page: Page): Promise<void> {
       stateComment.metricsScrapedAt = new Date().toISOString();
       updated++;
       console.log(`    ${sortedComments[i].profileName}: ${m.impressions ?? 'n/a'} impressions, ${m.reactions ?? 'n/a'} reactions`);
-    }
-
-    if (scraped.length === 0 && comments.length > 0) {
-      console.warn(`    No comments by us found on page (comment may be hidden by sort order)`);
     }
   }
 

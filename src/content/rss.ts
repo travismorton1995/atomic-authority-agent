@@ -64,7 +64,7 @@ function normalizeDate(raw: string | undefined): string {
   return '';
 }
 
-export async function fetchLatestItems(maxPerFeed = 10, maxAgeDays = 5): Promise<FeedItem[]> {
+export async function fetchLatestItems(maxPerFeed = 7, maxAgeDays = 5): Promise<FeedItem[]> {
   const cutoff = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
 
   const results = await Promise.allSettled(

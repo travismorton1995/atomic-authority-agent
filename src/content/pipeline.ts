@@ -5,11 +5,11 @@ import { synthesizePost } from './synthesize.js';
 import { screenPost } from './screen.js';
 import { verifyPost } from './verify.js';
 import { addPendingPost, getSourceHistory, cancelPost, PendingPost } from '../hitl/queue.js';
-import { notifyTelegram } from '../hitl/telegram.js';
+import { notifyTelegram, notifyHookSelection, waitForHookSelection, type HookSelectionResult, type NextUpCandidate } from '../hitl/telegram.js';
 import { pickPostType, PostType, POST_TYPE_WEIGHTS } from './persona.js';
 import { rankItems, ScoreBreakdown, TypeFitScores } from './rank.js';
 import { addUnverifiedMentions } from '../poster/mentions.js';
-import { CONTENT_TAGS, ContentTag } from './synthesize.js';
+import { CONTENT_TAGS, ContentTag, generateHookCandidates, screenHookCandidates, injectMentionMarkers } from './synthesize.js';
 import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 
@@ -45,7 +45,7 @@ function reInjectMentionMarkers(revised: string, markers: Array<{ name: string; 
     const marker = `[[MENTION:${name}]]`;
     if (result.includes(marker)) continue; // already injected
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    result = result.replace(new RegExp(`(?<!#)\\b${escaped}\\b`), marker);
+    result = result.replace(new RegExp(`(?<!#)(?<!\\w)${escaped}(?!\\w)`), marker);
   }
   // Strip any markers that ended up inside hashtags (e.g. #[[MENTION:NPX]])
   result = result.replace(/#\[\[MENTION:([^\]]+)\]\]/g, '#$1');
@@ -58,7 +58,7 @@ export interface PipelineOptions {
 }
 
 const CANDIDATES_FILE = 'candidates.json';
-const CANDIDATES_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CANDIDATES_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 /**
  * Select the best post type for an article using typeFit × softened weight.
@@ -244,22 +244,24 @@ async function extractAndRegisterMentions(content: string): Promise<void> {
   }
 }
 
-async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown, multipliers?: { balance: number; recency: number; postContent: number }): Promise<PendingPost> {
+async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown, multipliers?: { balance: number; recency: number; postContent: number }, selectedHook?: string): Promise<PendingPost> {
   console.log(`Post type: ${postType}`);
 
   console.log('Synthesizing draft...');
-  let draft = await synthesizePost(item, postType);
+  let draft = await synthesizePost(item, postType, selectedHook);
   if (combinedScore !== undefined) draft = { ...draft, combinedScore };
   if (scoreBreakdown !== undefined) draft = { ...draft, scoreBreakdown };
   if (multipliers !== undefined) draft = { ...draft, balanceMultiplier: multipliers.balance, recencyMultiplier: multipliers.recency, postContentFeedback: multipliers.postContent };
+  if (item.fullText) draft = { ...draft, articleFullText: item.fullText };
 
   // Strip [[MENTION:X]] markers before passing to verifier/screener so they
   // see clean prose. Markers are re-injected into any revised output afterward.
   const { clean: cleanContent, markers } = stripMentionMarkers(draft.content);
 
-  if (item.fullText) {
-    console.log('Verifying factual claims...');
-    const verification = await verifyPost(cleanContent, item.fullText);
+  const verificationSource = item.fullText ?? item.summary;
+  if (verificationSource) {
+    console.log(`Verifying factual claims${item.fullText ? '' : ' (using summary only — full text unavailable)'}...`);
+    const verification = await verifyPost(cleanContent, verificationSource);
     if (verification.changed) {
       console.log(`Verifier corrected ${verification.flaggedClaims.length} claim(s):`);
       for (const claim of verification.flaggedClaims) console.log(`  - ${claim}`);
@@ -281,6 +283,25 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
     console.log('Auto-revised by screener.');
   }
 
+  // Lock the selected hook — restore it as the first line if the verifier/screener changed it.
+  // The hook was already fact-checked and screened during hook selection, so it's safe.
+  if (selectedHook) {
+    const restoreHook = (text: string): string => {
+      const firstBreak = text.indexOf('\n\n');
+      if (firstBreak < 0) return text;
+      const currentHook = text.slice(0, firstBreak);
+      if (currentHook !== selectedHook) {
+        console.log(`[hook-lock] Restoring selected hook (was modified to: "${currentHook.slice(0, 60)}...")`);
+        return selectedHook + text.slice(firstBreak);
+      }
+      return text;
+    };
+    draft = { ...draft, content: injectMentionMarkers(restoreHook(draft.content)) };
+    if (screening.revisedContent) {
+      screening.revisedContent = injectMentionMarkers(restoreHook(screening.revisedContent));
+    }
+  }
+
   // Tag the final content and store on draft before saving
   const contentTags = await generateContentTags(stripMentionMarkers(draft.content).clean);
   if (contentTags.length > 0) {
@@ -296,13 +317,19 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
   // Extract and register any company names not yet in the mentions dictionary
   await extractAndRegisterMentions(post.finalContent);
 
-  await notifyTelegram(post);
+  try {
+    await notifyTelegram(post);
+  } catch (err: any) {
+    console.error(`Telegram notification failed (post saved as ${post.id}): ${err?.message ?? err}`);
+    console.log('Post was saved — approve/reject via /generate or CLI.');
+  }
   console.log('Done. Awaiting your approval.');
 
   return post;
 }
 
-async function fetchAndFinalize(candidate: ScoredCandidate): Promise<PendingPost> {
+// Fetch article text for a candidate (shared by interactive and non-interactive paths).
+async function fetchArticleForCandidate(candidate: ScoredCandidate): Promise<void> {
   console.log(`Selected: "${candidate.item.title}" (${candidate.item.source})`);
   const bd = candidate.scoreBreakdown;
   console.log(`Score: ${candidate.articleScore}/10 (I:${bd.intersection} N:${bd.novelty} G:${bd.geography} NPX:${bd.npx}) — ${candidate.reasoning}`);
@@ -324,8 +351,132 @@ async function fetchAndFinalize(candidate: ScoredCandidate): Promise<PendingPost
       console.warn('Could not fetch full article text — will use RSS summary only.');
     }
   }
+}
 
-  return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown, { balance: candidate.balanceMultiplier, recency: candidate.recencyMultiplier, postContent: candidate.postContentFeedback });
+// Generate a 1-2 sentence article summary for the hook selection message.
+async function generateArticleSummary(item: FeedItem): Promise<string> {
+  try {
+    const snippet = item.fullText
+      ? item.fullText.split(/\s+/).slice(0, 200).join(' ')
+      : item.summary?.slice(0, 400) ?? '';
+    const response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 100,
+      messages: [{
+        role: 'user',
+        content: `Summarize this article in 1-2 sentences (under 40 words). Be specific — include key names, numbers, and outcomes.\n\nTitle: ${item.title}\n\n${snippet}`,
+      }],
+    });
+    return response.content[0].type === 'text' ? response.content[0].text.trim() : item.title;
+  } catch {
+    return item.summary?.slice(0, 200) ?? item.title;
+  }
+}
+
+// Interactive path: show hooks to user, wait for selection, then finalize.
+async function interactiveHookSelection(
+  candidates: ScoredCandidate[],
+  startIndex: number,
+  store: CandidateStore,
+): Promise<PendingPost | null> {
+  const { excludedUrls, excludedTitles } = getSourceHistory();
+
+  for (let idx = startIndex; idx < candidates.length; idx++) {
+    const candidate = candidates[idx];
+
+    // Skip already-used articles
+    if (candidate.item.link && excludedUrls.includes(candidate.item.link)) continue;
+    if (excludedTitles.some(t => t.toLowerCase() === candidate.item.title.toLowerCase())) continue;
+
+    // Fetch article and generate hooks
+    await fetchArticleForCandidate(candidate);
+
+    console.log('Generating hook candidates...');
+    const articleText = candidate.item.fullText ?? candidate.item.summary ?? '';
+    let hooks = await generateHookCandidates(candidate.item, candidate.postType);
+
+    // Screen hooks and backfill if any are dropped — always aim for 5
+    const TARGET_HOOKS = 5;
+    const MAX_BACKFILL_ROUNDS = 2;
+    let backfillRound = 0;
+
+    while (hooks.length > 0 && backfillRound <= MAX_BACKFILL_ROUNDS) {
+      console.log(`Screening ${hooks.length} hook(s) for factual accuracy...`);
+      hooks = await screenHookCandidates(hooks, candidate.item.title, articleText);
+
+      if (hooks.length >= TARGET_HOOKS) break;
+      if (backfillRound >= MAX_BACKFILL_ROUNDS) break;
+
+      const needed = TARGET_HOOKS - hooks.length;
+      console.log(`${hooks.length} hook(s) passed — generating ${needed} replacement(s)...`);
+      backfillRound++;
+      const extra = await generateHookCandidates(candidate.item, candidate.postType);
+      // Deduplicate against existing hooks
+      const existingTexts = new Set(hooks.map(h => h.hook.toLowerCase()));
+      const newHooks = extra.filter(h => !existingTexts.has(h.hook.toLowerCase())).slice(0, needed);
+      hooks = [...hooks, ...newHooks];
+    }
+
+    if (hooks.length === 0) {
+      console.warn('No hooks survived screening — skipping to next article.');
+      continue;
+    }
+
+    // Trim to 5 if we ended up with more
+    hooks = hooks.slice(0, TARGET_HOOKS);
+    console.log(`${hooks.length} hook(s) ready. Sending to Telegram for selection...`);
+
+    // Build summary and next-up list
+    const summary = await generateArticleSummary(candidate.item);
+    const nextUp: NextUpCandidate[] = candidates
+      .slice(idx + 1, idx + 4)
+      .filter(c => !excludedUrls.includes(c.item.link) && !excludedTitles.some(t => t.toLowerCase() === c.item.title.toLowerCase()))
+      .slice(0, 3)
+      .map(c => ({ title: c.item.title, combinedScore: c.combinedScore, postType: c.postType }));
+
+    const sessionId = `hk_${Date.now()}`;
+
+    // Send Telegram message and wait for user response
+    await notifyHookSelection(sessionId, {
+      title: candidate.item.title,
+      link: candidate.item.link,
+      summary,
+      score: candidate.combinedScore,
+      scoreBreakdown: candidate.scoreBreakdown,
+      postType: candidate.postType,
+      balanceMultiplier: candidate.balanceMultiplier,
+      recencyMultiplier: candidate.recencyMultiplier,
+      postContentFeedback: candidate.postContentFeedback,
+    }, hooks, nextUp);
+
+    const result: HookSelectionResult = await waitForHookSelection(sessionId, hooks, candidate.item.title);
+
+    if (result.action === 'exit') {
+      // Don't advance pointer — same article stays at top of queue next time
+      writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx }, null, 2));
+      console.log('[hook-selection] User exited pipeline.');
+      return null;
+    }
+
+    if (result.action === 'skip') {
+      // Advance pointer past this article
+      writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx + 1 }, null, 2));
+      console.log(`[hook-selection] Skipping "${candidate.item.title.slice(0, 50)}"...`);
+      continue;
+    }
+
+    // Hook selected — advance pointer past this article
+    writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex: idx + 1 }, null, 2));
+
+    // User picked a hook — finalize with it
+    console.log(`[hook-selection] Proceeding with hook: "${result.selectedHook?.slice(0, 60)}..."`);
+    return finalize(candidate.item, candidate.postType, candidate.combinedScore, candidate.scoreBreakdown,
+      { balance: candidate.balanceMultiplier, recency: candidate.recencyMultiplier, postContent: candidate.postContentFeedback },
+      result.selectedHook);
+  }
+
+  console.log('[hook-selection] All candidates exhausted.');
+  return null;
 }
 
 // Re-runs synthesis for an existing post — same article, same post type, fresh hooks/text/screening.
@@ -357,13 +508,27 @@ export async function rewritePost(post: PendingPost): Promise<PendingPost> {
         if (fetched.fullText) item.fullText = fetched.fullText;
         if (fetched.imageUrl) item.imageUrl = fetched.imageUrl;
       } catch {
-        console.warn('Could not fetch full article text — will use summary only.');
+        console.warn('Could not fetch full article text.');
       }
+    }
+
+    // Fall back to cached article text from original generation if re-fetch failed
+    if (!item.fullText && post.draft.articleFullText) {
+      console.log('Using cached article text from original generation.');
+      item.fullText = post.draft.articleFullText;
     }
 
     // Cancel the old post
     cancelPost(post.id);
     console.log(`Old post ${post.id} cancelled.`);
+
+    // Preserve the selected hook from the original post — it was already approved by the user
+    const existingContent = post.finalContent ?? post.draft.content;
+    const firstBreak = existingContent.indexOf('\n\n');
+    const lockedHook = firstBreak >= 0 ? existingContent.slice(0, firstBreak).replace(/\[\[MENTION:[^\]]+\]\]/g, m => m.replace(/\[\[MENTION:|\]\]/g, '')) : undefined;
+    if (lockedHook) {
+      console.log(`Locking hook: "${lockedHook.slice(0, 60)}..."`);
+    }
 
     const postType = post.draft.postType as PostType;
     return await finalize(item, postType, post.draft.combinedScore, post.draft.scoreBreakdown,
@@ -371,13 +536,14 @@ export async function rewritePost(post: PendingPost): Promise<PendingPost> {
         balance: post.draft.balanceMultiplier,
         recency: post.draft.recencyMultiplier ?? 1,
         postContent: post.draft.postContentFeedback ?? 1,
-      } : undefined);
+      } : undefined,
+      lockedHook);
   } finally {
     pipelineRunning = false;
   }
 }
 
-export async function runPipeline(options: PipelineOptions = {}): Promise<PendingPost> {
+export async function runPipeline(options: PipelineOptions = {}): Promise<PendingPost | null> {
   if (pipelineRunning) {
     throw new Error('Pipeline already in progress — concurrent calls are not allowed.');
   }
@@ -420,7 +586,7 @@ export async function runInsiderPipeline(assembledNotes: string): Promise<Pendin
   }
 }
 
-async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost> {
+async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost | null> {
   const lastPostType = getLastPostType();
 
   if (options.url) {
@@ -443,33 +609,13 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
   }
 
   // --- Use cached candidates if available and fresh ---
-  const store = loadCandidateStore();
+  let store = loadCandidateStore();
   if (store && store.nextIndex < store.candidates.length) {
-    const { excludedUrls, excludedTitles } = getSourceHistory();
-    let chosen: ScoredCandidate | null = null;
-    let nextIndex = store.nextIndex;
+    console.log(`Using cached candidates (${store.candidates.length} total, starting at ${store.nextIndex})`);
+    const result = await interactiveHookSelection(store.candidates, store.nextIndex, store);
+    if (result) return result;
 
-    while (nextIndex < store.candidates.length) {
-      const c = store.candidates[nextIndex++];
-      if (c.item.link && excludedUrls.includes(c.item.link)) {
-        console.log(`Skipping cached candidate "${c.item.title.slice(0, 50)}" — URL already used.`);
-        continue;
-      }
-      if (excludedTitles.some(t => t.toLowerCase() === c.item.title.toLowerCase())) {
-        console.log(`Skipping cached candidate "${c.item.title.slice(0, 50)}" — title already used.`);
-        continue;
-      }
-      chosen = c;
-      break;
-    }
-
-    if (chosen) {
-      writeFileSync(CANDIDATES_FILE, JSON.stringify({ ...store, nextIndex }, null, 2));
-      console.log(`Using cached candidate ${nextIndex} of ${store.candidates.length} (ranked ${new Date(store.generatedAt).toLocaleTimeString()})`);
-      return fetchAndFinalize(chosen);
-    }
-
-    console.log('All cached candidates exhausted or excluded — fetching fresh articles...');
+    console.log('All cached candidates exhausted or skipped — fetching fresh articles...');
   }
 
   // --- Fresh fetch + rank + score ---
@@ -490,11 +636,31 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
   }
   console.log(`Total articles: ${items.length} (${rssItems.length} RSS + ${newsDataItems.length} NewsData, ${rssItems.length + newsDataItems.length - items.length} duplicates removed)`);
 
-  if (items.length === 0) throw new Error('No feed items found. Check network or feed URLs.');
+  // Lightweight keyword pre-filter — drop articles with zero relevance keywords in title + summary
+  const RELEVANCE_KEYWORDS = [
+    'nuclear', 'reactor', 'smr', 'nrc', 'cnsc', 'iaea', 'uranium', 'enrichment', 'isotope',
+    'fission', 'fusion', 'candu', 'opg', 'bruce power', 'darlington', 'pickering',
+    'cnl', 'doe', 'licensing', 'regulatory', 'safety case', 'decommission',
+    'ai', 'artificial intelligence', 'machine learning', 'llm', 'large language model',
+    'automation', 'digital twin', 'deep learning', 'neural network',
+    'energy', 'power plant', 'grid', 'electricity', 'megawatt', 'gigawatt',
+    'data center', 'data centre', 'clean energy', 'decarboni', 'net zero',
+  ];
+  const keywordRe = new RegExp(RELEVANCE_KEYWORDS.join('|'), 'i');
+  const beforeFilter = items.length;
+  const filtered = items.filter(item => {
+    const text = `${item.title} ${item.summary ?? ''}`;
+    return keywordRe.test(text);
+  });
+  if (filtered.length < beforeFilter) {
+    console.log(`Keyword pre-filter: ${beforeFilter} → ${filtered.length} (removed ${beforeFilter - filtered.length} with zero keyword hits)`);
+  }
 
-  console.log(`Ranking ${items.length} articles...`);
+  if (filtered.length === 0) throw new Error('No feed items found after keyword filtering.');
+
+  console.log(`Ranking ${filtered.length} articles...`);
   const { excludedTitles, excludedUrls, rejectedSources } = getSourceHistory();
-  const ranked = await rankItems(items, {
+  const ranked = await rankItems(filtered, {
     recentTitles: getRecentTitles(),
     excludedTitles,
     excludedUrls,
@@ -535,13 +701,19 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost>
 
   if (scored.length === 0) throw new Error('No candidates after scoring. All articles may have scored 0.');
 
-  // Save full ranked list — next call will start at index 1
-  writeFileSync(CANDIDATES_FILE, JSON.stringify({
+  // Save full ranked list
+  store = {
     generatedAt: new Date().toISOString(),
-    nextIndex: 1,
+    nextIndex: 0,
     candidates: scored,
-  } satisfies CandidateStore, null, 2));
+  };
+  writeFileSync(CANDIDATES_FILE, JSON.stringify(store, null, 2));
 
-  return fetchAndFinalize(scored[0]);
+  // Interactive hook selection for fresh candidates
+  const result = await interactiveHookSelection(scored, 0, store);
+  if (result) return result;
+
+  // User exited or all candidates exhausted — not an error
+  return null;
 }
 

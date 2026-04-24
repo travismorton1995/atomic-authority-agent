@@ -1,6 +1,5 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import crypto from 'crypto';
-import { getProfileLiftBonus } from '../analytics/attribution.js';
 import { getOrganicProfileBonus } from '../analytics/organic-attribution.js';
 
 const STATE_FILE = 'outbound_state.json';
@@ -154,9 +153,8 @@ export function getProfilesByPriority(maxProfiles?: number): OutboundProfile[] {
     const commentCooldown = hoursSinceLastComment(p.url);
     const commentPenalty = commentCooldown < 24 ? (24 - commentCooldown) * 0.5 : 0; // 1-day cooldown
 
-    const liftBonus = getProfileLiftBonus(p.url);
-    const organicBonus = getOrganicProfileBonus(p.url);
-    const attributionBonus = Math.max(liftBonus, organicBonus); // use the stronger signal
+    // Attribution bonus: organic follows/comment normalized to 0–1, scaled to match priority range
+    const attributionBonus = getOrganicProfileBonus(p.url) * 15;
     const priority = hoursSinceChecked + frequencyBonus - commentPenalty + attributionBonus;
     return { profile: p, priority };
   });

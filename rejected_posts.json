@@ -1150,5 +1150,262 @@
     "createdAt": "2026-04-11T00:30:34.895Z",
     "wordCount": 141,
     "actedAt": "2026-04-11T00:34:35.728Z"
+  },
+  {
+    "id": "post_1776459135225",
+    "draft": {
+      "content": "Your change management software is missing what your best users already know.\n\nWe learned that lesson this week at [[MENTION:NPX]].\n\nOur internal change management professionals reviewed our OCM planning tool.\n\nThey flagged gaps we hadn't prioritized, things that seemed minor from a software perspective but would frustrate an operator using this daily. We turned those fixes around in two days. The tool immediately felt closer to production-ready, even though we're only about 50% through back-end development. Early feedback from domain experts isn't a nice-to-have. It's the difference between building something clever and building something usable.\n\nBy Thursday we started building the \"execute\" sub-module.\n\nThis is where our LLM agent drafts email communications, training materials, and meeting schedules from a plan.\n\nThe goal is cognitive exoskeleton territory: automate the logistical grind of managing a change so project managers can focus on stakeholder judgment calls and risk decisions. We're not replacing the PM's brain. We're clearing the paperwork off their desk so they can actually think.\n\nStill unresolved: how we validate these AI-generated outputs before they reach a client environment.\n\nThat's next week's problem.\n\n#NuclearEnergy #NPX #FutureOfWork #EnergyPolicy",
+      "firstComment": "Are you dealing with this gap between what software vendors think operators need and what actually matters in the field?",
+      "title": "Software Lacks User Knowledge",
+      "postType": "insider",
+      "sourceTitle": "Weekly insider observations from NPX",
+      "sourceUrl": "",
+      "sourceDate": "2026-04-17T20:51:45.903Z",
+      "sourceFeed": "Daily Notes",
+      "generatedAt": "2026-04-17T20:51:59.393Z",
+      "wordCount": 191,
+      "contentTags": ["change-management", "llm", "document-automation", "adoption", "trust", "explainability"]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook is strong and under 140 characters. However, the post has a contrasting reframe ('We're not replacing the PM's brain. We're clearing the paperwork off their desk') which is an automatic rewrite trigger. There's also a scannability problem: several paragraphs fall outside the one-liner/mini-para character ranges and the 2:1 rhythm is violated. 'OCM' is an unexpanded acronym (bump +1). The nuclear angle is thin, mostly a company name drop. Content itself is solid and specific.",
+      "revisedContent": "Your change management software is missing what your best users already know.\n\nWe learned that lesson this week at [[MENTION:NPX]].\n\nOur internal change management professionals reviewed our organizational change management (OCM) planning tool. They flagged gaps we hadn't prioritized, things that seemed minor from a software perspective but would frustrate an operator using this daily.\n\nWe turned those fixes around in two days.\n\nThe tool immediately felt closer to production-ready, even at 50% back-end completion.\n\nEarly feedback from domain experts is the difference between building something clever and building something usable. By Thursday we started building the \"execute\" sub-module, where our LLM agent drafts email communications, training materials, and meeting schedules from a plan.\n\nThe goal is cognitive exoskeleton territory.\n\nAutomate the logistical grind so project managers can focus on stakeholder judgment and risk.\n\nThe PM's brain stays in charge. The AI clears the paperwork off their desk so they can actually think. We're already seeing how much time gets consumed by formatting, scheduling, and templating rather than real decision-making.\n\nStill unresolved: how we validate AI-generated outputs before they reach a client environment.\n\nThat's next week's problem.\n\n#NuclearEnergy #NPX #FutureOfWork",
+      "revisedFirstComment": "Are you dealing with this gap between what software vendors think operators need and what actually matters in the field?"
+    },
+    "finalContent": "Your change management software is missing what your best users already know.\n\nWe learned that lesson this week at [[MENTION:NPX]].\n\nOur internal change management professionals reviewed our organizational change management (OCM) planning tool. They flagged gaps we hadn't prioritized, things that seemed minor from a software perspective but would frustrate an operator using this daily.\n\nWe turned those fixes around in two days.\n\nThe tool immediately felt closer to production-ready, even at 50% back-end completion.\n\nEarly feedback from domain experts is the difference between building something clever and building something usable. By Thursday we started building the \"execute\" sub-module, where our LLM agent drafts email communications, training materials, and meeting schedules from a plan.\n\nThe goal is cognitive exoskeleton territory.\n\nAutomate the logistical grind so project managers can focus on stakeholder judgment and risk.\n\nThe PM's brain stays in charge. The AI clears the paperwork off their desk so they can actually think. We're already seeing how much time gets consumed by formatting, scheduling, and templating rather than real decision-making.\n\nStill unresolved: how we validate AI-generated outputs before they reach a client environment.\n\nThat's next week's problem.\n\n#NuclearEnergy #NPX #FutureOfWork",
+    "status": "rejected",
+    "createdAt": "2026-04-17T20:52:15.225Z",
+    "wordCount": 190,
+    "actedAt": "2026-04-17T20:57:33.013Z"
+  },
+  {
+    "id": "post_1776459579505",
+    "draft": {
+      "content": "Most nuclear AI announcements won't survive first contact with operations. Ours just did.\n\nLast week we almost shipped a planning module our users would have hated. We built it the way developers preferred, then [[MENTION:NPX]]'s change management professionals flagged critical workflow gaps that would frustrate project managers running nuclear facility changes. By Friday we'd scrapped finished features and rebuilt what they actually need.\n\nThe new execute sub-module is a LLM agent that drafts comms, training docs, and meeting schedules from a change plan—a cognitive exoskeleton for project managers. It handles coordination drudgery so they can focus on stakeholder judgment, the part requiring human expertise.\n\nWe're 50% through the back end. Elena picks up the front end this week while I scope testing.\n\nThat testing piece is its own project. Proving reliability to nuclear operators means budgeting for verification and validation early as infrastructure investment, not an afterthought. Operators reject tools that skip this step, no matter how polished the demo.\n\nStill figuring out the right testing framework. Monday I start scoping it.\n\n#NuclearEnergy #NuclearInnovation #FutureOfWork #NPX",
+      "firstComment": "Are you running into similar gaps between how your tools are designed and how your operators actually work?",
+      "title": "Nuclear AI Survives Operations Test",
+      "postType": "insider",
+      "sourceTitle": "Weekly insider observations from NPX",
+      "sourceUrl": "",
+      "sourceDate": "2026-04-17T20:57:56.092Z",
+      "sourceFeed": "Daily Notes",
+      "generatedAt": "2026-04-17T20:59:27.854Z",
+      "wordCount": 177,
+      "contentTags": ["llm", "machine-learning", "change-management", "adoption", "trust", "document-automation"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook is strong — punchy, under 140 chars, creates tension. Content is genuine and specific (scrapping finished features, naming team members, sharing real progress). However, there are structural issues: the scannability 2:1 rule is violated (multiple mini-paragraphs appear back-to-back), and 'cognitive exoskeleton' is a bit jargony without adding clarity. The phrase 'first contact with operations' is a nice touch. Minor AI-isms: the three-item list 'comms, training docs, and meeting schedules' is fine in context. The post reads like a real builder's update, which is good, but needs reformatting.",
+      "revisedContent": "Most nuclear AI announcements won't survive first contact with operations. Ours just did.\n\nLast week we almost shipped a planning module our users would have hated.\n\nWe built it the way developers preferred, not the way project managers actually work.\n\n[[MENTION:NPX]]'s change management professionals flagged critical workflow gaps that would frustrate PMs running nuclear facility changes. By Friday we'd scrapped finished features and rebuilt around what they actually need. The new execute sub-module is an LLM agent that drafts comms, training docs, and meeting schedules from a change plan.\n\nIt handles coordination drudgery so PMs can focus on stakeholder judgment.\n\nWe're 50% through the back end. Elena picks up the front end this week.\n\nThat leaves testing, which is its own project. Proving reliability to nuclear operators means budgeting for verification and validation early, as infrastructure investment, not an afterthought. Operators reject tools that skip this step, no matter how polished the demo.\n\nStill figuring out the right framework. Monday I start scoping it.\n\n#NuclearEnergy #NuclearInnovation #FutureOfWork",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Most nuclear AI announcements won't survive first contact with operations. Ours just did.\n\nLast week we almost shipped a planning module our users would have hated.\n\nWe built it the way developers preferred, not the way project managers actually work.\n\n[[MENTION:NPX]]'s change management professionals flagged critical workflow gaps that would frustrate PMs running nuclear facility changes. By Friday we'd scrapped finished features and rebuilt around what they actually need. The new execute sub-module is an LLM agent that drafts comms, training docs, and meeting schedules from a change plan.\n\nIt handles coordination drudgery so PMs can focus on stakeholder judgment.\n\nWe're 50% through the back end. Elena picks up the front end this week.\n\nThat leaves testing, which is its own project. Proving reliability to nuclear operators means budgeting for verification and validation early, as infrastructure investment, not an afterthought. Operators reject tools that skip this step, no matter how polished the demo.\n\nStill figuring out the right framework. Monday I start scoping it.\n\n#NuclearEnergy #NuclearInnovation #FutureOfWork",
+    "status": "rejected",
+    "createdAt": "2026-04-17T20:59:39.505Z",
+    "wordCount": 167,
+    "actedAt": "2026-04-17T21:00:03.494Z"
+  },
+  {
+    "id": "post_1776728885750",
+    "draft": {
+      "content": "CANDU reactors could achieve higher burnup on the same fuel. The catch? It took thorium to make it work.\n\n[[MENTION:CNL]] just signed on to manufacture full-scale ANEEL fuel bundles at Chalk River—dropping into existing hardware with zero core modifications.\n\nThe real challenge is organizational. [[MENTION:Clean Core]]'s ANEEL fuel targets burnup exceeding 60 GWd/t, meaning operators face entirely new performance envelopes. Every procedure, safety assumption, and training module needs revisiting.\n\nThis is where AI could genuinely help—not by replacing qualification, but by simulating fuel behavior across thousands of scenarios faster than traditional deterministic safety analysis alone.\n\nThe [[MENTION:CNSC]] prelicensing review is underway. The workforce readiness conversation should be too.\n\nFleet-compatible fuel is only deployable when operators trust the data. That trust builds through operational experience, transparent modeling, and direct access to evidence—not polished summaries.\n\n#NuclearEnergy #AdvancedReactors #EnergyPolicy #AIInEnergy",
+      "firstComment": "Sourced from ANS Newswire.\n\nAre operators at your facilities already training on higher burnup fuel scenarios?",
+      "title": "Thorium Extends CANDU Fuel",
+      "postType": "change-management",
+      "sourceTitle": "CNL to manufacture test bundles of thorium-based fuel",
+      "sourceUrl": "https://www.ans.org/news/2026-04-20/article-7949/cnl-to-manufacture-test-bundles-of-thoriumbased-fuel/",
+      "sourceDate": "2026-04-20T14:25:29.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-04-20T23:47:34.067Z",
+      "imageUrl": "https://www.ans.org/file/23825/l/CCTE CNL.jpg",
+      "wordCount": 137,
+      "combinedScore": 7.800000000000001,
+      "scoreBreakdown": {
+        "intersection": 0,
+        "novelty": 2,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.25,
+      "contentTags": [
+        "candu",
+        "reactor-design",
+        "safety-case",
+        "licensing",
+        "cnsc",
+        "machine-learning",
+        "digital-twin",
+        "workforce",
+        "trust",
+        "adoption",
+        "canada"
+      ]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "Strong hook with genuine tension (under 140 chars, creates curiosity). Technical content is specific and credible. The post uses domain terms like 'burnup' and 'GWd/t' without explanation, which could lose AI-focused readers. One contrasting reframe detected in the last paragraph ('not polished summaries'). The 2:1 scannability structure is violated: paragraphs 3 and 4 are both mini-paragraphs in sequence, and paragraphs 5 and 6 are also consecutive mini-paragraphs. These structural issues plus the reframe trigger a mandatory rewrite.",
+      "revisedContent": "CANDU reactors could achieve higher burnup on the same fuel. The catch? It took thorium to make it work.\n\nCNL just signed on to manufacture full-scale ANEEL fuel bundles at Chalk River.\n\nThey drop into existing hardware with zero core modifications.\n\nClean Core's ANEEL fuel targets burnup (a measure of how much energy is extracted from fuel) exceeding 60 GWd/t. That means operators face entirely new performance envelopes. Every procedure, safety assumption, and training module needs revisiting.\n\nAI could genuinely help here by simulating fuel behavior across thousands of scenarios.\n\nTraditional deterministic safety analysis alone can't match that speed.\n\nThe CNSC prelicensing review is underway. The workforce readiness conversation should be too. Fleet-compatible fuel is only deployable when operators trust the data, and that trust builds through operational experience, transparent modeling, and direct access to evidence.\n\n#NuclearEnergy #AdvancedReactors #EnergyPolicy #AIInEnergy",
+      "revisedFirstComment": null
+    },
+    "finalContent": "CANDU reactors could achieve higher burnup on the same fuel. The catch? It took thorium to make it work.\n\n[[MENTION:CNL]] just signed on to manufacture full-scale ANEEL fuel bundles at Chalk River - dropping into existing hardware with zero core modifications.\n\nThe real challenge is organizational. [[MENTION:Clean Core]]'s ANEEL fuel targets burnup exceeding 60 GWd/t, meaning operators face entirely new performance envelopes. Every procedure, safety assumption, and training module needs revisiting.\n\nThis is where AI could genuinely help - not by replacing qualification, but by simulating fuel behavior across thousands of scenarios faster than traditional deterministic safety analysis alone.\n\nThe [[MENTION:CNSC]] prelicensing review is underway. The workforce readiness conversation should be too.\n\nFleet-compatible fuel is only deployable when operators trust the data. That trust builds through operational experience, transparent modeling, and direct access to evidence - not polished summaries.\n\n#NuclearEnergy #AdvancedReactors #EnergyPolicy #AIInEnergy",
+    "status": "rejected",
+    "createdAt": "2026-04-20T23:48:05.750Z",
+    "wordCount": 143,
+    "actedAt": "2026-04-20T23:48:21.945Z"
+  },
+  {
+    "id": "post_1776805488415",
+    "draft": {
+      "content": "AtkinsRéalis is licensing its reactor at 925 MW. The real capacity? 1,000 MW. Here's why the gap matters.\n\nThey're deliberately leaving performance on the table.\n\nThat's a change management decision disguised as an engineering one.\n\nThe CANDU [[MENTION:Monark]] submission to the CNSC prioritizes \"replication of an operating, regulator-trusted design\" over maximizing output. The uprate to 1,000 MW exists in the engineering margins, but [[MENTION:AtkinsRéalis]] chose execution certainty first. They're earning trust before claiming capability. That instinct is exactly what AI adoption in nuclear lacks right now.\n\nMost AI vendors lead with the 1,000 MW pitch.\n\nThey sell full capability before proving baseline reliability.\n\nNuclear organizations resist AI not because engineers are stubborn, but because they've spent careers in a zero-failure-tolerance culture where unproven claims get people hurt. If you want operators to trust an AI system, do what AtkinsRéalis did here: license at 925, prove it works, then discuss the uprate.\n\nEarn boring trust first. The capacity is always there when you're ready.\n\n#NuclearEnergy #AIinEnergy #EnergyPolicy #NuclearSafety",
+      "firstComment": "Sourced from NewsData Newswire.\n\nAre you seeing this \"prove it first\" approach work in your own organizations?",
+      "title": "Nuclear Reactor Licensing Capacity Gap",
+      "postType": "change-management",
+      "sourceTitle": "AtkinsRéalis Confirms CANDU® Monark Reactor Power Rating",
+      "sourceUrl": "https://www.newswire.ca/news-releases/atkinsrealis-confirms-candu-r-monark-reactor-power-rating-886371572.html",
+      "sourceDate": "2026-04-20T22:12:00.000Z",
+      "sourceFeed": "NewsData: Newswire",
+      "generatedAt": "2026-04-21T21:04:21.530Z",
+      "imageUrl": "https://mma.prnewswire.com/media/2960715/AtkinsR_alis_AtkinsR_alis_Confirms_CANDU__Monark_Reactor_Power_R.jpg?p=facebook",
+      "wordCount": 167,
+      "combinedScore": 8.112,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 1,
+        "geography": 2,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.3,
+      "contentTags": ["candu", "cnsc", "licensing", "reactor-design", "change-management", "trust", "adoption", "machine-learning"]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "Strong hook with a specific number and genuine curiosity gap (under 140 chars). The nuclear-to-AI analogy is earned, not bolted on. CANDU Monark and CNSC are domain-specific but accessible in context. No major AI-isms, no contrasting reframe patterns, no hollow CTAs. The 2:1 scannability structure is mostly clean. One minor issue: the first comment source format uses a colon instead of a period after the source name, which needs fixing.",
+      "revisedContent": null,
+      "revisedFirstComment": "Sourced from NewsData Newswire.\n\nAre you seeing this \"prove it first\" approach work in your own organizations?"
+    },
+    "finalContent": "AtkinsRéalis is licensing its reactor at 925 MW. The real capacity? 1,000 MW. Here's why the gap matters.\n\nThey're deliberately leaving performance on the table.\n\nThat's a change management decision disguised as an engineering one.\n\nThe CANDU [[MENTION:Monark]] submission to the CNSC prioritizes \"replication of an operating, regulator-trusted design\" over maximizing output. The uprate to 1,000 MW exists in the engineering margins, but [[MENTION:AtkinsRéalis]] chose execution certainty first. They're earning trust before claiming capability. That instinct is exactly what AI adoption in nuclear lacks right now.\n\nMost AI vendors lead with the 1,000 MW pitch.\n\nThey sell full capability before proving baseline reliability.\n\nNuclear organizations resist AI not because engineers are stubborn, but because they've spent careers in a zero-failure-tolerance culture where unproven claims get people hurt. If you want operators to trust an AI system, do what AtkinsRéalis did here: license at 925, prove it works, then discuss the uprate.\n\nEarn boring trust first. The capacity is always there when you're ready.\n\n#NuclearEnergy #AIinEnergy #EnergyPolicy #NuclearSafety",
+    "status": "rejected",
+    "createdAt": "2026-04-21T21:04:48.415Z",
+    "wordCount": 167,
+    "actedAt": "2026-04-21T21:09:47.241Z"
+  },
+  {
+    "id": "post_1776959405698",
+    "draft": {
+      "content": "Advanced reactors aren't coming in 2030. TerraPower's already building one in Wyoming—and finished permitting in 18 months.\n\nSilicon Valley's favorite mantra is \"move fast and break things.\" Try that in nuclear and people die.\n\nThe NRC originally scheduled a 27-month review for [[MENTION:TerraPower]]'s Natrium permit. They completed it in 18—fast by nuclear standards. Speed came from a streamlined hearing process and a safety case thorough enough for the NRC to finish ahead of schedule.\n\nI spent years at a nuclear station writing test procedures. Every shortcut had a name attached to it. Yours.\n\nThe 345 MWe Natrium reactor didn't get approved because someone shipped an MVP. It got approved because TerraPower built a safety case so thorough the NRC finished early. The AI industry keeps telling itself iteration beats preparation. Nuclear proves the opposite every single day.\n\n#NuclearEnergy #SMR #EnergyPolicy #AIInEnergy",
+      "firstComment": "Sourced from World Nuclear News.\n\nHave you seen similar speedups when regulators get early engagement on projects?",
+      "title": "Advanced Reactors Realistic Timeline",
+      "postType": "contrarian",
+      "sourceTitle": "TerraPower starts construction of 'first US utility-scale advanced nuclear plant'",
+      "sourceUrl": "https://www.world-nuclear-news.org/articles/terrapower-starts-construction-of-first-us-utility-scale-advanced-nuclear-plant",
+      "sourceDate": "2026-04-23T14:27:56.000Z",
+      "sourceFeed": "World Nuclear News",
+      "generatedAt": "2026-04-23T15:49:27.727Z",
+      "imageUrl": "https://world-nuclear-news.org/images/articles/terrapower_kemmerer1_construction_730_X_66791.jpg",
+      "wordCount": 137,
+      "combinedScore": 7.785204077489298,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.2476288585720028,
+      "contentTags": ["smr", "safety-case", "nrc", "licensing", "reactor-design", "new-build", "doe", "northwest-us"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook is strong and under 140 chars, with genuine tension. However, there are structural issues: the post has a contrasting reframe ('It got approved because... not because someone shipped an MVP') that needs elimination, and the scannability pattern is violated — several paragraphs fall outside the one-liner/mini-para character ranges and don't follow the 2:1 rhythm. The nuclear detail is real and specific, and the personal credibility line lands well. Bumping score for structural violations.",
+      "revisedContent": "Advanced reactors aren't coming in 2030. TerraPower's already building one in Wyoming—and finished permitting in 18 months.\n\nThey finished permitting in 18 months, not 27.\n\nSilicon Valley loves \"move fast and break things.\"\n\nTry that in nuclear and people die. The NRC originally scheduled a 27-month review for [[MENTION:TerraPower]]'s Natrium permit. Speed came from a streamlined hearing process and a safety case thorough enough for the NRC to finish ahead of schedule.\n\nI spent years at a nuclear station writing test procedures.\n\nEvery shortcut had a name attached to it. Yours.\n\nThe 345 MWe Natrium reactor got approved because TerraPower built a safety case so complete the regulator ran out of questions early. The AI industry keeps telling itself iteration beats preparation. Nuclear proves the opposite every single day.\n\n#NuclearEnergy #SMR #EnergyPolicy #AIInEnergy",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Advanced reactors aren't coming in 2030. TerraPower's already building one in Wyoming - and finished permitting in 18 months.\n\nThey finished permitting in 18 months, not 27.\n\nSilicon Valley loves \"move fast and break things.\"\n\nTry that in nuclear and people die. The NRC originally scheduled a 27-month review for [[MENTION:TerraPower]]'s Natrium permit. Speed came from a streamlined hearing process and a safety case thorough enough for the NRC to finish ahead of schedule.\n\nI spent years at a nuclear station writing test procedures.\n\nEvery shortcut had a name attached to it. Yours.\n\nThe 345 MWe Natrium reactor got approved because TerraPower built a safety case so complete the regulator ran out of questions early. The AI industry keeps telling itself iteration beats preparation. Nuclear proves the opposite every single day.\n\n#NuclearEnergy #SMR #EnergyPolicy #AIInEnergy",
+    "status": "rejected",
+    "createdAt": "2026-04-23T15:50:05.698Z",
+    "wordCount": 135,
+    "actedAt": "2026-04-23T15:51:14.364Z"
+  },
+  {
+    "id": "post_1776982924199",
+    "draft": {
+      "content": "Massachusetts banned nuclear for 40 years. Governor Healey just reversed course, and all six New England governors agreed.\n\nSilicon Valley would call that a 40-year \"pivot.\"\n\nIn nuclear, that timeline is the point.\n\nThe tech industry worships speed. At [[MENTION:Bruce Power]], I watched engineers spend months validating a single control program change before it touched a reactor. One wrong variable could violate your safety case—the documented proof that a plant stays safe under worst-case conditions.\n\nHealey grew up learning evacuation routes near Seabrook Station. She didn't flip overnight. Years as attorney general pushing for stricter oversight preceded her endorsement of new builds. That deliberate, evidence-driven path earns public trust.\n\n\"Fail fast\" doesn't work when failure means potassium iodide pills for your neighbors.\n\nNuclear's slowness is a feature the tech world still can't accept.\n\n#NuclearEnergy #EnergyPolicy #SMR #AIInEnergy",
+      "firstComment": "Sourced from The Boston Globe.\n\nHave any of you worked through similar policy reversals in your regions?",
+      "title": "New England Nuclear Policy Shift",
+      "postType": "contrarian",
+      "sourceTitle": "Forty years after Chernobyl, is New England on the verge of a nuclear renaissance?",
+      "sourceUrl": "https://www.bostonglobe.com/2026/04/23/science/massachusetts-nuclear-power-renaissance-chernobyl/",
+      "sourceDate": "2026-04-23T13:30:01.000Z",
+      "sourceFeed": "NewsData: The Boston Globe",
+      "generatedAt": "2026-04-23T22:21:31.575Z",
+      "imageUrl": "https://bostonglobe-prod.cdn.arcpublishing.com/resizer/v2/5DFR3TTHY5GLTFAZ2GNPXQ7API.jpg?auth=003cc1578a65f0fc2e99692877dfb92327bfa1f6b7eaf9d29dde49245e528639&width=1440",
+      "wordCount": 137,
+      "combinedScore": 8.37031191363845,
+      "scoreBreakdown": {
+        "intersection": 2,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.0731169120049293,
+      "contentTags": ["safety-case", "new-build", "public-opinion", "trust", "smr", "northeast-us"]
+    },
+    "screening": {
+      "cringeScore": 3,
+      "reasoning": "Strong hook under 140 chars that creates genuine curiosity. Good industry-specific detail (Bruce Power, Seabrook Station, safety case explained inline). Tone is conversational and authoritative without AI-isms. The contrasting reframe 'Nuclear's slowness is a feature the tech world still can't accept' is a direct claim rather than an 'It's not X, it's Y' pattern, so it passes. However, the scannability structure needs checking — several paragraphs fall outside the strict 2:1 one-liner/mini-para pattern, which triggers a mandatory rewrite.",
+      "revisedContent": "Massachusetts banned nuclear for 40 years. Governor Healey just reversed course, and all six New England governors agreed.\n\nSilicon Valley would call that a 40-year \"pivot.\"\n\nIn nuclear, that timeline is the point.\n\nThe tech industry worships speed. At Bruce Power, I watched engineers spend months validating a single control program change before it touched a reactor. One wrong variable could violate your safety case, the documented proof that a plant stays safe under worst-case conditions.\n\nHealey grew up learning evacuation routes near Seabrook Station.\n\nShe didn't flip overnight on nuclear.\n\nYears as attorney general pushing for stricter oversight preceded her endorsement of new builds. That deliberate, evidence-driven path is exactly what earns public trust. \"Fail fast\" doesn't work when failure means potassium iodide pills for your neighbors.\n\nNuclear's slowness is a feature the tech world still can't accept.\n\n#NuclearEnergy #EnergyPolicy #SMR #AIInEnergy",
+      "revisedFirstComment": null
+    },
+    "finalContent": "Massachusetts banned nuclear for 40 years. Governor Healey just reversed course, and all six New England governors agreed.\n\nSilicon Valley would call that a 40-year \"pivot.\"\n\nIn nuclear, that timeline is the point.\n\nThe tech industry worships speed. At [[MENTION:Bruce Power]], I watched engineers spend months validating a single control program change before it touched a reactor. One wrong variable could violate your safety case - the documented proof that a plant stays safe under worst-case conditions.\n\nHealey grew up learning evacuation routes near Seabrook Station. She didn't flip overnight. Years as attorney general pushing for stricter oversight preceded her endorsement of new builds. That deliberate, evidence-driven path earns public trust.\n\n\"Fail fast\" doesn't work when failure means potassium iodide pills for your neighbors.\n\nNuclear's slowness is a feature the tech world still can't accept.\n\n#NuclearEnergy #EnergyPolicy #SMR #AIInEnergy",
+    "status": "rejected",
+    "createdAt": "2026-04-23T22:22:04.199Z",
+    "wordCount": 139,
+    "actedAt": "2026-04-23T23:25:02.186Z"
+  },
+  {
+    "id": "post_1777046048769",
+    "draft": {
+      "content": "If the NRC can't staff up while cutting 7%, licensing 10 new reactors by 2030 becomes a safety question, not just a political one.\n\nThe myth here: budget cuts mean the government isn't serious about nuclear.\n\nThat framing misses what actually happened.\n\nThe Trump administration's executive orders from May 2025 shortened licensing timelines, trimmed regulations, and streamlined reviews. The goal is to quadruple U.S. nuclear capacity by 2050. An 8% budget cut alongside that ambition looks contradictory on the surface. But regulatory efficiency and regulatory funding are separate variables. The real risk isn't reduced spending. It's whether a leaner NRC can maintain rigorous safety analysis while processing applications faster.\n\nFewer staff doing more reviews doesn't automatically mean weaker oversight.\n\nIt does mean the margin for error in workforce planning just got very thin.\n\nThree reactors licensed by July 4, 2026 is an extraordinary timeline. If those safety cases hold up under scrutiny, the \"budget cut = less serious\" myth dies permanently.\n\n#NuclearEnergy #NuclearSafety #SMR",
+      "firstComment": "Sourced from The Epoch Times.\n\nAre any of you involved in NRC licensing seeing faster turnarounds yet?",
+      "title": "NRC Staffing Crisis Threatens Nuclear Expansion",
+      "postType": "myth-busting",
+      "sourceTitle": "Despite Budget Trim, Staffing Shortfalls, Federal Nuclear Energy Push on Target",
+      "sourceUrl": "https://www.theepochtimes.com/business/despite-budget-trim-staffing-shortfalls-federal-nuclear-energy-push-on-target-6015941",
+      "sourceDate": "2026-04-23T16:28:09.000Z",
+      "sourceFeed": "NewsData: The Epoch Times",
+      "generatedAt": "2026-04-24T15:53:50.681Z",
+      "imageUrl": "https://img.theepochtimes.com/assets/uploads/2025/12/05/id5954573-SMR-Palisades_View062525-1536x997.jpg-1080x720.webp",
+      "wordCount": 180,
+      "combinedScore": 6.833083145271349,
+      "scoreBreakdown": {
+        "intersection": 1,
+        "novelty": 2,
+        "geography": 1,
+        "npx": 0
+      },
+      "balanceMultiplier": 1.2,
+      "recencyMultiplier": 1.3,
+      "postContentFeedback": 1.0950453758447674,
+      "articleFullText": "SavePrintJohn HaugheyReporter4/23/2026|Updated: 4/23/20260:00X 1President Donald Trump has prioritized the development of reactor technologies by accelerating momentum established under 2024’s ADVANCE Act with four May 2025 executive orders that shorten licensing timelines, trim regulations, and streamline reviews in a drive to quadruple the nation’s nuclear energy capacity by 2050.\n\nBut the reality of safely achieving that goal was questioned during an April 22 House hearing on the Trump administration’s Nuclear Regulatory Commission (NRC) spending request, which clips allocations by 8 percent and staffing by 7 percent while pushing full-throttle to meet the president’s aim to license 10 new reactors by 2030, including three by July 4, 2026.",
+      "contentTags": ["regulatory", "safety-case", "licensing", "nrc", "new-build", "workforce", "northeast-us"]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The hook is strong — specific, under 140 chars, creates genuine tension. Content is substantive and well-argued. However, the post has a contrasting reframe ('The real risk isn't reduced spending. It's whether...') which is an automatic rewrite trigger. The scannability structure also has issues: the long mini-paragraph runs well over 350 chars, and the rhythm doesn't follow the 2:1 pattern consistently. Bumping score for structural violation.",
+      "revisedContent": "If the NRC can't staff up while cutting 7%, licensing 10 new reactors by 2030 becomes a safety question, not just a political one.\n\nThe myth: budget cuts mean the government isn't serious about nuclear.\n\nThat framing misses what actually happened.\n\nThe Trump administration's May 2025 executive orders shortened licensing timelines, trimmed regulations, and streamlined reviews. The goal is to quadruple U.S. nuclear capacity by 2050. An 8% budget cut alongside that ambition looks contradictory on the surface.\n\nBut regulatory efficiency and regulatory funding are separate variables.\n\nThe core risk is whether a leaner NRC can maintain rigorous safety analysis while processing applications faster.\n\nFewer staff doing more reviews doesn't automatically mean weaker oversight. But the margin for error in workforce planning just got very thin. If hiring lags behind application volume, quality suffers before anyone notices.\n\nThree reactors licensed by July 4, 2026 is an extraordinary timeline.\n\nIf those safety cases hold up under scrutiny, the \"budget cut = less serious\" myth dies permanently.\n\n#NuclearEnergy #NuclearSafety #SMR",
+      "revisedFirstComment": null
+    },
+    "finalContent": "If the NRC can't staff up while cutting 7%, licensing 10 new reactors by 2030 becomes a safety question, not just a political one.\n\nThe myth: budget cuts mean the government isn't serious about nuclear.\n\nThat framing misses what actually happened.\n\nThe Trump administration's May 2025 executive orders shortened licensing timelines, trimmed regulations, and streamlined reviews. The goal is to quadruple U.S. nuclear capacity by 2050. An 8% budget cut alongside that ambition looks contradictory on the surface.\n\nBut regulatory efficiency and regulatory funding are separate variables.\n\nThe core risk is whether a leaner NRC can maintain rigorous safety analysis while processing applications faster.\n\nFewer staff doing more reviews doesn't automatically mean weaker oversight. But the margin for error in workforce planning just got very thin. If hiring lags behind application volume, quality suffers before anyone notices.\n\nThree reactors licensed by July 4, 2026 is an extraordinary timeline.\n\nIf those safety cases hold up under scrutiny, the \"budget cut = less serious\" myth dies permanently.\n\n#NuclearEnergy #NuclearSafety #SMR",
+    "status": "rejected",
+    "createdAt": "2026-04-24T15:54:08.769Z",
+    "wordCount": 168,
+    "actedAt": "2026-04-24T15:56:29.925Z"
   }
 ]

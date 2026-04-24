@@ -628,18 +628,36 @@ function refreshProfileBonusCache(): Map<string, number> {
 }
 
 /**
- * Returns a priority bonus for a profile based on its organic follow attribution.
- * Profiles whose comments generate more indirect follows per comment get higher bonuses.
- * Clamped to [0, 15] to avoid dominating the priority score.
+ * Returns a normalized 0–1 attribution score for a profile based on organic follow data.
+ * Profiles whose comments generate more indirect follows per comment score higher.
  *
- * Scale: 0.1 indirect follows/comment → bonus of ~3, 0.5 → ~15 (max).
+ * Uses the profile with the highest follows/comment as the reference (1.0).
+ * New profiles with fewer than 3 comments score 1.0 (benefit of the doubt).
+ * After 3+ comments, the real attribution score is used.
  */
 export function getOrganicProfileBonus(profileUrl: string): number {
   const cache = refreshProfileBonusCache();
+
+  // Check comment count for this profile — new profiles get full score
+  const data = getOrganicAttribution();
+  if (data) {
+    const profile = data.profileRollup.find(p => p.profileUrl === profileUrl);
+    if (!profile || profile.commentCount < 3) return 1.0;
+  } else {
+    // No attribution data at all — treat as new
+    return 1.0;
+  }
+
   const perComment = cache.get(profileUrl);
   if (!perComment || perComment <= 0) return 0;
 
-  // Scale: multiply by 30 so that 0.5 follows/comment → 15 (max)
-  const bonus = perComment * 30;
-  return Math.max(0, Math.min(15, bonus));
+  // Normalize against the best profile using square root to compress outliers
+  // and give mid-tier profiles a meaningful score
+  let maxPerComment = 0;
+  for (const val of cache.values()) {
+    if (val > maxPerComment) maxPerComment = val;
+  }
+  if (maxPerComment <= 0) return 0;
+
+  return Math.min(Math.sqrt(perComment) / Math.sqrt(maxPerComment), 1);
 }

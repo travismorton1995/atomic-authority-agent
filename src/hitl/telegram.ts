@@ -37,6 +37,67 @@ export function waitForAction(postId: string): Promise<'approved' | 'rejected' |
 // Tracks posts waiting for a custom photo upload — maps chatId to postId
 const pendingPhotoUploads = new Map<string, string>();
 
+// Tracks draft notification message IDs — used to edit status in-place
+const draftMessageIds = new Map<string, number>(); // postId → telegram message_id
+
+// Update the draft notification message with a status line
+export async function updateDraftStatus(postId: string, status: string): Promise<void> {
+  if (!token || !chatId) return;
+  const messageId = draftMessageIds.get(postId);
+  if (!messageId) return;
+
+  const sender = new Telegraf(token);
+  try {
+    // Append status to the original message by editing it
+    const posts = getPendingPosts();
+    const post = posts.find((p: any) => p.id === postId);
+    if (!post) return;
+
+    const statusLine = `\n\n*Status:* ${status}`;
+    const updatedText = formatMessage(post) + statusLine;
+
+    await sender.telegram.editMessageText(chatId, messageId, undefined, updatedText, {
+      parse_mode: 'Markdown',
+    });
+  } catch (err: any) {
+    // Non-fatal — the message may have been deleted or is too old to edit
+    console.warn(`[status-update] Could not edit draft message: ${err?.message ?? err}`);
+  }
+}
+
+// --- Interactive hook selection ---
+export interface HookSelectionResult {
+  action: 'hook' | 'skip' | 'exit';
+  selectedHook?: string;
+}
+
+interface HookSession {
+  hooks: Array<{ hook: string; score: number; technique: string }>;
+  articleTitle: string;
+  resolve: (result: HookSelectionResult) => void;
+}
+
+const hookSessions = new Map<string, HookSession>();
+
+export function waitForHookSelection(sessionId: string, hooks: Array<{ hook: string; score: number; technique: string }>, articleTitle: string): Promise<HookSelectionResult> {
+  return new Promise((resolve) => {
+    hookSessions.set(sessionId, { hooks, articleTitle, resolve });
+  });
+}
+
+// Typing indicator — sends "typing..." action every 4s until stopped.
+// Returns a stop function. Call it when the operation completes.
+export function startTypingIndicator(): () => void {
+  if (!token || !chatId) return () => {};
+  const sender = new Telegraf(token);
+  const id = setInterval(() => {
+    sender.telegram.sendChatAction(chatId!, 'typing').catch(() => {});
+  }, 4000);
+  // Send immediately too
+  sender.telegram.sendChatAction(chatId!, 'typing').catch(() => {});
+  return () => clearInterval(id);
+}
+
 // Optional handler called after a rejection — used by scheduler to auto-regenerate
 let onRejectHandler: (() => Promise<void>) | null = null;
 let onGenerateHandler: ((url?: string) => Promise<void>) | null = null;
@@ -77,6 +138,18 @@ export function startBot(): void {
   }
 
   bot = new Telegraf(token);
+
+  // Register bot command menu (the "/" button in Telegram)
+  bot.telegram.setMyCommands([
+    { command: 'generate', description: 'Generate a new post draft' },
+    { command: 'outbound', description: 'Run outbound comment poll' },
+    { command: 'metrics', description: 'Send performance report' },
+    { command: 'poll', description: 'Check for new comments on posts' },
+    { command: 'insider', description: 'Generate insider post from notes' },
+    { command: 'notes', description: 'Add a daily work note' },
+    { command: 'login', description: 'Renew LinkedIn session' },
+    { command: 'help', description: 'Show all commands' },
+  ]).catch(err => console.warn('Failed to set bot commands:', err.message));
 
   bot.command('help', async (ctx) => {
     await ctx.reply(
@@ -161,15 +234,16 @@ export function startBot(): void {
       await ctx.reply('Running content pipeline...').catch(err => console.error('[/generate] Failed to send reply:', err));
     }
 
+    const stopTyping = startTypingIndicator();
     onGenerateHandler(articleUrl)
       .then((status: any) => {
+        stopTyping();
         if (status === 'already_running') {
           ctx.reply('Pipeline is already running — try again shortly.').catch(() => {});
         }
-        // On success, notifyTelegram fires from within the pipeline with the draft
-        // On failure, sendAlert fires from within runGenerate
       })
       .catch(err => {
+        stopTyping();
         console.error('[/generate] Unexpected error:', err);
         ctx.reply(`Pipeline failed: ${err.message}`).catch(() => {});
       });
@@ -189,12 +263,15 @@ export function startBot(): void {
     }
     console.log(`Telegram /insider command received (${count} note(s))`);
     await ctx.reply(`Generating insider post from ${count} note(s)...`);
+    const stopTyping = startTypingIndicator();
     try {
       const { runInsiderPipeline } = await import('../content/pipeline.js');
       await runInsiderPipeline(notes);
     } catch (err: any) {
       console.error('[/insider] Pipeline failed:', err);
       await ctx.reply(`Insider pipeline failed: ${err.message}`).catch(() => {});
+    } finally {
+      stopTyping();
     }
   });
 
@@ -202,8 +279,10 @@ export function startBot(): void {
     if (!onPollHandler) { await ctx.reply('Poll not available.'); return; }
     console.log('Telegram /poll command received');
     await ctx.reply('Running comment poll...').catch(err => console.error('[/poll] Failed to send reply:', err));
+    const stopTyping = startTypingIndicator();
     onPollHandler()
       .then((stats: any) => {
+        stopTyping();
         if (stats?.error === 'already running') {
           ctx.reply('Comment poll is already running — try again shortly.').catch(() => {});
         } else if (stats?.error) {
@@ -213,6 +292,7 @@ export function startBot(): void {
         }
       })
       .catch(err => {
+        stopTyping();
         console.error('[/poll] Unexpected error:', err);
         ctx.reply(`Comment poll failed: ${err.message}`).catch(() => {});
       });
@@ -222,9 +302,11 @@ export function startBot(): void {
     if (!onOutboundHandler) { await ctx.reply('Outbound poll not available.'); return; }
     console.log('Telegram /outbound command received');
     await ctx.reply('Running outbound poll...').catch(err => console.error('[/outbound] Failed to send reply:', err));
+    const stopTyping = startTypingIndicator();
     onOutboundHandler()
-      .then(() => ctx.reply('Outbound poll complete.').catch(() => {}))
+      .then(() => { stopTyping(); ctx.reply('Outbound poll complete.').catch(() => {}); })
       .catch(err => {
+        stopTyping();
         console.error('[/outbound] Poll error:', err);
         ctx.reply(`Outbound poll failed: ${err.message}`).catch(() => {});
       });
@@ -234,9 +316,11 @@ export function startBot(): void {
     if (!onMetricsHandler) { await ctx.reply('Metrics fetch not available.'); return; }
     console.log('Telegram /metrics command received');
     await ctx.reply('Fetching engagement metrics...').catch(err => console.error('[/metrics] Failed to send reply:', err));
+    const stopTyping = startTypingIndicator();
     onMetricsHandler()
-      .then(() => ctx.reply('Metrics fetch complete.').catch(() => {}))
+      .then(() => { stopTyping(); ctx.reply('Metrics fetch complete.').catch(() => {}); })
       .catch(err => {
+        stopTyping();
         console.error('[/metrics] Fetch error:', err);
         ctx.reply(`Metrics fetch failed: ${err.message}`).catch(() => {});
       });
@@ -303,6 +387,7 @@ export function startBot(): void {
         }
         await ctx.answerCbQuery('Text approved — generating image options...');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await updateDraftStatus(payload, '✅ Text approved — selecting image...');
 
         // Generate images in the background, then send Step 2 message
         (async () => {
@@ -454,6 +539,7 @@ export function startBot(): void {
           await ctx.answerCbQuery(`Approved (${label})!`);
           await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
           await ctx.reply(`Insider post approved (${label}). Scheduled for ${scheduledStr}.`);
+          await updateDraftStatus(payload, `📅 Scheduled for ${scheduledStr} | Image: ${label}`);
         } else {
           const scheduledFor = pickScheduledTime();
           const post = approvePost(payload, scheduledFor);
@@ -473,6 +559,7 @@ export function startBot(): void {
           await ctx.answerCbQuery(`Approved (${label})!`);
           await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
           await ctx.reply(`Post approved (${label}). Scheduled for ${scheduledStr}.`);
+          await updateDraftStatus(payload, `📅 Scheduled for ${scheduledStr} | Image: ${label}`);
         }
 
         pendingResolutions.get(payload)?.('approved');
@@ -487,6 +574,7 @@ export function startBot(): void {
         }
         await ctx.answerCbQuery('Rejected.');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await updateDraftStatus(payload, '❌ Rejected');
         pendingResolutions.get(payload)?.('rejected');
         pendingResolutions.delete(payload);
 
@@ -522,6 +610,7 @@ export function startBot(): void {
         console.log(`Post ${payload} cancelled and removed.`);
         await ctx.answerCbQuery('Cancelled.');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+        await updateDraftStatus(payload, '🗑 Cancelled');
         await ctx.reply('Post cancelled and removed.');
         pendingResolutions.get(payload)?.('cancelled');
         pendingResolutions.delete(payload);
@@ -682,6 +771,55 @@ export function startBot(): void {
           formatOutboundMessage(comment),
           { parse_mode: 'HTML', reply_markup: buildOutboundKeyboard(comment) },
         );
+      }
+
+      // --- Hook selection callbacks ---
+      if (action === 'hk_pick') {
+        // payload format: "sessionId:hookIndex"
+        const sep = payload.indexOf(':');
+        const sessionId = sep >= 0 ? payload.slice(0, sep) : payload;
+        const hookIndex = sep >= 0 ? parseInt(payload.slice(sep + 1), 10) : 0;
+        const session = hookSessions.get(sessionId);
+        if (!session) {
+          await ctx.answerCbQuery('Session expired.').catch(() => {});
+          return;
+        }
+        const chosen = session.hooks[hookIndex];
+        if (!chosen) {
+          await ctx.answerCbQuery('Invalid hook.').catch(() => {});
+          return;
+        }
+        await ctx.answerCbQuery(`Hook ${hookIndex + 1} selected.`).catch(() => {});
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        console.log(`[hk_pick] Hook ${hookIndex + 1} selected: "${chosen.hook.slice(0, 60)}..."`);
+        hookSessions.delete(sessionId);
+        session.resolve({ action: 'hook', selectedHook: chosen.hook });
+      }
+
+      if (action === 'hk_skip') {
+        const session = hookSessions.get(payload);
+        if (!session) {
+          await ctx.answerCbQuery('Session expired.').catch(() => {});
+          return;
+        }
+        await ctx.answerCbQuery('Skipping to next article...').catch(() => {});
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        console.log(`[hk_skip] Skipping article: "${session.articleTitle.slice(0, 50)}"`);
+        hookSessions.delete(payload);
+        session.resolve({ action: 'skip' });
+      }
+
+      if (action === 'hk_exit') {
+        const session = hookSessions.get(payload);
+        if (!session) {
+          await ctx.answerCbQuery('Session expired.').catch(() => {});
+          return;
+        }
+        await ctx.answerCbQuery('Pipeline exited.').catch(() => {});
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        console.log(`[hk_exit] User exited hook selection`);
+        hookSessions.delete(payload);
+        session.resolve({ action: 'exit' });
       }
 
       if (action === 'oc_skip') {
@@ -1028,10 +1166,11 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      await sender.telegram.sendMessage(chatId, formatMessage(post), {
+      const sent = await sender.telegram.sendMessage(chatId, formatMessage(post), {
         parse_mode: 'Markdown',
         reply_markup: { inline_keyboard: keyboard },
       });
+      draftMessageIds.set(post.id, sent.message_id);
       return;
     } catch (err: any) {
       const isNetwork = err?.code === 'ECONNRESET' || err?.code === 'ECONNREFUSED' || err?.code === 'ETIMEDOUT' || err?.type === 'system';
@@ -1043,6 +1182,83 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
       }
     }
   }
+}
+
+export interface HookSelectionArticle {
+  title: string;
+  link: string;
+  summary: string;         // 1-2 sentence summary
+  score: number;
+  scoreBreakdown: { intersection: number; novelty: number; geography: number; npx: number };
+  postType: string;
+  balanceMultiplier: number;
+  recencyMultiplier: number;
+  postContentFeedback: number;
+}
+
+export interface NextUpCandidate {
+  title: string;
+  combinedScore: number;
+  postType: string;
+}
+
+export async function notifyHookSelection(
+  sessionId: string,
+  article: HookSelectionArticle,
+  hooks: Array<{ hook: string; score: number; technique: string }>,
+  nextUp: NextUpCandidate[],
+): Promise<void> {
+  if (!token || !chatId) {
+    console.log('[hook-selection] Telegram not configured');
+    return;
+  }
+
+  const sender = new Telegraf(token);
+  const bd = article.scoreBreakdown;
+
+  let msg = `<b>Article:</b> ${esc(article.title)}\n`;
+  msg += `<a href="${esc(article.link)}">View article</a>\n\n`;
+  msg += `<b>Score:</b> ${article.score.toFixed(1)} (I:${bd.intersection} N:${bd.novelty} G:${bd.geography} NPX:${bd.npx})\n`;
+  msg += `Balance: ${article.balanceMultiplier.toFixed(2)}x | Recency: ${article.recencyMultiplier.toFixed(2)}x | Feedback: ${article.postContentFeedback.toFixed(2)}x\n`;
+  msg += `<b>Type:</b> ${esc(article.postType)}\n\n`;
+  msg += `<b>Summary:</b> ${esc(article.summary)}\n\n`;
+  msg += `<b>Hook options:</b>\n`;
+
+  for (let i = 0; i < hooks.length; i++) {
+    msg += `\n${i + 1}. <i>[${esc(hooks[i].technique)}]</i> (${hooks[i].score}/10)\n${esc(hooks[i].hook)}\n`;
+  }
+
+  if (nextUp.length > 0) {
+    msg += `\n<b>Next up (if skipped):</b>\n`;
+    for (const c of nextUp) {
+      msg += `  • ${c.combinedScore.toFixed(1)} — "${esc(c.title.slice(0, 50))}" <i>(${c.postType})</i>\n`;
+    }
+  }
+
+  const hookButtons = hooks.map((_, i) => ({
+    text: `Hook ${i + 1}`,
+    callback_data: `hk_pick:${sessionId}:${i}`,
+  }));
+
+  // Split hook buttons into rows of 3
+  const hookRows: Array<Array<{ text: string; callback_data: string }>> = [];
+  for (let i = 0; i < hookButtons.length; i += 3) {
+    hookRows.push(hookButtons.slice(i, i + 3));
+  }
+
+  const keyboard = [
+    ...hookRows,
+    [
+      { text: 'Skip article', callback_data: `hk_skip:${sessionId}` },
+      { text: 'Exit', callback_data: `hk_exit:${sessionId}` },
+    ],
+  ];
+
+  await sender.telegram.sendMessage(chatId, msg, {
+    parse_mode: 'HTML',
+    reply_markup: { inline_keyboard: keyboard },
+    link_preview_options: { is_disabled: true },
+  });
 }
 
 function getNextCandidatesSummary(): string {
@@ -1079,7 +1295,7 @@ function formatMessage(post: PendingPost): string {
       })
     : null;
   const safeTitle = escMd(post.draft.sourceTitle);
-  const sourceLink = post.draft.sourceUrl ? `\n${post.draft.sourceUrl}` : '';
+  const sourceLink = post.draft.sourceUrl ? `\n${escMd(post.draft.sourceUrl)}` : '';
   const sourceNote = sourceDateStr
     ? `*Source:* ${safeTitle} _(${sourceDateStr})_${sourceLink}`
     : `*Source:* ${safeTitle}${sourceLink}`;

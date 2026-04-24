@@ -14,15 +14,23 @@ export const CONTENT_TAGS = [
   'llm', 'machine-learning', 'digital-twin', 'anomaly-detection', 'document-automation', 'explainability',
   // Organizational
   'change-management', 'workforce', 'trust', 'adoption',
-  // Geography / other
-  'canada', 'uk',
-  // US federal & regional
-  'usa', 'doe', 'ferc', 'southeast-us', 'midwest-us', 'northeast-us', 'texas', 'appalachia', 'pacific-northwest',
+  // Geography — Canada regional
+  'ontario', 'quebec', 'western-canada', 'eastern-canada', 'territories',
+  // Geography — other
+  'uk',
+  // Geography — US regional
+  'doe', 'ferc', 'southeast-us', 'midwest-us', 'northeast-us', 'southwest-us', 'northwest-us',
   // Other
   'cybersecurity', 'public-opinion',
 ] as const;
 
 export type ContentTag = typeof CONTENT_TAGS[number];
+
+export interface HookCandidate {
+  hook: string;
+  score: number;
+  technique: string;
+}
 
 export interface DraftPost {
   content: string;
@@ -47,6 +55,7 @@ export interface DraftPost {
   stockImageDownloadUrl?: string;  // Unsplash download tracking URL
   stockImageOptions?: Array<{ url: string; photographer: string; downloadUrl: string; description: string }>; // all stock candidates
   wordCount?: number;          // word count of final post content
+  articleFullText?: string;     // cached full article text for rewrites/verification
 }
 
 const HOOK_THRESHOLD = 7;
@@ -166,13 +175,207 @@ Return ONLY a valid JSON array (no markdown, no extra text):
   return bestHook;
 }
 
+// Generate multiple hook candidates for interactive selection via Telegram.
+// Returns up to 5 hooks sorted by score, each with the technique used.
+export async function generateHookCandidates(item: FeedItem, postType: PostType): Promise<HookCandidate[]> {
+  const articleSnippet = item.fullText
+    ? item.fullText.split(/\s+/).slice(0, 200).join(' ')
+    : item.summary?.slice(0, 400) ?? '';
+
+  const ageDays = articleAgeDays(item.pubDate);
+  const ageRule = ageLanguageRule(ageDays);
+
+  const allHooks: HookCandidate[] = [];
+
+  for (let round = 0; round < 2; round++) {
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 800,
+      messages: [{
+        role: 'user',
+        content: `Generate 5 candidate opening lines for a LinkedIn post, then score each one.
+
+Article: ${item.title}
+Source: ${item.source}
+Content snippet: ${articleSnippet}
+Post type: ${postType}
+${ageRule ? `\nTEMPORAL RULE: ${ageRule}` : ''}
+
+HARD CONSTRAINT: Each hook must be under 140 characters. Score 0 if over 140 chars.
+
+MANDATORY: Every hook MUST include at least one specific entity from the article — a company name, location, dollar figure, or number. Generic hooks with no concrete nouns score 0.
+
+TOP-PERFORMING HOOK EXAMPLES (study these — they all contain specific entities and create stakes):
+- "Bruce Power's cobalt-60 harvest builds on 60 years of isotope innovation at Chalk River."
+- "Only two projects in all of Texas qualify for the state's $350M nuclear fund."
+- "Port Hope is still cleaning up Manhattan Project uranium. Now Ontario wants to build a 10 GW plant next door."
+
+HOOK TECHNIQUES (use one per candidate — each candidate must use a DIFFERENT technique):
+
+1. TENSION GAP — state a fact that creates an obvious "wait, why?" reaction
+2. UNEXPECTED NUMBER — lead with a specific stat that feels wrong or surprising
+3. CONTRAST/IRONY — juxtapose two things that shouldn't go together
+4. CONSEQUENCE LEAD — skip the news, go straight to what it means
+5. PROVOCATIVE CLAIM — say something mildly bold that earns the scroll
+
+RULES:
+- Under 140 characters (mandatory — score 0 if over)
+- Each candidate must use a DIFFERENT technique from the list above
+- Must include at least one specific entity (company, place, dollar figure, number)
+- Do NOT restate the article headline — find the buried insight, the implication, or the tension
+- Do NOT start with "I", "In [year]", a rhetorical question, or a definition
+- Do NOT use "just" as the second word (e.g. "[Company] just...") — find a more engaging entry point
+${round > 0 ? `\nPrevious hooks (do NOT repeat these — generate completely different angles):\n${allHooks.map(h => `- "${h.hook}"`).join('\n')}` : ''}
+
+SCORING:
+- 9-10: Makes you stop scrolling. Creates genuine curiosity or tension. Contains a specific entity. Under 140 chars.
+- 7-8: Strong hook with clear tension or surprise. Contains a specific entity. Under 140 chars.
+- 4-6: Informative but doesn't create urgency to read more, or missing specific entity.
+- 1-3: Headline restatement, generic, no concrete nouns, or over 140 chars.
+
+Return ONLY a valid JSON array (no markdown, no extra text):
+[{"hook": "<opening line>", "score": <1-10>, "technique": "<technique name>"}, ...]`,
+      }],
+    });
+
+    const rawText = response.content[0].type === 'text' ? response.content[0].text.trim() : '[]';
+    const arrayMatch = rawText.match(/\[[\s\S]*\]/);
+    if (!arrayMatch) continue;
+
+    try {
+      const hooks = JSON.parse(arrayMatch[0]) as Array<{ hook: string; score: number; technique?: string }>;
+      for (const h of hooks) {
+        if (h.hook.length > 140) continue;
+        allHooks.push({ hook: sanitizeHook(h.hook), score: h.score, technique: h.technique ?? 'unknown' });
+      }
+    } catch {
+      continue;
+    }
+
+    // Stop after round 1 if we already have 5+ valid hooks
+    if (allHooks.length >= 5) break;
+  }
+
+  // Deduplicate by hook text and sort by score descending
+  const seen = new Set<string>();
+  const unique = allHooks.filter(h => {
+    const key = h.hook.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  unique.sort((a, b) => b.score - a.score);
+  return unique.slice(0, 5);
+}
+
+// Hard code-level sanitizer for hooks — catches AI-isms the LLM screening misses.
+function sanitizeHook(hook: string): string {
+  let h = hook;
+  // Replace em-dashes with comma or period
+  h = h.replace(/\s*—\s*/g, ', ');
+  // Replace en-dashes used as em-dashes
+  h = h.replace(/\s*–\s*/g, ', ');
+  // Clean up double commas from replacements
+  h = h.replace(/,\s*,/g, ',');
+  // Clean up ", ." patterns
+  h = h.replace(/,\s*\./g, '.');
+  // Trim trailing/leading whitespace
+  return h.trim();
+}
+
+// Screen and fact-check hook candidates before presenting to user.
+// A single LLM call checks all hooks against the article for factual accuracy
+// and AI-isms. Returns only hooks that pass, with any minor fixes applied.
+export async function screenHookCandidates(
+  hooks: HookCandidate[],
+  articleTitle: string,
+  articleText: string,
+): Promise<HookCandidate[]> {
+  if (hooks.length === 0) return [];
+
+  const snippet = articleText.split(/\s+/).slice(0, 300).join(' ');
+  const hookList = hooks.map((h, i) => `${i + 1}. "${h.hook}" [${h.technique}, ${h.score}/10]`).join('\n');
+
+  try {
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 800,
+      messages: [{
+        role: 'user',
+        content: `You are a fact-checker and copy editor for LinkedIn hooks. Review each hook against the article and fix issues.
+
+ARTICLE TITLE: ${articleTitle}
+ARTICLE TEXT: ${snippet}
+
+HOOKS TO REVIEW:
+${hookList}
+
+For each hook, check:
+1. FACTUAL ACCURACY (critical): Every claim, number, name, and acronym expansion must be supported by the article. If factually wrong, fix it. Only mark as "drop" if the fact cannot be fixed.
+2. AI-ISMS (fix only): Fix em-dashes (—) to commas or periods. Fix "is real", "game-changer", "transformative", "delve", "dive in". Do NOT drop hooks for being vague, clickbaity, rhetorical, or provocative — these are intentional engagement techniques.
+3. LENGTH: Must be under 140 characters after any edits.
+
+IMPORTANT: Hooks are ALLOWED to be vague, surprising, clickbaity, or use rhetorical devices. Only drop a hook if it contains a factual error that cannot be fixed. When in doubt, fix rather than drop.
+
+Return ONLY a valid JSON array (no markdown, no extra text):
+[{"index": <1-based>, "status": "pass" | "fixed" | "drop", "hook": "<original or fixed text>", "reason": "<brief reason if fixed or dropped>"}]`,
+      }],
+    });
+
+    const raw = response.content[0].type === 'text' ? response.content[0].text.trim() : '[]';
+    const arrayMatch = raw.match(/\[[\s\S]*\]/);
+    if (!arrayMatch) {
+      console.warn('[hook-screen] No JSON array in response — returning hooks unscreened.');
+      return hooks;
+    }
+
+    const results = JSON.parse(arrayMatch[0]) as Array<{
+      index: number;
+      status: 'pass' | 'fixed' | 'drop';
+      hook: string;
+      reason?: string;
+    }>;
+
+    const screened: HookCandidate[] = [];
+    for (const r of results) {
+      if (r.status === 'drop') {
+        console.log(`  [hook-screen] Dropped hook ${r.index}: ${r.reason ?? 'no reason'}`);
+        continue;
+      }
+      const original = hooks[r.index - 1];
+      if (!original) continue;
+
+      let finalHook = r.hook.length <= 140 ? r.hook : original.hook;
+      // Hard code-level sanitizer — catch AI-isms the LLM screening missed
+      finalHook = sanitizeHook(finalHook);
+      if (finalHook.length > 140) finalHook = finalHook.slice(0, 140);
+      if (r.status === 'fixed' && r.hook !== original.hook) {
+        console.log(`  [hook-screen] Fixed hook ${r.index}: "${original.hook.slice(0, 50)}..." → "${finalHook.slice(0, 50)}..."`);
+      }
+      screened.push({ hook: finalHook, score: original.score, technique: original.technique });
+    }
+
+    // If screening dropped everything, return originals as fallback
+    if (screened.length === 0) {
+      console.warn('[hook-screen] All hooks dropped — returning originals as fallback.');
+      return hooks;
+    }
+
+    return screened;
+  } catch (err: any) {
+    console.warn(`[hook-screen] Screening failed: ${err?.message ?? err} — returning hooks unscreened.`);
+    return hooks;
+  }
+}
+
 // Wraps verified company names in post text with [[MENTION:Name]] markers.
 // Matches only whole-word occurrences; skips if already wrapped.
 // Longer names are matched first to avoid partial replacements (e.g. "CNL" inside "Canadian Nuclear Laboratories").
 // Mentions can appear anywhere in the post including the hook — long-name orgs that
 // expand poorly (CNSC, NRC, IAEA, DOE) are blocklisted so only clean short names get tagged.
 // The LLM screener is responsible for removing mentions that aren't primary subjects of the post.
-function injectMentionMarkers(text: string): string {
+export function injectMentionMarkers(text: string): string {
   const verified = verifiedMentions();
   if (Object.keys(verified).length === 0) return text;
 
@@ -184,7 +387,8 @@ function injectMentionMarkers(text: string): string {
     const marker = `[[MENTION:${name}]]`;
     if (result.includes(marker)) continue;
     const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    result = result.replace(new RegExp(`(?<!#)\\b${escaped}\\b`), marker);
+    // Use lookahead/lookbehind for word chars instead of \b — handles hyphenated names (e.g. X-energy)
+    result = result.replace(new RegExp(`(?<!#)(?<!\\w)${escaped}(?!\\w)`), marker);
   }
 
   return result;
@@ -196,7 +400,7 @@ function injectMentionMarkers(text: string): string {
 import { getConfidenceWeightedHashtagPerformance, getCorrelationInsights } from '../analytics/feedback.js';
 import { robustAverage } from '../analytics/stats.js';
 
-export async function synthesizePost(item: FeedItem, postType: PostType): Promise<DraftPost> {
+export async function synthesizePost(item: FeedItem, postType: PostType, selectedHook?: string): Promise<DraftPost> {
   const articleContent = item.fullText
     ? `Summary: ${item.summary}\n\nFull article text:\n${item.fullText}`
     : `Summary: ${item.summary}`;
@@ -204,8 +408,15 @@ export async function synthesizePost(item: FeedItem, postType: PostType): Promis
   const ageDays = articleAgeDays(item.pubDate);
   const ageRule = ageLanguageRule(ageDays);
 
-  console.log('Generating hooks...');
-  const bestHook = await generateBestHook(item, postType);
+  // Use pre-selected hook if provided (from interactive hook selection), otherwise auto-generate
+  let bestHook: string;
+  if (selectedHook) {
+    bestHook = selectedHook;
+    console.log(`Using selected hook: "${bestHook}"`);
+  } else {
+    console.log('Generating hooks...');
+    bestHook = await generateBestHook(item, postType);
+  }
   const hookConstraint = bestHook
     ? `\nOPENING LINE (use this exact sentence as your first line — do not alter it):\n${bestHook}\n`
     : '';
@@ -311,35 +522,34 @@ Write the LinkedIn post now. You have the full article text above — use specif
     max_tokens: 80,
     messages: [{
       role: 'user',
-      content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment. Output the comment text only — do not include the URL.
+      content: `You wrote this LinkedIn post:\n\n${content}\n\nWrite a first comment designed to get people to reply. Output the comment text only.
 
-${item.source && item.source !== 'Manual' && item.source !== 'Daily Notes' && postType !== 'insider' ? `Format (use exactly this structure with a blank line between the source and question):
+FORMAT — engagement hook only, no source attribution:
 
-Sourced from [Source Name].
+COMMENT STYLES — rotate between these. Pick whichever fits the post best:
 
-[One simple question.]
+1. THE POLL — Give two clear options and ask which one. "Option A or Option B? I'm leaning A."
+   Example: "SMRs on the grid by 2030 or 2035? I'll take the over."
 
-Rules:
-- "Sourced from [Source Name]." uses the publication name (e.g. "Sourced from World Nuclear News.", "Sourced from Bruce Power.", "Sourced from IAEA.")
-- The source line ends with a period. Then a blank line. Then the question on its own line.
-- The question must be SHORT and SIMPLE — something a reader could answer in one sentence without thinking hard. Write it the way you'd casually ask a colleague, not how you'd phrase an exam question.
-- Address the question to the AUDIENCE (fellow professionals reading the post), not to the article's author.
-- Good examples: "Are you seeing this at your site?" / "Would this actually speed things up?" / "Has anyone tried this approach?"
-- Bad examples: "Given the regulatory constraints of deterministic safety analysis frameworks, how might..." — too long, too academic, nobody wants to answer this
-- One sentence only, under 20 words
+2. THE STORY PROMPT — Ask for a specific experience. Make it easy to answer with one sentence.
+   Example: "What's the most surprising pushback you've gotten on a nuclear project?"
+
+3. THE TAG CHALLENGE — Ask readers to tag someone relevant.
+   Example: "Tag an engineer who's dealt with this exact licensing headache."
+
+4. THE PREDICTION GAME — State your bet and ask for theirs.
+   Example: "I give it 18 months. What's your number?"
+
+5. THE META / HUMOR — Break the fourth wall. Be human. Make someone smile.
+   Examples: "Does anyone even read these first comments?" / "I wrote this post three times before it stopped sounding like a press release." / "If you made it this far, you're my people."
+
+RULES:
+- Under 25 words for the engagement hook (not counting the source line)
+- Be casual and human — write like you're texting a colleague, not moderating a panel
 - No em dashes
 - No preamble, no sign-off, no URL
-
-Source name: ${item.source}` : `Format: [One simple question.]
-
-Rules:
-- The question must be SHORT and SIMPLE — something a reader could answer in one sentence without thinking hard. Write it the way you'd casually ask a colleague.
-- Address the question to the AUDIENCE (fellow professionals reading the post), not to the author. You ARE the author — you're asking your readers to share their experience.
-- Good examples: "Are you seeing this at your site?" / "Would this actually speed things up?" / "Has anyone tried this approach?"
-- Bad examples: "What inspired you to write this?" / "Can you tell us more?" (these address the author, not the audience)
-- One sentence only, under 20 words
-- No em dashes
-- No preamble, no sign-off, no URL`}`,
+- Address the AUDIENCE, never the article's author
+- BANNED: "What do you think?", "Curious to hear your thoughts", "How do you see this playing out?", "What's your take?" — these are generic and get zero engagement`,
     }],
   });
 

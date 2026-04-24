@@ -37,6 +37,8 @@ For each claim, determine:
 - CONTRADICTED: The article says something different
 - PLAUSIBLE INFERENCE: Not stated directly but a reasonable reading of the article
 
+PAY SPECIAL ATTENTION to acronym expansions. If the post expands an acronym (e.g., "CSMC (Canadian Safety Management Committee)"), verify that exact expansion appears in the source article. If the article does not expand the acronym, mark the expansion as UNSUPPORTED and remove it — leave just the acronym or omit it entirely. Guessed acronym expansions are a critical error.
+
 STEP 3 — CORRECT
 - Fix any CONTRADICTED claims to match the article exactly
 - Remove or soften any UNSUPPORTED claims that present specific facts (numbers, names, dates). Replace with vaguer language that doesn't assert unverified specifics.
@@ -55,15 +57,47 @@ Respond ONLY with this exact JSON format:
   });
 
   const rawText = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+
+  // Strip markdown code fences if present (```json ... ``` or ``` ... ```)
+  let cleaned = rawText.replace(/^```(?:json)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
 
   if (!jsonMatch) {
     console.warn('Verifier returned non-JSON response — skipping verification.');
+    console.warn('Raw response (first 200 chars):', rawText.slice(0, 200));
     return { correctedContent: content, flaggedClaims: [], changed: false };
   }
 
   try {
-    const result = JSON.parse(jsonMatch[0]) as {
+    // Fix unescaped control characters inside JSON string values (common LLM issue).
+    // Walk through the string, track whether we're inside a JSON string, and escape
+    // any raw newlines/tabs that appear inside quoted values.
+    let sanitized = '';
+    let inString = false;
+    let escaped = false;
+    for (let i = 0; i < jsonMatch[0].length; i++) {
+      const ch = jsonMatch[0][i];
+      if (escaped) {
+        sanitized += ch;
+        escaped = false;
+      } else if (ch === '\\' && inString) {
+        sanitized += ch;
+        escaped = true;
+      } else if (ch === '"') {
+        sanitized += ch;
+        inString = !inString;
+      } else if (inString && ch === '\n') {
+        sanitized += '\\n';
+      } else if (inString && ch === '\t') {
+        sanitized += '\\t';
+      } else if (inString && ch === '\r') {
+        sanitized += '\\r';
+      } else {
+        sanitized += ch;
+      }
+    }
+    const result = JSON.parse(sanitized) as {
       claims?: Array<{ claim: string; status: string; note: string }>;
       correctedContent: string;
       flaggedClaims: string[];
@@ -91,8 +125,9 @@ Respond ONLY with this exact JSON format:
       flaggedClaims: result.flaggedClaims ?? [],
       changed,
     };
-  } catch {
-    console.warn('Verifier JSON parse error — skipping verification.');
+  } catch (err) {
+    console.warn('Verifier JSON parse error:', (err as Error).message);
+    console.warn('Extracted JSON (first 300 chars):', jsonMatch[0].slice(0, 300));
     return { correctedContent: content, flaggedClaims: [], changed: false };
   }
 }

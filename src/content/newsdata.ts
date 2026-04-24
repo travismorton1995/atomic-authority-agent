@@ -83,6 +83,7 @@ export async function fetchNewsDataItems(): Promise<FeedItem[]> {
       // Title patterns that indicate stock/investment/legal noise
       const JUNK_TITLE_RE = /\bstocks?\b.*\b(follow|buy|watch|research)\b|\bstocks? to\b|\bticker\b|\bdividend\b|\bsells?\s+[\d,]+\s+shares\b|\bclass action\b|\bstockholder|\bNYSE:|NASDAQ:/i;
 
+      const cutoff = Date.now() - 5 * 24 * 60 * 60 * 1000;
       let added = 0;
       for (const article of data.results ?? []) {
         if (!article.title || !article.link) continue;
@@ -92,6 +93,11 @@ export async function fetchNewsDataItems(): Promise<FeedItem[]> {
           const domain = new URL(article.link).hostname.replace(/^www\./, '');
           if (BLOCKED_DOMAINS.some(d => domain === d || domain.endsWith(`.${d}`))) continue;
         } catch {}
+        // Filter articles older than 5 days
+        if (article.pubDate) {
+          const ms = new Date(article.pubDate).getTime();
+          if (!isNaN(ms) && ms < cutoff) continue;
+        }
         // Deduplicate by URL across queries
         const normalizedUrl = article.link.replace(/\/$/, '').toLowerCase();
         if (seen.has(normalizedUrl)) continue;

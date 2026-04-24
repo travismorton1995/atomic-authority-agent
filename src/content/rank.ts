@@ -56,7 +56,7 @@ NPX MENTION (0–1):
 
 POST TYPE FIT — score how well each article fits EACH post type (0–10). Be generous across multiple types — most articles can work as 3–4 different types. Score based on these signals:
 - bridge: A concrete event, decision, or development that connects nuclear and AI. Partnerships, deployments, regulatory changes, technology milestones. The article describes something that HAPPENED.
-- contrarian: The article's topic or framing reflects a mainstream assumption that nuclear's engineering discipline would challenge. Works when the conventional wisdom deserves pushback.
+- contrarian: The article contains a specific claim, assumption, or framing that deserves direct pushback. Works best when the article is optimistic about something that will be harder than claimed, frames a problem/feature incorrectly, or when the consensus view would be wrong. Score LOW if the only possible angle is "nuclear moves slow and that's good" — that is not contrarian.
 - change-management: Workforce, organizational, trust, training, or human factors angle. Works when the story is really about people and adoption, not just technology.
 - explainer: The article contains a technical concept that one audience (nuclear OR AI) wouldn't know. Works when there's a knowledge bridge to build.
 - myth-busting: The article touches on or perpetuates a common misconception about nuclear or AI. Works when there's a wrong belief to correct.

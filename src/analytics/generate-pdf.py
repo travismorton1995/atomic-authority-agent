@@ -341,8 +341,15 @@ def render_page_2(c, data):
     # Feeds table below, full width
     y = min(tags_end, ht_end)
     feed_col_widths = [CONTENT_W * 0.50, CONTENT_W * 0.20, CONTENT_W * 0.15, CONTENT_W * 0.15]
-    _draw_ranking_table(c, MARGIN, y, 'Feeds (min 3)', data.get('feedRanking', []),
+    feeds_end = _draw_ranking_table(c, MARGIN, y, 'Feeds (min 3)', data.get('feedRanking', []),
                         min_count=3, max_rows=6, col_widths=feed_col_widths)
+
+    # Footnote
+    footnote_y = feeds_end - 8
+    c.setFont('Helvetica-Oblique', 7)
+    c.setFillColor(MID_GRAY)
+    c.drawString(MARGIN, footnote_y,
+                 'Avg Score uses a robust average (trimmed mean excluding outliers beyond 2σ; median for n < 5).')
 
     draw_footer(c, 2, 6)
 
@@ -449,11 +456,88 @@ def render_page_3(c, data):
 
     y = draw_section_header(c, PAGE_H - 20, 'Content Strategy')
 
-    charts = data.get('charts', {})
+    # Recent posts table (replaces score trend chart)
+    recent_posts = data.get('recentPostsTable', [])
+    if recent_posts:
+        rows = [
+            ['Recent Posts', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', 'Score'],
+        ]
+        type_abbrev = {'change-management': 'chg-mgmt'}
+        for p in recent_posts:
+            indirect_str = f"+{p['indirectFollows']}" if p['indirectFollows'] > 0 else '-'
+            ptype = p.get('postType', '')
+            rows.append([
+                p['date'],
+                p['title'],
+                type_abbrev.get(ptype, ptype),
+                fmt(p['impressions']),
+                str(p['reactions']),
+                str(p['comments']),
+                str(p['reposts']),
+                str(p['saves']),
+                str(p['sends']),
+                str(p['directFollows']),
+                indirect_str,
+                str(p['compositeScore']),
+            ])
 
-    # Score trend (compact to leave room for tables below)
-    trend_h = draw_chart(c, charts.get('scoreTrend'), MARGIN, y - 190, CONTENT_W, 180)
-    y = y - max(trend_h, 180) - 12
+        col_widths = [
+            CONTENT_W * 0.07,   # Date
+            CONTENT_W * 0.22,   # Title
+            CONTENT_W * 0.09,   # Type
+            CONTENT_W * 0.07,   # Impr
+            CONTENT_W * 0.06,   # React
+            CONTENT_W * 0.06,   # Comm
+            CONTENT_W * 0.06,   # Repo
+            CONTENT_W * 0.06,   # Saves
+            CONTENT_W * 0.06,   # Sends
+            CONTENT_W * 0.07,   # Dir Flw
+            CONTENT_W * 0.07,   # Ind Flw
+            CONTENT_W * 0.06,   # Score
+        ]
+
+        style_cmds = [
+            # Title row
+            ('SPAN', (0, 0), (-1, 0)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            # Column headers
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 7),
+            ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+            ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+            ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('BOTTOMPADDING', (0, 1), (-1, 1), 4),
+            # Data rows
+            ('FONTSIZE', (0, 2), (-1, -1), 8),
+            ('FONTNAME', (0, 2), (0, -1), 'Helvetica'),
+            ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+            ('TOPPADDING', (0, 2), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+            ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+            # Right-align numeric columns
+            ('ALIGN', (3, 1), (-1, -1), 'RIGHT'),
+            # Bold the score column
+            ('FONTNAME', (-1, 2), (-1, -1), 'Helvetica-Bold'),
+            ('TEXTCOLOR', (-1, 2), (-1, -1), NAVY),
+        ]
+
+        # Color-code post type cells
+        for i, p in enumerate(recent_posts):
+            row_idx = i + 2  # offset for title + header rows
+            tc = TYPE_COLORS.get(p.get('postType', ''), MID_GRAY)
+            style_cmds.append(('TEXTCOLOR', (2, row_idx), (2, row_idx), tc))
+            style_cmds.append(('FONTNAME', (2, row_idx), (2, row_idx), 'Helvetica-Bold'))
+
+        t = Table(rows, colWidths=col_widths)
+        t.setStyle(TableStyle(style_cmds))
+        tw, th = t.wrapOn(c, sum(col_widths), 400)
+        t.drawOn(c, MARGIN, y - th)
+        y = y - th - 12
 
     # Post type distribution table
     y = _draw_type_distribution(c, y, data)
@@ -894,16 +978,12 @@ def render_page_5(c, data):
             ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
         ]
 
-        # Highlight the most efficient post (lowest impr/follow) in green
-        best_eff = None
-        best_idx = -1
+        # Color-code post type cells
         for i, p in enumerate(post_rollup[:8]):
-            eff = p.get('efficiency')
-            if eff and (best_eff is None or eff < best_eff):
-                best_eff = eff
-                best_idx = i
-        if best_idx >= 0:
-            style_cmds.append(('BACKGROUND', (0, best_idx + 2), (-1, best_idx + 2), ROW_GREEN))
+            row_idx = i + 2  # offset for title + header rows
+            tc = TYPE_COLORS.get(p.get('postType', ''), MID_GRAY)
+            style_cmds.append(('TEXTCOLOR', (-1, row_idx), (-1, row_idx), tc))
+            style_cmds.append(('FONTNAME', (-1, row_idx), (-1, row_idx), 'Helvetica-Bold'))
 
         t.setStyle(TableStyle(style_cmds))
         tw, th = t.wrapOn(c, sum(col_widths), 400)
@@ -913,21 +993,30 @@ def render_page_5(c, data):
     # ── Outbound Profile Table ──
     profile_rollup = oa.get('profileRollup', [])
     if profile_rollup:
+        # Sort by indirect follows per comment (descending)
+        for p in profile_rollup:
+            count = p.get('commentCount', 0)
+            attributed = p.get('totalAttributed', 0)
+            p['followsPerComment'] = attributed / count if count > 0 else 0
+        profile_rollup.sort(key=lambda p: p.get('followsPerComment', 0), reverse=True)
+
         rows = [
-            ['Outbound Comment Attribution', '', '', '', ''],
-            ['Profile', 'Comments', 'Tot Impressions', 'Avg Impr', 'Indirect Follows'],
+            ['Outbound Comment Attribution', '', '', '', '', ''],
+            ['Profile', 'Comments', 'Tot Impr', 'Avg Impr', 'Ind Follows', 'Flw/Comment'],
         ]
         for p in profile_rollup[:8]:
+            fpc = p.get('followsPerComment', 0)
             rows.append([
                 p.get('profileName', '')[:28],
                 str(p.get('commentCount', 0)),
                 fmt(p.get('totalImpressions', 0)) if p.get('totalImpressions') else '-',
                 str(p.get('avgImpressions', 0)) if p.get('avgImpressions') else '-',
                 f"+{p.get('totalAttributed', 0):.2f}",
+                f"{fpc:.2f}" if fpc > 0 else '-',
             ])
 
-        col_widths = [CONTENT_W * 0.30, CONTENT_W * 0.12, CONTENT_W * 0.18, CONTENT_W * 0.15,
-                      CONTENT_W * 0.20]
+        col_widths = [CONTENT_W * 0.26, CONTENT_W * 0.10, CONTENT_W * 0.14, CONTENT_W * 0.13,
+                      CONTENT_W * 0.16, CONTENT_W * 0.16]
         t = Table(rows, colWidths=col_widths)
         t.setStyle(TableStyle([
             ('SPAN', (0, 0), (-1, 0)),
