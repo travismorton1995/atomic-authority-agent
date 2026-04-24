@@ -87,15 +87,25 @@ export function waitForHookSelection(sessionId: string, hooks: Array<{ hook: str
 
 // Typing indicator — sends "typing..." action every 4s until stopped.
 // Returns a stop function. Call it when the operation completes.
+let activeTypingInterval: ReturnType<typeof setInterval> | null = null;
+
 export function startTypingIndicator(): () => void {
   if (!token || !chatId) return () => {};
+  // Stop any existing typing indicator first
+  if (activeTypingInterval) clearInterval(activeTypingInterval);
   const sender = new Telegraf(token);
-  const id = setInterval(() => {
+  activeTypingInterval = setInterval(() => {
     sender.telegram.sendChatAction(chatId!, 'typing').catch(() => {});
   }, 4000);
   // Send immediately too
   sender.telegram.sendChatAction(chatId!, 'typing').catch(() => {});
-  return () => clearInterval(id);
+  return () => {
+    if (activeTypingInterval) { clearInterval(activeTypingInterval); activeTypingInterval = null; }
+  };
+}
+
+export function stopAllTypingIndicators(): void {
+  if (activeTypingInterval) { clearInterval(activeTypingInterval); activeTypingInterval = null; }
 }
 
 // Optional handler called after a rejection — used by scheduler to auto-regenerate
@@ -812,6 +822,7 @@ export function startBot(): void {
         }
         await ctx.answerCbQuery('Regenerating hooks...').catch(() => {});
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        startTypingIndicator(); // restart typing while generating new hooks
         console.log(`[hk_regen] Regenerating hooks for: "${session.articleTitle.slice(0, 50)}"`);
         hookSessions.delete(payload);
         session.resolve({ action: 'regenerate' });
@@ -1119,6 +1130,11 @@ export function startBot(): void {
     }
   });
 
+  // Catch bot-level errors to prevent crashes from killing the entire bot
+  bot.catch((err: any) => {
+    console.error('[telegram-bot] Unhandled error:', err?.message ?? err);
+  });
+
   process.once('SIGINT', () => bot?.stop('SIGINT'));
   process.once('SIGTERM', () => bot?.stop('SIGTERM'));
 }
@@ -1275,6 +1291,9 @@ export async function notifyHookSelection(
       { text: 'Exit', callback_data: `hk_exit:${sessionId}` },
     ],
   ];
+
+  // Stop typing indicator — we're now waiting for user input, not processing
+  stopAllTypingIndicators();
 
   await sender.telegram.sendMessage(chatId, msg, {
     parse_mode: 'HTML',
