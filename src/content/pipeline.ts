@@ -556,7 +556,7 @@ export async function runPipeline(options: PipelineOptions = {}): Promise<Pendin
 }
 
 // Runs the pipeline for an insider post using accumulated daily notes.
-export async function runInsiderPipeline(assembledNotes: string): Promise<PendingPost> {
+export async function runInsiderPipeline(assembledNotes: string): Promise<PendingPost | null> {
   if (pipelineRunning) {
     throw new Error('Pipeline already in progress — concurrent calls are not allowed.');
   }
@@ -580,7 +580,69 @@ export async function runInsiderPipeline(assembledNotes: string): Promise<Pendin
       source: 'Daily Notes',
       pubDate: new Date().toISOString(),
     };
-    return await finalize(item, 'insider');
+
+    // Interactive hook selection for insider posts
+    console.log('[insider] Generating hook candidates...');
+    const articleText = item.fullText ?? item.summary ?? '';
+    let hooks = await generateHookCandidates(item, 'insider');
+
+    const TARGET_HOOKS = 5;
+    const MAX_BACKFILL_ROUNDS = 2;
+    let backfillRound = 0;
+
+    while (hooks.length > 0 && backfillRound <= MAX_BACKFILL_ROUNDS) {
+      console.log(`[insider] Screening ${hooks.length} hook(s) for factual accuracy...`);
+      hooks = await screenHookCandidates(hooks, item.title, articleText);
+
+      if (hooks.length >= TARGET_HOOKS) break;
+      if (backfillRound >= MAX_BACKFILL_ROUNDS) break;
+
+      const needed = TARGET_HOOKS - hooks.length;
+      console.log(`[insider] ${hooks.length} hook(s) passed — generating ${needed} replacement(s)...`);
+      backfillRound++;
+      const extra = await generateHookCandidates(item, 'insider');
+      const existingTexts = new Set(hooks.map(h => h.hook.toLowerCase()));
+      const newHooks = extra.filter(h => !existingTexts.has(h.hook.toLowerCase())).slice(0, needed);
+      hooks = [...hooks, ...newHooks];
+    }
+
+    if (hooks.length === 0) {
+      console.warn('[insider] No hooks survived screening — falling back to auto-generation.');
+      return await finalize(item, 'insider');
+    }
+
+    hooks = hooks.slice(0, TARGET_HOOKS);
+    console.log(`[insider] ${hooks.length} hook(s) ready. Sending to Telegram for selection...`);
+
+    const summary = 'Weekly insider dispatch from NPX — firsthand observations from building AI tools for the nuclear sector.';
+    const sessionId = `hk_${Date.now()}`;
+
+    await notifyHookSelection(sessionId, {
+      title: item.title,
+      link: '',
+      summary,
+      score: 0,
+      scoreBreakdown: { intersection: 0, novelty: 0, geography: 0, npx: 1 },
+      postType: 'insider',
+      balanceMultiplier: 1,
+      recencyMultiplier: 1,
+      postContentFeedback: 1,
+    }, hooks, []);
+
+    const result: HookSelectionResult = await waitForHookSelection(sessionId, hooks, item.title);
+
+    if (result.action === 'exit') {
+      console.log('[insider] User exited pipeline.');
+      return null;
+    }
+
+    if (result.action === 'skip') {
+      console.log('[insider] User skipped — no alternative articles for insider posts.');
+      return null;
+    }
+
+    console.log(`[insider] Proceeding with hook: "${result.selectedHook?.slice(0, 60)}..."`);
+    return await finalize(item, 'insider', undefined, undefined, undefined, result.selectedHook);
   } finally {
     pipelineRunning = false;
   }

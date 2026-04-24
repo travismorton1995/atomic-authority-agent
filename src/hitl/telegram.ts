@@ -266,7 +266,10 @@ export function startBot(): void {
     const stopTyping = startTypingIndicator();
     try {
       const { runInsiderPipeline } = await import('../content/pipeline.js');
-      await runInsiderPipeline(notes);
+      const post = await runInsiderPipeline(notes);
+      if (!post) {
+        await ctx.reply('Insider pipeline exited — no post generated.').catch(() => {});
+      }
     } catch (err: any) {
       console.error('[/insider] Pipeline failed:', err);
       await ctx.reply(`Insider pipeline failed: ${err.message}`).catch(() => {});
