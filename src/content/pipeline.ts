@@ -493,29 +493,41 @@ export async function rewritePost(post: PendingPost): Promise<PendingPost> {
     const item: FeedItem = {
       title: post.draft.sourceTitle,
       link: post.draft.sourceUrl,
-      summary: isInsider ? post.finalContent : '',
+      summary: isInsider ? (post.draft.articleFullText ?? post.finalContent).slice(0, 400) : '',
       source: post.draft.sourceFeed ?? post.draft.sourceTitle,
       pubDate: post.draft.sourceDate,
-      fullText: isInsider ? post.finalContent : undefined,
+      fullText: undefined,
       imageUrl: post.draft.imageUrl,
     };
 
-    // Re-fetch full article text if we have a URL
-    if (item.link) {
-      try {
-        console.log('Re-fetching full article text...');
-        const fetched = await fetchArticle(item.link);
-        if (fetched.fullText) item.fullText = fetched.fullText;
-        if (fetched.imageUrl) item.imageUrl = fetched.imageUrl;
-      } catch {
-        console.warn('Could not fetch full article text.');
+    if (isInsider) {
+      // Insider rewrites use the original notes (cached as articleFullText), not the generated post
+      if (post.draft.articleFullText) {
+        item.fullText = post.draft.articleFullText;
+        console.log('Using cached daily notes for insider rewrite.');
+      } else {
+        // Fallback: use the generated post content as source (not ideal but better than nothing)
+        console.warn('No cached notes found — using generated post content as source.');
+        item.fullText = post.finalContent;
       }
-    }
+    } else {
+      // Re-fetch full article text if we have a URL
+      if (item.link) {
+        try {
+          console.log('Re-fetching full article text...');
+          const fetched = await fetchArticle(item.link);
+          if (fetched.fullText) item.fullText = fetched.fullText;
+          if (fetched.imageUrl) item.imageUrl = fetched.imageUrl;
+        } catch {
+          console.warn('Could not fetch full article text.');
+        }
+      }
 
-    // Fall back to cached article text from original generation if re-fetch failed
-    if (!item.fullText && post.draft.articleFullText) {
-      console.log('Using cached article text from original generation.');
-      item.fullText = post.draft.articleFullText;
+      // Fall back to cached article text from original generation if re-fetch failed
+      if (!item.fullText && post.draft.articleFullText) {
+        console.log('Using cached article text from original generation.');
+        item.fullText = post.draft.articleFullText;
+      }
     }
 
     // Cancel the old post
