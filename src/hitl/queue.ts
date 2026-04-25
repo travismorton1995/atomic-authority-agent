@@ -83,6 +83,18 @@ export function getPendingPosts(): PendingPost[] {
   return readFile<PendingPost[]>(PENDING_FILE, []).filter(p => p.status === 'pending');
 }
 
+export function updatePostContent(id: string, newContent: string): PendingPost | null {
+  const posts = readFile<PendingPost[]>(PENDING_FILE, []);
+  const post = posts.find(p => p.id === id && p.status === 'pending');
+  if (!post) return null;
+
+  post.finalContent = sanitize(newContent);
+  post.draft.content = sanitize(newContent);
+  post.wordCount = post.finalContent.split(/\s+/).filter(Boolean).length;
+  writeFile(PENDING_FILE, posts);
+  return post;
+}
+
 export interface SourceHistory {
   excludedTitles: string[];
   excludedUrls: string[];

@@ -40,6 +40,9 @@ const pendingPhotoUploads = new Map<string, string>();
 // Tracks draft notification message IDs — used to edit status in-place
 const draftMessageIds = new Map<string, number>(); // postId → telegram message_id
 
+// Tracks posts in edit mode — waiting for user to reply with corrected text
+const pendingEdits = new Map<string, string>(); // chatId → postId
+
 // Update the draft notification message with a status line
 export async function updateDraftStatus(postId: string, status: string): Promise<void> {
   if (!token || !chatId) return;
@@ -619,6 +622,24 @@ export function startBot(): void {
         });
       }
 
+      if (action === 'edit') {
+        const post = getPendingPosts().find((p: any) => p.id === payload);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found or already actioned.');
+          return;
+        }
+        await ctx.answerCbQuery('Edit mode.');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+
+        // Send the raw post text as a copyable message
+        const rawText = (post.finalContent ?? post.draft.content)
+          .replace(/\[\[MENTION:[^\]]+\]\]/g, (m: string) => m.replace(/\[\[MENTION:|\]\]/g, ''));
+        const chatIdStr = String(ctx.chat?.id ?? chatId);
+        pendingEdits.set(chatIdStr, payload);
+        await ctx.reply('✏️ Copy, edit, and reply with your changes:\n\n' + rawText);
+        console.log(`[edit] Edit mode activated for post ${payload}`);
+      }
+
       if (action === 'cancel') {
         const post = cancelPost(payload);
         if (!post) {
@@ -1011,6 +1032,28 @@ export function startBot(): void {
     const text = (ctx.message as any).text as string | undefined;
     if (!text) return;
 
+    // Check for pending edit — user replied with corrected post text
+    const chatIdStr = String(ctx.chat?.id);
+    const editPostId = pendingEdits.get(chatIdStr);
+    if (editPostId && !text.startsWith('/')) {
+      pendingEdits.delete(chatIdStr);
+      try {
+        const { updatePostContent } = await import('./queue.js');
+        const updated = updatePostContent(editPostId, text);
+        if (updated) {
+          console.log(`[edit] Post ${editPostId} updated with user edits.`);
+          await notifyTelegram(updated);
+          console.log('[edit] Resent approval message with updated content.');
+        } else {
+          await ctx.reply('Post not found or already actioned.').catch(() => {});
+        }
+      } catch (err: any) {
+        console.error(`[edit] Failed to update post: ${err?.message ?? err}`);
+        await ctx.reply(`Edit failed: ${err?.message ?? 'unknown error'}`).catch(() => {});
+      }
+      return;
+    }
+
     // Check for post URL first (more specific match)
     const postMatch = text.match(/https:\/\/www\.linkedin\.com\/feed\/update\/[^\s?#]+/) ??
                       text.match(/https:\/\/www\.linkedin\.com\/posts\/[^\s?#]+/);
@@ -1185,6 +1228,7 @@ export async function notifyTelegram(post: PendingPost): Promise<void> {
   const keyboard = [
     [
       { text: '✅ Approve text', callback_data: `approve:${post.id}` },
+      { text: '✏️ Edit', callback_data: `edit:${post.id}` },
       { text: '🔄 Rewrite', callback_data: `rewrite:${post.id}` },
     ],
     [
