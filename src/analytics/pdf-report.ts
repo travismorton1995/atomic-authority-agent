@@ -15,6 +15,28 @@ import { getOrganicAttribution, type OrganicAttributionData } from './organic-at
 import { getFollowerData } from './followers.js';
 import { loadPostsWithMetrics } from './post-data.js';
 import { compositeScore } from './post-data.js';
+
+function loadHashtagTrends(): any {
+  try {
+    if (!existsSync('hashtag_trends.json')) return null;
+    const raw = JSON.parse(readFileSync('hashtag_trends.json', 'utf-8'));
+    // Convert to sorted array: [{tag, count, profiles, lastSeen}]
+    const entries = Object.entries(raw).map(([tag, entry]: [string, any]) => ({
+      tag,
+      count: entry.count,
+      profileCount: Object.keys(entry.profiles).length,
+      topProfiles: Object.entries(entry.profiles)
+        .sort((a: any, b: any) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name]: any) => name),
+      lastSeen: entry.lastSeen,
+    }));
+    entries.sort((a, b) => b.count - a.count);
+    return entries.slice(0, 15); // top 15
+  } catch {
+    return null;
+  }
+}
 import {
   generateFollowerChart,
   generatePostTypeChart,
@@ -94,6 +116,8 @@ interface PdfData {
   attribution: any;
   organicAttribution: any;
   outboundStats: any;
+  hashtagTrends: any;
+  recentPostsTable: any[];
   insights: any[];
 }
 
@@ -148,17 +172,26 @@ async function buildTopPosts(tmpDir: string): Promise<TopPost[]> {
       const resolved = path.resolve(p.draft.generatedImagePath);
       if (existsSync(resolved)) imagePath = resolved;
     }
+    if (!imagePath && choice === 'custom') {
+      // Custom uploads are stored in either customImagePath or generatedImagePath
+      const customPath = p.customImagePath ?? p.draft?.generatedImagePath;
+      if (customPath) {
+        const resolved = path.resolve(customPath);
+        if (existsSync(resolved)) imagePath = resolved;
+      }
+    }
     if (!imagePath && choice === 'stock' && p.draft?.stockImageUrl) {
       const imgFile = path.join(tmpDir, `stock_${i}.jpg`);
       if (await downloadFile(p.draft.stockImageUrl, imgFile)) imagePath = imgFile;
     }
-    if (!imagePath && (choice === 'og' || !imagePath) && p.draft?.imageUrl) {
+    if (!imagePath && choice === 'og' && p.draft?.imageUrl) {
       const imgFile = path.join(tmpDir, `og_${i}.jpg`);
       if (await downloadFile(p.draft.imageUrl, imgFile)) imagePath = imgFile;
     }
-    if (!imagePath && choice === 'custom' && p.customImagePath) {
-      const resolved = path.resolve(p.customImagePath);
-      if (existsSync(resolved)) imagePath = resolved;
+    // Final fallback: if no image resolved for the chosen type, try og:image
+    if (!imagePath && p.draft?.imageUrl) {
+      const imgFile = path.join(tmpDir, `og_${i}.jpg`);
+      if (await downloadFile(p.draft.imageUrl, imgFile)) imagePath = imgFile;
     }
 
     // Clean body text — strip mention markers and hashtags
@@ -545,6 +578,7 @@ export async function generatePdfReport(): Promise<Buffer> {
       } : null,
       organicAttribution: organicAttrPayload,
       outboundStats,
+      hashtagTrends: loadHashtagTrends(),
       insights,
     };
 

@@ -283,6 +283,13 @@ cron.schedule('0 8 * * *', async () => {
 // Midnight snapshot: follower count, post metrics, comment metrics, organic attribution
 cron.schedule('0 0 * * *', async () => {
   console.log('[midnight] Running midnight snapshot...');
+
+  // Unpin the daily report before the new day starts
+  try {
+    const { unpinReport } = await import('../hitl/telegram.js');
+    await unpinReport();
+  } catch {}
+
   try {
     await runMidnightSnapshot();
   } catch (err) {

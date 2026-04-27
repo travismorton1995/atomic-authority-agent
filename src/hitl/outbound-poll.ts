@@ -26,6 +26,47 @@ import {
 } from '../outbound/outbound-queue.js';
 import { getOrganicProfileBonus } from '../analytics/organic-attribution.js';
 import { notifyOutboundComment, sendMessage } from './telegram.js';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+
+const HASHTAG_TRENDS_FILE = 'hashtag_trends.json';
+
+interface HashtagEntry {
+  count: number;        // total sightings
+  profiles: Record<string, number>;  // profileName → count
+  lastSeen: string;     // ISO date
+}
+
+function recordHashtagSightings(tags: string[], profileName: string): void {
+  let trends: Record<string, HashtagEntry> = {};
+  try {
+    if (existsSync(HASHTAG_TRENDS_FILE)) {
+      trends = JSON.parse(readFileSync(HASHTAG_TRENDS_FILE, 'utf-8'));
+    }
+  } catch {}
+
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+
+  for (const raw of tags) {
+    // Normalize: lowercase the tag for dedup, but store original casing on first sight
+    const key = raw.toLowerCase();
+    if (!trends[key]) {
+      trends[key] = { count: 0, profiles: {}, lastSeen: today };
+    }
+    trends[key].count++;
+    trends[key].profiles[profileName] = (trends[key].profiles[profileName] ?? 0) + 1;
+    trends[key].lastSeen = today;
+  }
+
+  // Prune entries not seen in 30 days
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  const cutoffStr = cutoff.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
+  for (const [key, entry] of Object.entries(trends)) {
+    if (entry.lastSeen < cutoffStr) delete trends[key];
+  }
+
+  writeFileSync(HASHTAG_TRENDS_FILE, JSON.stringify(trends, null, 2));
+}
 
 // Hashtags to monitor for commenting opportunities — scraped alongside curated profiles
 // DISABLED: LinkedIn search results use anti-scraping measures that prevent reliable extraction.
@@ -258,6 +299,13 @@ export async function runOutboundPoll(): Promise<void> {
       console.log(`  ${ownerName} — ${ownPosts.length} original post(s) < 24h, ${newPosts.length} new${newPosts.length ? ` (${ageNote})` : ''}`);
 
       recordProfilePollResult(profile.url, newPosts.length > 0);
+
+      // Extract hashtags from all original posts for trend tracking
+      for (const p of ownPosts) {
+        const tags = p.text.match(/#[A-Za-z]\w*/g);
+        if (tags) recordHashtagSightings(tags, ownerName);
+      }
+
       for (const p of newPosts) {
         seenIds.add(p.id);
         candidates.push({ ...p, profile, source: 'profile', sourceLabel: ownerName });

@@ -1203,13 +1203,32 @@ export async function sendPhotoBuffer(photo: Buffer, caption?: string): Promise<
   await sender.telegram.sendPhoto(chatId, { source: photo }, caption ? { caption } : {});
 }
 
-export async function sendDocumentBuffer(doc: Buffer, filename: string, caption?: string): Promise<void> {
+export async function unpinReport(): Promise<void> {
+  if (!token || !chatId) return;
+  const sender = new Telegraf(token);
+  try {
+    await sender.telegram.unpinAllChatMessages(chatId);
+    console.log('[unpin] Unpinned all messages.');
+  } catch (err: any) {
+    console.warn(`[unpin] Failed: ${err?.message ?? err}`);
+  }
+}
+
+export async function sendDocumentBuffer(doc: Buffer, filename: string, caption?: string, pin?: boolean): Promise<void> {
   if (!token || !chatId) {
     console.log(`[DOC] (${doc.length} bytes) ${filename} ${caption ?? ''}`);
     return;
   }
   const sender = new Telegraf(token);
-  await sender.telegram.sendDocument(chatId, { source: doc, filename }, caption ? { caption } : {});
+  const sent = await sender.telegram.sendDocument(chatId, { source: doc, filename }, caption ? { caption } : {});
+  if (pin) {
+    try {
+      await sender.telegram.pinChatMessage(chatId, sent.message_id, { disable_notification: true });
+      console.log(`[pin] Pinned document: ${filename}`);
+    } catch (err: any) {
+      console.warn(`[pin] Failed to pin: ${err?.message ?? err}`);
+    }
+  }
 }
 
 export async function notifyTelegram(post: PendingPost): Promise<void> {

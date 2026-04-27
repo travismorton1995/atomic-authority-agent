@@ -63,7 +63,11 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
   const data = getFollowerData();
   if (!data || data.snapshots.length < 3) return null;
 
-  const snapshots = data.snapshots;
+  // Cap at last 30 days (+1 for baseline snapshot)
+  const MAX_DAYS = 30;
+  const snapshots = data.snapshots.length > MAX_DAYS + 1
+    ? data.snapshots.slice(-(MAX_DAYS + 1))
+    : data.snapshots;
   const attribution = getOrganicAttribution();
 
   // Build per-day attribution breakdown
@@ -157,6 +161,7 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
             formatter: (_: any, ctx: any) => commentPctLabels[ctx.dataIndex],
             anchor: 'end' as const,
             align: 'end' as const,
+            clamp: true,
             color: '#2A9D8F',
             font: { size: 18, weight: 'bold' as const },
           },
@@ -167,12 +172,13 @@ export async function generateFollowerChart(): Promise<Buffer | null> {
       responsive: false,
       plugins: {
         title: { display: true, text: `Follower Growth: ${totals[0]} → ${totals[totals.length - 1]} (+${totals[totals.length - 1] - totals[0]})`, font: { size: 28 } },
-        legend: { display: true, labels: { font: { size: 18 } } },
+        legend: { display: true, labels: { font: { size: 18 }, padding: 20 } },
         datalabels: {},  // global config (overridden per dataset)
       },
       scales: {
         y: { type: 'linear', position: 'left', title: { display: true, text: 'Total Followers', font: { size: 18 } }, ticks: { font: { size: 14 } }, beginAtZero: false },
-        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Daily Follows', font: { size: 18 } }, ticks: { font: { size: 14 } }, grid: { drawOnChartArea: false }, stacked: true },
+        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Daily Follows', font: { size: 18 } }, ticks: { font: { size: 14 } }, grid: { drawOnChartArea: false }, stacked: true,
+              suggestedMax: Math.ceil(Math.max(...postFollows.map((p, i) => p + commentFollows[i] + unattributed[i])) * 1.35) },
         x: { stacked: true, ticks: { maxRotation: 45, font: { size: 16 } } },
       },
     },

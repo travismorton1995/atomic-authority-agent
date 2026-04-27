@@ -252,9 +252,84 @@ def render_page_1(c, data):
     # Follower chart
     y_chart = y_stats - 20
     charts = data.get('charts', {})
-    chart_h = draw_chart(c, charts.get('followerGrowth'), MARGIN, y_chart - 300, CONTENT_W, 300)
+    chart_h = draw_chart(c, charts.get('followerGrowth'), MARGIN, y_chart - 260, CONTENT_W, 260)
+
+    # Recent posts table (moved from page 3 to page 1)
+    y_table = y_chart - 260 - 8
+    recent_posts = data.get('recentPostsTable', [])
+    if recent_posts:
+        y_table = _draw_recent_posts_table(c, y_table, recent_posts)
 
     draw_footer(c, 1, 6)
+
+
+def _draw_recent_posts_table(c, y, recent_posts):
+    """Draw the Recent Posts table. Returns y after table."""
+    rows = [
+        ['Recent Posts', '', '', '', '', '', '', '', '', '', '', ''],
+        ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', 'Score'],
+    ]
+    type_abbrev = {'change-management': 'chg-mgmt'}
+    for p in recent_posts:
+        indirect_str = f"+{p['indirectFollows']}" if p['indirectFollows'] > 0 else '-'
+        ptype = p.get('postType', '')
+        rows.append([
+            p['date'],
+            p['title'],
+            type_abbrev.get(ptype, ptype),
+            fmt(p['impressions']),
+            str(p['reactions']),
+            str(p['comments']),
+            str(p['reposts']),
+            str(p['saves']),
+            str(p['sends']),
+            str(p['directFollows']),
+            indirect_str,
+            str(p['compositeScore']),
+        ])
+
+    col_widths = [
+        CONTENT_W * 0.07, CONTENT_W * 0.22, CONTENT_W * 0.09,
+        CONTENT_W * 0.07, CONTENT_W * 0.06, CONTENT_W * 0.06,
+        CONTENT_W * 0.06, CONTENT_W * 0.06, CONTENT_W * 0.06,
+        CONTENT_W * 0.07, CONTENT_W * 0.07, CONTENT_W * 0.06,
+    ]
+
+    style_cmds = [
+        ('SPAN', (0, 0), (-1, 0)),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 11),
+        ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+        ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+        ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 1), (-1, 1), 7),
+        ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+        ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+        ('TOPPADDING', (0, 1), (-1, 1), 2),
+        ('BOTTOMPADDING', (0, 1), (-1, 1), 4),
+        ('FONTSIZE', (0, 2), (-1, -1), 8),
+        ('FONTNAME', (0, 2), (0, -1), 'Helvetica'),
+        ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+        ('TOPPADDING', (0, 2), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+        ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+        ('ALIGN', (3, 1), (-1, -1), 'RIGHT'),
+        ('FONTNAME', (-1, 2), (-1, -1), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (-1, 2), (-1, -1), NAVY),
+    ]
+
+    for i, p in enumerate(recent_posts):
+        row_idx = i + 2
+        tc = TYPE_COLORS.get(p.get('postType', ''), MID_GRAY)
+        style_cmds.append(('TEXTCOLOR', (2, row_idx), (2, row_idx), tc))
+        style_cmds.append(('FONTNAME', (2, row_idx), (2, row_idx), 'Helvetica-Bold'))
+
+    t = Table(rows, colWidths=col_widths)
+    t.setStyle(TableStyle(style_cmds))
+    tw, th = t.wrapOn(c, sum(col_widths), 400)
+    t.drawOn(c, MARGIN, y - th)
+    return y - th - 8
 
 
 def _draw_ranking_table(c, x, y, title, entries, min_count=3, max_rows=8, col_widths=None):
@@ -378,16 +453,20 @@ def _draw_type_distribution(c, y, data):
     count_map = {e['label']: e['count'] for e in type_ranking}
     score_map = {e['label']: e['avg'] for e in type_ranking}
 
+    # Exclude insider posts from the total used for percentage calculations
+    insider_count = count_map.get('insider', 0)
+    rotation_total = total_posts - insider_count
+
     # Row 0: title, Row 1: column headers, Row 2+: data
     rows = [
-        [f'Post Type Distribution ({total_posts} posts)', '', '', '', '', ''],
+        [f'Post Type Distribution ({total_posts} posts, {rotation_total} in rotation)', '', '', '', '', ''],
         ['Type', '#', 'Actual', 'Target', 'Delta', 'Avg Score'],
     ]
     row_colors = []  # per data row
 
     for t in all_types:
         count = count_map.get(t, 0)
-        actual_pct = (count / total_posts * 100) if total_posts > 0 else 0
+        actual_pct = (count / rotation_total * 100) if rotation_total > 0 else 0
         target_pct = target_weights[t] / w_total * 100
         delta = actual_pct - target_pct
         sign = '+' if delta > 0 else ''
@@ -403,8 +482,7 @@ def _draw_type_distribution(c, y, data):
         rows.append([t, str(count), f'{actual_pct:.1f}%', f'{target_pct:.0f}%', f'{sign}{delta:.1f}',
                      f'{avg_score:.1f}' if count > 0 else '-'])
 
-    # Insider row
-    insider_count = count_map.get('insider', 0)
+    # Insider row (shown separately, not part of rotation percentages)
     if insider_count > 0:
         insider_score = score_map.get('insider', 0)
         rows.append(['insider', str(insider_count), f'{insider_count/total_posts*100:.1f}%', 'n/a', '-',
@@ -455,89 +533,6 @@ def render_page_3(c, data):
     draw_page_bg(c)
 
     y = draw_section_header(c, PAGE_H - 20, 'Content Strategy')
-
-    # Recent posts table (replaces score trend chart)
-    recent_posts = data.get('recentPostsTable', [])
-    if recent_posts:
-        rows = [
-            ['Recent Posts', '', '', '', '', '', '', '', '', '', '', ''],
-            ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', 'Score'],
-        ]
-        type_abbrev = {'change-management': 'chg-mgmt'}
-        for p in recent_posts:
-            indirect_str = f"+{p['indirectFollows']}" if p['indirectFollows'] > 0 else '-'
-            ptype = p.get('postType', '')
-            rows.append([
-                p['date'],
-                p['title'],
-                type_abbrev.get(ptype, ptype),
-                fmt(p['impressions']),
-                str(p['reactions']),
-                str(p['comments']),
-                str(p['reposts']),
-                str(p['saves']),
-                str(p['sends']),
-                str(p['directFollows']),
-                indirect_str,
-                str(p['compositeScore']),
-            ])
-
-        col_widths = [
-            CONTENT_W * 0.07,   # Date
-            CONTENT_W * 0.22,   # Title
-            CONTENT_W * 0.09,   # Type
-            CONTENT_W * 0.07,   # Impr
-            CONTENT_W * 0.06,   # React
-            CONTENT_W * 0.06,   # Comm
-            CONTENT_W * 0.06,   # Repo
-            CONTENT_W * 0.06,   # Saves
-            CONTENT_W * 0.06,   # Sends
-            CONTENT_W * 0.07,   # Dir Flw
-            CONTENT_W * 0.07,   # Ind Flw
-            CONTENT_W * 0.06,   # Score
-        ]
-
-        style_cmds = [
-            # Title row
-            ('SPAN', (0, 0), (-1, 0)),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 11),
-            ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
-            ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
-            # Column headers
-            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 1), (-1, 1), 7),
-            ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
-            ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
-            ('TOPPADDING', (0, 1), (-1, 1), 2),
-            ('BOTTOMPADDING', (0, 1), (-1, 1), 4),
-            # Data rows
-            ('FONTSIZE', (0, 2), (-1, -1), 8),
-            ('FONTNAME', (0, 2), (0, -1), 'Helvetica'),
-            ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
-            ('TOPPADDING', (0, 2), (-1, -1), 3),
-            ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
-            ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
-            # Right-align numeric columns
-            ('ALIGN', (3, 1), (-1, -1), 'RIGHT'),
-            # Bold the score column
-            ('FONTNAME', (-1, 2), (-1, -1), 'Helvetica-Bold'),
-            ('TEXTCOLOR', (-1, 2), (-1, -1), NAVY),
-        ]
-
-        # Color-code post type cells
-        for i, p in enumerate(recent_posts):
-            row_idx = i + 2  # offset for title + header rows
-            tc = TYPE_COLORS.get(p.get('postType', ''), MID_GRAY)
-            style_cmds.append(('TEXTCOLOR', (2, row_idx), (2, row_idx), tc))
-            style_cmds.append(('FONTNAME', (2, row_idx), (2, row_idx), 'Helvetica-Bold'))
-
-        t = Table(rows, colWidths=col_widths)
-        t.setStyle(TableStyle(style_cmds))
-        tw, th = t.wrapOn(c, sum(col_widths), 400)
-        t.drawOn(c, MARGIN, y - th)
-        y = y - th - 12
 
     # Post type distribution table
     y = _draw_type_distribution(c, y, data)
@@ -670,6 +665,49 @@ def render_page_3(c, data):
         ]))
         tw, th = t.wrapOn(c, sum(cmp_widths), 200)
         t.drawOn(c, MARGIN, y - th)
+
+    # Trending hashtags from outbound network
+    ht = data.get('hashtagTrends')
+    if ht and len(ht) > 0:
+        y = y - th - 16 if 'th' in dir() else y - 16
+        ht_rows = [
+            ['Trending in Your Network', '', '', ''],
+            ['Hashtag', 'Sightings', 'Profiles', 'Top Profiles'],
+        ]
+        for h in ht[:10]:
+            ht_rows.append([
+                h['tag'],
+                str(h['count']),
+                str(h['profileCount']),
+                ', '.join(h.get('topProfiles', [])[:3]),
+            ])
+
+        ht_widths = [CONTENT_W * 0.25, CONTENT_W * 0.12, CONTENT_W * 0.12, CONTENT_W * 0.46]
+        ht_table = Table(ht_rows, colWidths=ht_widths)
+        ht_table.setStyle(TableStyle([
+            ('SPAN', (0, 0), (-1, 0)),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+            ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 1), (-1, 1), 8),
+            ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+            ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+            ('TOPPADDING', (0, 1), (-1, 1), 2),
+            ('BOTTOMPADDING', (0, 1), (-1, 1), 3),
+            ('FONTSIZE', (0, 2), (-1, -1), 9),
+            ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+            ('TOPPADDING', (0, 2), (-1, -1), 3),
+            ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+            ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+            ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
+            ('ALIGN', (1, 1), (2, -1), 'RIGHT'),
+        ]))
+        tw, th = ht_table.wrapOn(c, sum(ht_widths), 400)
+        if y - th > 50:  # only draw if enough room
+            ht_table.drawOn(c, MARGIN, y - th)
 
     draw_footer(c, 3, 6)
 

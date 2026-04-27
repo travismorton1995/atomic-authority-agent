@@ -269,7 +269,7 @@ export async function runWeeklyReport(): Promise<void> {
   if (existsSync(cachedPdfPath)) {
     console.log(`Report already generated today — resending cached PDF: ${cachedPdfPath}`);
     const cached = readFileSync(cachedPdfPath);
-    await sendDocumentBuffer(cached, `atomic-dispatch-${dateStr}.pdf`, 'Performance Report');
+    await sendDocumentBuffer(cached, `atomic-dispatch-${dateStr}.pdf`, 'Performance Report', true);
     console.log('Cached PDF report sent to Telegram.');
     return;
   }
@@ -287,7 +287,7 @@ export async function runWeeklyReport(): Promise<void> {
     if (!existsSync(REPORT_CACHE_DIR)) mkdirSync(REPORT_CACHE_DIR, { recursive: true });
     writeFileSync(cachedPdfPath, pdfBuffer);
 
-    await sendDocumentBuffer(pdfBuffer, `atomic-dispatch-${dateStr}.pdf`, 'Performance Report');
+    await sendDocumentBuffer(pdfBuffer, `atomic-dispatch-${dateStr}.pdf`, 'Performance Report', true);
     pdfSent = true;
     console.log('PDF report generated, cached, and sent to Telegram.');
   } catch (err) {

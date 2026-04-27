@@ -176,7 +176,7 @@ function getTypeBalanceMultipliers(lookback = 14): Partial<Record<PostType, numb
       const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
       history.slice(-lookback).forEach((p: any) => {
         const t = p.draft?.postType;
-        if (t && t in counts) counts[t]++;
+        if (t && t !== 'insider' && t in counts) counts[t]++;
       });
     } catch {}
   }
