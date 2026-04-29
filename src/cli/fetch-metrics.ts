@@ -43,7 +43,7 @@ function extractUrn(postUrl: string): string | null {
 // Scrapes the per-post analytics page at /analytics/post-summary/{urn}/
 // This gives us impressions, members reached, saves, sends, and new followers
 // in addition to the basic reactions/comments/reposts.
-async function scrapePostAnalytics(page: import('playwright').Page, urn: string): Promise<PostMetrics> {
+export async function scrapePostAnalytics(page: import('playwright').Page, urn: string): Promise<PostMetrics> {
   const url = `https://www.linkedin.com/analytics/post-summary/${urn}/`;
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(3000);

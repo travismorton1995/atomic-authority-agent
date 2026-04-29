@@ -29,6 +29,30 @@ import { notifyOutboundComment, sendMessage } from './telegram.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 
 const HASHTAG_TRENDS_FILE = 'hashtag_trends.json';
+const HASHTAG_SEEN_FILE = 'hashtag_seen_posts.json';
+
+// Track which post IDs have already had their hashtags recorded.
+// Separate from the outbound "seen" list since most posts are scraped but never commented on.
+export function isHashtagRecorded(postId: string): boolean {
+  try {
+    if (!existsSync(HASHTAG_SEEN_FILE)) return false;
+    const seen: string[] = JSON.parse(readFileSync(HASHTAG_SEEN_FILE, 'utf-8'));
+    return seen.includes(postId);
+  } catch { return false; }
+}
+
+export function markHashtagRecorded(postId: string): void {
+  let seen: string[] = [];
+  try {
+    if (existsSync(HASHTAG_SEEN_FILE)) seen = JSON.parse(readFileSync(HASHTAG_SEEN_FILE, 'utf-8'));
+  } catch { /* start fresh */ }
+  if (!seen.includes(postId)) {
+    seen.push(postId);
+    // Keep last 2000 entries
+    if (seen.length > 2000) seen = seen.slice(-2000);
+    writeFileSync(HASHTAG_SEEN_FILE, JSON.stringify(seen));
+  }
+}
 
 interface HashtagEntry {
   count: number;        // total sightings
@@ -36,7 +60,7 @@ interface HashtagEntry {
   lastSeen: string;     // ISO date
 }
 
-function recordHashtagSightings(tags: string[], profileName: string): void {
+export function recordHashtagSightings(tags: string[], profileName: string): void {
   let trends: Record<string, HashtagEntry> = {};
   try {
     if (existsSync(HASHTAG_TRENDS_FILE)) {
@@ -300,10 +324,15 @@ export async function runOutboundPoll(): Promise<void> {
 
       recordProfilePollResult(profile.url, newPosts.length > 0);
 
-      // Extract hashtags from all original posts for trend tracking
+      // Extract hashtags from posts we haven't recorded yet
       for (const p of ownPosts) {
+        if (isHashtagRecorded(p.id)) continue;
         const tags = p.text.match(/#[A-Za-z]\w*/g);
-        if (tags) recordHashtagSightings(tags, ownerName);
+        if (tags) {
+          console.log(`  [hashtags] ${ownerName}: ${tags.join(', ')} (from ${p.text.length} chars)`);
+          recordHashtagSightings(tags, ownerName);
+        }
+        markHashtagRecorded(p.id);
       }
 
       for (const p of newPosts) {
@@ -510,4 +539,206 @@ export async function runOutboundPoll(): Promise<void> {
 
   recordOutboundPoll();
   console.log('Outbound poll complete. 1 comment queued.');
+}
+
+/**
+ * Pre-post engagement burst. Runs ~35 min before a scheduled post.
+ * Scrapes profiles, ranks candidates, generates 3-5 comment options,
+ * and sends all to Telegram for approval.
+ * If the first scrape yields < 3 eligible candidates, retries once.
+ */
+export async function runPrePostBurst(): Promise<void> {
+  console.log('[pre-post burst] Starting pre-post engagement burst...');
+  await sendMessage('🔥 Pre-post engagement burst starting — generating comment options for upcoming post...').catch(() => {});
+
+  const TARGET_MIN = 3;
+  const TARGET_MAX = 5;
+
+  const scrapeAndRank = async (): Promise<Array<{ candidate: Candidate; score: number; llmScore: number }>> => {
+    const allProfiles = getActiveProfiles();
+    if (allProfiles.length === 0) return [];
+
+    const pollProfiles = getProfilesByPriority(allProfiles.length);
+    console.log(`[pre-post burst] Scraping up to ${pollProfiles.length} profile(s)...`);
+
+    const candidates: Candidate[] = [];
+    const seenIds = new Set<string>();
+    const { context, page, release } = await openScrapeContext(15_000);
+    const scrapeStart = Date.now();
+    let profilesChecked = 0;
+
+    try {
+      await page.goto('https://www.linkedin.com/feed/', { waitUntil: 'domcontentloaded', timeout: 15000 });
+      if (isSessionExpiredUrl(page.url())) {
+        console.error('[pre-post burst] LinkedIn session expired.');
+        return [];
+      }
+
+      for (const profile of pollProfiles) {
+        if (Date.now() - scrapeStart > POLL_TIME_LIMIT_MS) break;
+
+        let posts;
+        try {
+          posts = await scrapeProfilePostsWithPage(profile.url, page);
+        } catch {
+          continue;
+        }
+        profilesChecked++;
+
+        let ownerName = profile.name;
+        const nameCounts = new Map<string, number>();
+        for (const p of posts) {
+          if (!p.authorName) continue;
+          nameCounts.set(p.authorName.toLowerCase(), (nameCounts.get(p.authorName.toLowerCase()) ?? 0) + 1);
+        }
+        const storedNameMatches = posts.some(p => p.authorName?.toLowerCase() === ownerName.toLowerCase());
+        if (!storedNameMatches && posts.length > 0) {
+          const mostCommon = [...nameCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+          if (mostCommon && mostCommon[1] > posts.length / 2) {
+            ownerName = posts.find(p => p.authorName?.toLowerCase() === mostCommon[0])?.authorName ?? ownerName;
+          }
+        }
+
+        const ownPosts = posts.filter(p => !p.authorName || p.authorName.toLowerCase() === ownerName.toLowerCase());
+        const newPosts = ownPosts.filter(p => !isPostSeen(p.id));
+
+        for (const p of newPosts) {
+          seenIds.add(p.id);
+          candidates.push({ ...p, profile, source: 'profile', sourceLabel: ownerName });
+        }
+      }
+    } finally {
+      await context.close();
+      release();
+    }
+
+    console.log(`[pre-post burst] ${profilesChecked} profile(s) scraped, ${candidates.length} candidate(s) found.`);
+    if (candidates.length === 0) return [];
+
+    // Pre-score and filter
+    const preScored = candidates.map((c, index) => {
+      const postAge = c.ageHours ?? 24;
+      const profileCooldown = c.source === 'profile' ? hoursSinceLastComment(c.profile!.url) : Infinity;
+      const keywords = relevanceHits(c.text);
+      return { candidate: c, index, postAge, profileCooldown, keywords };
+    });
+
+    // Article rescue for zero-hit candidates
+    const zeroHitWithArticle = preScored.filter(s => s.keywords === 0 && s.candidate.articleUrl);
+    if (zeroHitWithArticle.length > 0) {
+      const { fetchArticle } = await import('../content/fetch-article.js');
+      for (const s of zeroHitWithArticle) {
+        try {
+          const article = await fetchArticle(s.candidate.articleUrl!);
+          if (article.fullText && article.fullText.length > 100) {
+            const articleKeywords = relevanceHits(article.fullText);
+            if (articleKeywords > 0) s.keywords = articleKeywords;
+          }
+        } catch { /* non-fatal */ }
+      }
+    }
+
+    const filtered = preScored.filter(s => {
+      if (s.profileCooldown < COMMENT_COOLDOWN_HOURS) return false;
+      if (s.candidate.source === 'hashtag' && s.keywords === 0) return false;
+      return true;
+    });
+
+    if (filtered.length === 0) return [];
+
+    // LLM scoring
+    console.log(`[pre-post burst] Scoring ${filtered.length} candidate(s) with LLM...`);
+    const llmScores = await scoreCandidatesWithLLM(
+      filtered.map(s => ({ text: s.candidate.text, authorName: s.candidate.authorName, keywordHits: s.keywords, index: s.index })),
+    );
+
+    const eligible = filtered.map(s => {
+      const llmScore = llmScores.get(s.index) ?? 0;
+      const relevanceScore = llmScore / 10;
+      const recencyScore = 1 - Math.min(s.postAge / 24, 1);
+      const diversityScore = s.profileCooldown >= COMMENT_COOLDOWN_HOURS ? 1 : s.profileCooldown / COMMENT_COOLDOWN_HOURS;
+      const profileUrl = s.candidate.profile?.url ?? '';
+      const attributionScore = profileUrl ? getOrganicProfileBonus(profileUrl) : 0;
+      const score = relevanceScore * 0.40 + attributionScore * 0.30 + recencyScore * 0.15 + diversityScore * 0.15;
+      return { candidate: s.candidate, score, llmScore };
+    }).filter(s => s.llmScore >= 4);
+
+    eligible.sort((a, b) => b.score - a.score);
+    return eligible;
+  };
+
+  // First scrape
+  let eligible = await scrapeAndRank();
+
+  // Retry if under minimum
+  if (eligible.length < TARGET_MIN) {
+    console.log(`[pre-post burst] Only ${eligible.length} eligible candidate(s) — retrying scrape...`);
+    const retry = await scrapeAndRank();
+    // Merge, deduplicate by post URL, re-sort
+    const seen = new Set(eligible.map(e => e.candidate.url));
+    for (const r of retry) {
+      if (!seen.has(r.candidate.url)) {
+        eligible.push(r);
+        seen.add(r.candidate.url);
+      }
+    }
+    eligible.sort((a, b) => b.score - a.score);
+  }
+
+  const picks = eligible.slice(0, TARGET_MAX);
+
+  if (picks.length === 0) {
+    console.log('[pre-post burst] No eligible candidates found.');
+    await sendMessage('🔥 Pre-post burst: no eligible candidates found. Consider posting some comments manually before your post goes live.').catch(() => {});
+    return;
+  }
+
+  console.log(`[pre-post burst] Generating comments for ${picks.length} candidate(s)...`);
+
+  // Generate comments in parallel
+  const results = await Promise.allSettled(
+    picks.map(async (pick) => {
+      const best = pick.candidate;
+      const generated = await generateOutboundComment(
+        { text: best.text, authorName: best.authorName, url: best.url, articleUrl: best.articleUrl },
+        { insider: best.profile?.insider ?? false, colleague: best.profile?.colleague ?? false },
+      );
+      const comment: PendingComment = {
+        id: `oc_${Date.now()}_${crypto.randomBytes(3).toString('hex')}`,
+        profileUrl: best.profile?.url ?? '',
+        profileName: best.profile?.name ?? best.authorName,
+        postUrl: best.url,
+        postSnippet: best.text.split('\n')[0].slice(0, 100),
+        postSummary: generated.postSummary,
+        postAgeHours: best.ageHours,
+        commentOptions: [generated.options[0].text, generated.options[1].text],
+        commentLabels: [generated.options[0].label, generated.options[1].label],
+        recommendationReason: generated.recommendationReason,
+        reasoning: generated.reasoning,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      addPendingComment(comment);
+      markPostSeen(best.id);
+      return comment;
+    }),
+  );
+
+  // Send all successful comments to Telegram
+  let sent = 0;
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      try {
+        await notifyOutboundComment(result.value);
+        sent++;
+      } catch (err) {
+        console.warn(`[pre-post burst] Failed to notify: ${(err as Error).message}`);
+      }
+    } else {
+      console.warn(`[pre-post burst] Comment generation failed: ${result.reason}`);
+    }
+  }
+
+  console.log(`[pre-post burst] Complete. ${sent} comment(s) sent for approval.`);
+  await sendMessage(`🔥 Pre-post burst complete — ${sent} comment option(s) ready for review. Post goes live in ~35 min.`).catch(() => {});
 }

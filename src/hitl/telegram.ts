@@ -4,10 +4,10 @@ import path from 'path';
 import { approvePost, rejectPost, cancelPost, clearPostImage, setImageChoice, setGeneratedImagePath, getPendingPosts } from './queue.js';
 import { pickScheduledTime, pickInsiderScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
-import { getPendingReply, updateReplyStatus, type PendingReply } from './comment-queue.js';
+import { getPendingReply, updateReplyStatus, getApprovedReplies, type PendingReply } from './comment-queue.js';
 import { postCommentReply, postOutboundComment } from '../poster/comments.js';
 import { renewSession } from '../poster/index.js';
-import { getPendingComment, updateCommentStatus, addProfile, incrementDailyCount, popFallbackCandidate, addPendingComment, markPostSeen, type PendingComment } from '../outbound/outbound-queue.js';
+import { getPendingComment, updateCommentStatus, getApprovedComments, addProfile, incrementDailyCount, popFallbackCandidate, addPendingComment, markPostSeen, type PendingComment } from '../outbound/outbound-queue.js';
 import { generateOutboundComment } from '../outbound/generate-comment.js';
 
 // Escape text for Telegram HTML parse mode.
@@ -111,21 +111,139 @@ export function stopAllTypingIndicators(): void {
   if (activeTypingInterval) { clearInterval(activeTypingInterval); activeTypingInterval = null; }
 }
 
+// Pre-post engagement burst — scheduled 35 min before a post goes live.
+let prePostBurstTimer: ReturnType<typeof setTimeout> | null = null;
+let prePostBurstScheduledFor: string | null = null; // ISO timestamp for /schedule display
+
+function schedulePrePostBurst(scheduledFor: string): void {
+  // Cancel any existing burst timer (only one post at a time)
+  if (prePostBurstTimer) {
+    clearTimeout(prePostBurstTimer);
+    prePostBurstTimer = null;
+  }
+
+  const publishTime = new Date(scheduledFor).getTime();
+  const burstTime = publishTime - 35 * 60 * 1000; // 35 min before
+  const delayMs = burstTime - Date.now();
+
+  if (delayMs < 60_000) {
+    console.log(`[pre-post burst] Post publishes too soon (${Math.round(delayMs / 60_000)}m). Skipping burst.`);
+    prePostBurstScheduledFor = null;
+    return;
+  }
+
+  prePostBurstScheduledFor = new Date(burstTime).toISOString();
+
+  prePostBurstTimer = setTimeout(async () => {
+    prePostBurstTimer = null;
+    prePostBurstScheduledFor = null;
+    try {
+      const { runPrePostBurst } = await import('./outbound-poll.js');
+      await runPrePostBurst();
+    } catch (err) {
+      console.error(`[pre-post burst] Failed: ${(err as Error).message}`);
+    }
+  }, delayMs);
+
+  const burstStr = new Date(burstTime).toLocaleString('en-US', {
+    timeZone: 'America/Toronto',
+    hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+  });
+  console.log(`[pre-post burst] Scheduled for ${burstStr} (${Math.round(delayMs / 60_000)}m from now).`);
+}
+
+// Re-hydrate burst timer on startup — in case the scheduler restarted after a post was approved.
+export function rehydrateBurstTimer(): void {
+  try {
+    const posts = JSON.parse(readFileSync('pending_posts.json', 'utf-8'));
+    const approved = posts.filter((p: any) => p.status === 'approved' && p.scheduledFor);
+    if (approved.length > 0) {
+      // Pick the soonest scheduled post
+      approved.sort((a: any, b: any) => a.scheduledFor.localeCompare(b.scheduledFor));
+      const next = approved[0];
+      const publishTime = new Date(next.scheduledFor).getTime();
+      const burstTime = publishTime - 35 * 60 * 1000;
+      if (burstTime > Date.now() + 60_000) {
+        schedulePrePostBurst(next.scheduledFor);
+        console.log(`[pre-post burst] Re-hydrated burst timer for post ${next.id}.`);
+      }
+    }
+  } catch { /* no pending posts or parse error — ignore */ }
+}
+
+// Flush approved replies — posts them sequentially via browser.
+// Called after monitor/scrape completes, or immediately from cr_confirm if browser is free.
+export async function flushApprovedReplies(): Promise<void> {
+  const approved = getApprovedReplies();
+  if (approved.length === 0) return;
+
+  console.log(`[flush-replies] Posting ${approved.length} approved reply(ies)...`);
+
+  for (const reply of approved) {
+    const selectedText = reply.replyOptions[(reply.selectedOption ?? 1) - 1];
+    try {
+      await postCommentReply(reply.postUrl, reply.commentId, selectedText);
+      updateReplyStatus(reply.id, { status: 'replied', repliedAt: new Date().toISOString() });
+      console.log(`[flush-replies] Posted reply to ${reply.commentAuthor} | ${reply.postUrl}`);
+      const typeLabel = reply.postType === 'outbound' ? 'outbound thread' : reply.postType;
+      await sendMessage(
+        `✅ <b>Reply posted</b> | ${typeLabel}\n\n` +
+        `<b>To:</b> ${esc(reply.commentAuthor)}\n` +
+        `<b>They said:</b> <i>"${esc(reply.commentText.slice(0, 120))}${reply.commentText.length > 120 ? '…' : ''}"</i>\n` +
+        `<b>You replied:</b> "${esc(selectedText)}"\n\n` +
+        `${reply.postUrl}`,
+        'HTML',
+      ).catch(() => {});
+    } catch (err) {
+      console.error(`[flush-replies] Failed to post reply to ${reply.commentAuthor}: ${(err as Error).message}`);
+      await sendMessage(`❌ Failed to post reply to ${esc(reply.commentAuthor)}: ${(err as Error).message}\n\n${reply.postUrl}`).catch(() => {});
+    }
+  }
+}
+
+// Flush approved outbound comments — posts them sequentially via browser.
+export async function flushApprovedOutboundComments(): Promise<void> {
+  const approved = getApprovedComments();
+  if (approved.length === 0) return;
+
+  console.log(`[flush-outbound] Posting ${approved.length} approved comment(s)...`);
+
+  for (const comment of approved) {
+    const selectedText = comment.commentOptions[(comment.selectedOption ?? 1) - 1];
+    try {
+      await postOutboundComment(comment.postUrl, selectedText);
+      updateCommentStatus(comment.id, { status: 'posted', postedAt: new Date().toISOString() });
+      incrementDailyCount();
+      console.log(`[flush-outbound] Posted comment — ${comment.profileName} | ${comment.postUrl}`);
+      await sendMessage(
+        `✅ <b>Comment posted</b> | ${esc(comment.profileName)}\n\n` +
+        `<b>On:</b> <i>"${esc(comment.postSnippet)}…"</i>\n` +
+        `<b>You said:</b> "${esc(selectedText)}"\n\n` +
+        `${comment.postUrl}`,
+        'HTML',
+      ).catch(() => {});
+    } catch (err) {
+      console.error(`[flush-outbound] Failed to post comment for ${comment.profileName}: ${(err as Error).message}`);
+      await sendMessage(`❌ Failed to post comment for ${esc(comment.profileName)}: ${(err as Error).message}\n\n${comment.postUrl}`, 'HTML').catch(() => {});
+    }
+  }
+}
+
 // Optional handler called after a rejection — used by scheduler to auto-regenerate
-let onRejectHandler: (() => Promise<void>) | null = null;
-let onGenerateHandler: ((url?: string) => Promise<void>) | null = null;
-let onPollHandler: (() => Promise<void>) | null = null;
+let onRejectHandler: (() => Promise<unknown>) | null = null;
+let onGenerateHandler: ((url?: string) => Promise<unknown>) | null = null;
+let onPollHandler: (() => Promise<unknown>) | null = null;
 let onOutboundHandler: (() => Promise<void>) | null = null;
 
-export function setOnRejectHandler(handler: () => Promise<void>): void {
+export function setOnRejectHandler(handler: () => Promise<unknown>): void {
   onRejectHandler = handler;
 }
 
-export function setOnGenerateHandler(handler: (url?: string) => Promise<void>): void {
+export function setOnGenerateHandler(handler: (url?: string) => Promise<unknown>): void {
   onGenerateHandler = handler;
 }
 
-export function setOnPollHandler(handler: () => Promise<void>) : void {
+export function setOnPollHandler(handler: () => Promise<unknown>): void {
   onPollHandler = handler;
 }
 
@@ -160,6 +278,7 @@ export function startBot(): void {
     { command: 'poll', description: 'Check for new comments on posts' },
     { command: 'insider', description: 'Generate insider post from notes' },
     { command: 'notes', description: 'Add a daily work note' },
+    { command: 'schedule', description: 'Show upcoming posts, bursts & loopbacks' },
     { command: 'login', description: 'Renew LinkedIn session' },
     { command: 'help', description: 'Show all commands' },
   ]).catch(err => console.warn('Failed to set bot commands:', err.message));
@@ -175,12 +294,73 @@ export function startBot(): void {
       '/types — Show post type distribution vs targets\n' +
       '/notes — Add a daily note (assembled into an insider post weekly)\n' +
       '/login — Open a browser to renew your LinkedIn session\n' +
+      '/schedule — Show upcoming posts, burst comments, and loopback comments\n' +
       '/help — Show this message\n\n' +
       '*Other actions:*\n' +
       '• Send a LinkedIn profile URL to add it to the outbound tracking list\n' +
       '• Send a LinkedIn post URL to generate comment options for that post',
       { parse_mode: 'Markdown' },
     );
+  });
+
+  bot.command('schedule', async (ctx) => {
+    let allPosts: any[] = [];
+    let history: any[] = [];
+    try { allPosts = JSON.parse(readFileSync('pending_posts.json', 'utf-8')); } catch {}
+    try { history = JSON.parse(readFileSync('posted_history.json', 'utf-8')); } catch {}
+    const approved = allPosts.filter((p: any) => p.status === 'approved' && p.scheduledFor);
+
+    const fmt = (iso: string) => new Date(iso).toLocaleString('en-US', {
+      timeZone: 'America/Toronto',
+      weekday: 'short', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit',
+    });
+
+    const lines: string[] = [];
+    const buttons: Array<{ text: string; callback_data: string }> = [];
+
+    // Scheduled posts
+    if (approved.length > 0) {
+      for (const p of approved) {
+        lines.push(`📝 <b>Post:</b> ${esc(p.draft?.sourceTitle?.slice(0, 50) ?? 'Untitled')} | ${p.draft?.postType ?? '?'}`);
+        lines.push(`   Publishes: <b>${fmt(p.scheduledFor)}</b>`);
+        buttons.push({ text: `📝 ${p.draft?.sourceTitle?.slice(0, 30) ?? 'View post'}`, callback_data: `sched_view:${p.id}` });
+      }
+    } else {
+      lines.push('📝 No posts scheduled.');
+    }
+
+    // Pre-post burst
+    if (prePostBurstScheduledFor) {
+      lines.push(`\n🔥 <b>Pre-post burst:</b> ${fmt(prePostBurstScheduledFor)}`);
+    }
+
+    // Loopback comments
+    const loopbacks = history.filter((p: any) =>
+      p.loopbackStatus === 'pending' && p.draft?.loopbackComment
+    );
+    const scheduledLoopbacks = history.filter((p: any) =>
+      p.loopbackStatus === 'scheduled' && p.loopbackScheduledFor
+    );
+
+    if (scheduledLoopbacks.length > 0) {
+      for (const p of scheduledLoopbacks) {
+        lines.push(`\n🔄 <b>Loopback scheduled:</b> ${fmt(p.loopbackScheduledFor)}`);
+        lines.push(`   <i>"${esc(p.draft?.loopbackComment?.slice(0, 80) ?? '')}…"</i>`);
+      }
+    } else if (loopbacks.length > 0) {
+      lines.push(`\n🔄 ${loopbacks.length} loopback comment(s) pending (checked at 9am ET).`);
+    }
+
+    if (lines.every(l => l.includes('No posts'))) {
+      lines.push('\nNothing scheduled.');
+    }
+
+    const keyboard = buttons.length > 0
+      ? { reply_markup: { inline_keyboard: buttons.map(b => [b]) } }
+      : {};
+
+    await ctx.reply(lines.join('\n'), { parse_mode: 'HTML', ...keyboard });
   });
 
   bot.command('types', async (ctx) => {
@@ -314,8 +494,13 @@ export function startBot(): void {
       })
       .catch(err => {
         stopTyping();
-        console.error('[/poll] Unexpected error:', err);
-        ctx.reply(`Comment poll failed: ${err.message}`).catch(() => {});
+        const msg = err?.message ?? String(err);
+        const isLockTimeout = msg.includes('Browser lock not acquired');
+        console.error('[/poll] Unexpected error:', msg);
+        ctx.reply(isLockTimeout
+          ? 'Browser is busy with another operation. Try again in a minute.'
+          : `Comment poll failed: ${msg}`
+        ).catch(() => {});
       });
   });
 
@@ -328,8 +513,13 @@ export function startBot(): void {
       .then(() => { stopTyping(); ctx.reply('Outbound poll complete.').catch(() => {}); })
       .catch(err => {
         stopTyping();
-        console.error('[/outbound] Poll error:', err);
-        ctx.reply(`Outbound poll failed: ${err.message}`).catch(() => {});
+        const msg = err?.message ?? String(err);
+        const isLockTimeout = msg.includes('Browser lock not acquired');
+        console.error('[/outbound] Poll error:', msg);
+        ctx.reply(isLockTimeout
+          ? 'Browser is busy with another operation. Try again in a minute.'
+          : `Outbound poll failed: ${msg}`
+        ).catch(() => {});
       });
   });
 
@@ -384,8 +574,13 @@ export function startBot(): void {
         await ctx.reply('❌ Login timed out. Try again.').catch(err => console.error('[/login] Failed to send timeout reply:', err));
       }
     } catch (err: any) {
-      console.error('[/login] renewSession error:', err);
-      await ctx.reply(`❌ Login failed: ${err.message}`).catch(() => {});
+      const msg = err?.message ?? String(err);
+      const isLockTimeout = msg.includes('Browser lock not acquired');
+      console.error('[/login] renewSession error:', msg);
+      await ctx.reply(isLockTimeout
+        ? 'Browser is busy with another operation. Try again in a minute.'
+        : `❌ Login failed: ${msg}`
+      ).catch(() => {});
     }
   });
 
@@ -561,6 +756,7 @@ export function startBot(): void {
           await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
           await ctx.reply(`Insider post approved (${label}). Scheduled for ${scheduledStr}.`);
           await updateDraftStatus(payload, `📅 Scheduled for ${scheduledStr} | Image: ${label}`);
+          schedulePrePostBurst(scheduledFor);
         } else {
           const scheduledFor = pickScheduledTime();
           const post = approvePost(payload, scheduledFor);
@@ -581,6 +777,7 @@ export function startBot(): void {
           await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
           await ctx.reply(`Post approved (${label}). Scheduled for ${scheduledStr}.`);
           await updateDraftStatus(payload, `📅 Scheduled for ${scheduledStr} | Image: ${label}`);
+          schedulePrePostBurst(scheduledFor);
         }
 
         pendingResolutions.get(payload)?.('approved');
@@ -687,36 +884,18 @@ export function startBot(): void {
         const reply = getPendingReply(replyId);
         if (!reply) { await ctx.answerCbQuery('Reply not found.'); return; }
         if (reply.status === 'replied') { await ctx.answerCbQuery('Already posted.'); return; }
-        await ctx.answerCbQuery('Posting reply…');
-        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
-        let postErr: Error | null = null;
-        try {
-          await postCommentReply(reply.postUrl, reply.commentId, reply.replyOptions[optionIdx - 1]);
-          updateReplyStatus(replyId, { status: 'replied', selectedOption: optionIdx, repliedAt: new Date().toISOString() });
-          console.log(`Comment reply posted — ${reply.commentAuthor} | ${reply.postUrl}`);
-        } catch (err: any) {
-          postErr = err;
-          console.error('[cr_confirm] postCommentReply failed:', err);
-        }
-        if (postErr) {
-          await ctx.editMessageText(
-            `❌ <b>Failed to post reply</b>\n\n${esc(postErr.message)}\n\nYou can try again or skip.`,
-            {
-              parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [[
-                  { text: '↩ Try again', callback_data: `cr_back:${replyId}` },
-                  { text: '⏭ Skip', callback_data: `cr_skip:${replyId}` },
-                ]],
-              },
-            },
-          );
-        } else {
-          await ctx.editMessageText(
-            `✅ <b>Reply posted</b> | ${esc(reply.postType)}\n\nReplied to ${esc(reply.commentAuthor)}.\n\n${reply.postUrl}`,
-            { parse_mode: 'HTML', reply_markup: { inline_keyboard: [] } },
-          );
-        }
+
+        // Queue the reply for posting — will be flushed after any active monitor/scrape completes
+        updateReplyStatus(replyId, { status: 'approved', selectedOption: optionIdx });
+        console.log(`[cr_confirm] Reply queued for posting — ${reply.commentAuthor} | option ${optionIdx}`);
+        await ctx.answerCbQuery('Queued for posting…');
+        await ctx.editMessageText(
+          `⏳ <b>Reply queued</b> | ${esc(reply.postType)}\n\nWill post to ${esc(reply.commentAuthor)} shortly.\n\n${reply.postUrl}`,
+          { parse_mode: 'HTML', reply_markup: { inline_keyboard: [] } },
+        );
+
+        // Try to flush immediately — if browser is free it posts now, otherwise it waits
+        flushApprovedReplies().catch(() => {});
       }
 
       if (action === 'cr_back') {
@@ -767,39 +946,18 @@ export function startBot(): void {
         const comment = getPendingComment(commentId);
         if (!comment) { await ctx.answerCbQuery('Comment not found.'); return; }
         if (comment.status === 'posted') { await ctx.answerCbQuery('Already posted.'); return; }
-        await ctx.answerCbQuery('Posting comment…');
-        // Remove buttons immediately so the user can't double-tap while the browser runs
-        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
-        let postErr: Error | null = null;
-        try {
-          await postOutboundComment(comment.postUrl, comment.commentOptions[optionIdx - 1]);
-          updateCommentStatus(commentId, { status: 'posted', selectedOption: optionIdx, postedAt: new Date().toISOString() });
-          incrementDailyCount();
-          console.log(`Outbound comment posted — ${comment.profileName} | ${comment.postUrl}`);
-        } catch (err: any) {
-          postErr = err;
-          console.error('[oc_confirm] postOutboundComment failed:', err);
-        }
-        if (postErr) {
-          await ctx.editMessageText(
-            `❌ <b>Failed to post comment</b>\n\n${esc(postErr.message)}\n\nYou can try again or skip.`,
-            {
-              parse_mode: 'HTML',
-              reply_markup: {
-                inline_keyboard: [[
-                  { text: '↩ Try again', callback_data: `oc_back:${commentId}` },
-                  { text: '⏭ Skip', callback_data: `oc_skip:${commentId}` },
-                  { text: '✖ Exit', callback_data: `oc_exit:${commentId}` },
-                ]],
-              },
-            },
-          );
-        } else {
-          await ctx.editMessageText(
-            `✅ <b>Comment posted</b> | ${esc(comment.profileName)}\n\n${comment.postUrl}`,
-            { parse_mode: 'HTML', reply_markup: { inline_keyboard: [] } },
-          );
-        }
+
+        // Queue the comment for posting — will be flushed when browser is free
+        updateCommentStatus(commentId, { status: 'approved', selectedOption: optionIdx });
+        console.log(`[oc_confirm] Comment queued for posting — ${comment.profileName} | option ${optionIdx}`);
+        await ctx.answerCbQuery('Queued for posting…');
+        await ctx.editMessageText(
+          `⏳ <b>Comment queued</b> | ${esc(comment.profileName)}\n\nWill post shortly.\n\n${comment.postUrl}`,
+          { parse_mode: 'HTML', reply_markup: { inline_keyboard: [] } },
+        );
+
+        // Try to flush immediately — if browser is free it posts now
+        flushApprovedOutboundComments().catch(() => {});
       }
 
       if (action === 'oc_back') {
@@ -810,6 +968,74 @@ export function startBot(): void {
           formatOutboundMessage(comment),
           { parse_mode: 'HTML', reply_markup: buildOutboundKeyboard(comment) },
         );
+      }
+
+      // --- Schedule view callback ---
+      if (action === 'sched_view') {
+        const postId = payload;
+        let allPosts: any[] = [];
+        try { allPosts = JSON.parse(readFileSync('pending_posts.json', 'utf-8')); } catch {}
+        const post = allPosts.find((p: any) => p.id === postId);
+        if (!post) { await ctx.answerCbQuery('Post not found.'); return; }
+
+        await ctx.answerCbQuery();
+
+        const fmt = (iso: string) => new Date(iso).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short', month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit',
+        });
+
+        const wc = post.wordCount ?? post.finalContent?.split(/\s+/).filter(Boolean).length ?? '?';
+        const cringeNote = post.screening?.cringeScore !== undefined ? `Cringe: ${post.screening.cringeScore}/10` : '';
+        const imageLabel = post.imageChoice === 'ai' ? 'AI generated'
+          : post.imageChoice === 'og' ? 'Article image'
+          : post.imageChoice === 'stock' ? 'Stock photo'
+          : post.imageChoice === 'custom' ? 'Custom upload'
+          : post.imageChoice === 'none' ? 'No image'
+          : 'Unknown';
+
+        const details = [
+          `📝 <b>Scheduled Post Details</b>`,
+          ``,
+          `<b>Title:</b> ${esc(post.draft?.sourceTitle ?? 'Untitled')}`,
+          `<b>Type:</b> ${post.draft?.postType ?? '?'} | <b>Words:</b> ${wc} | ${cringeNote}`,
+          `<b>Publishes:</b> ${fmt(post.scheduledFor)}`,
+          `<b>Image:</b> ${imageLabel}`,
+          ``,
+          esc(post.finalContent ?? post.draft?.content ?? ''),
+        ];
+
+        if (post.draft?.firstComment) {
+          details.push(``, `<b>First comment:</b>`, esc(post.draft.firstComment));
+        }
+        if (post.draft?.loopbackComment) {
+          details.push(``, `<b>Loopback comment:</b>`, `<i>${esc(post.draft.loopbackComment)}</i>`);
+        }
+
+        // Send full text first
+        await ctx.reply(details.join('\n'), { parse_mode: 'HTML' });
+
+        // Then send image based on imageChoice
+        const choice = post.imageChoice;
+        let imageSource: { source: Buffer } | { url: string } | null = null;
+
+        if (choice === 'ai' || choice === 'custom') {
+          const imgPath = post.draft?.generatedImagePath;
+          if (imgPath && existsSync(imgPath)) {
+            imageSource = { source: readFileSync(imgPath) };
+          }
+        } else if (choice === 'stock' && post.draft?.stockImageUrl) {
+          imageSource = { url: post.draft.stockImageUrl };
+        } else if (choice === 'og' && post.draft?.imageUrl) {
+          imageSource = { url: post.draft.imageUrl };
+        }
+
+        if (imageSource) {
+          try {
+            await ctx.replyWithPhoto(imageSource as any, { caption: `Image: ${imageLabel}` });
+          } catch { /* image send failed — non-fatal */ }
+        }
       }
 
       // --- Hook selection callbacks ---
@@ -1006,6 +1232,7 @@ export function startBot(): void {
           hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
         });
         await ctx.reply(`📷 Photo saved. Insider post approved (custom image). Scheduled for ${scheduledStr}.`);
+        schedulePrePostBurst(scheduledFor);
       } else {
         const scheduledFor = pickScheduledTime();
         const approved = approvePost(postId, scheduledFor);
@@ -1016,6 +1243,7 @@ export function startBot(): void {
           hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
         });
         await ctx.reply(`📷 Photo saved. Post approved (custom image). Scheduled for ${scheduledStr}.`);
+        schedulePrePostBurst(scheduledFor);
       }
 
       pendingResolutions.get(postId)?.('approved');
@@ -1070,6 +1298,17 @@ export function startBot(): void {
         if (scraped.isRepost) {
           await ctx.reply(`⚠️ This looks like a repost, not an original post. Comment on the original instead — your engagement will be more visible there.`);
           return;
+        }
+
+        // Record hashtags for trend tracking (use URL as dedup key for ad-hoc posts)
+        const adHocTags = scraped.text.match(/#[A-Za-z]\w*/g);
+        if (adHocTags) {
+          const { recordHashtagSightings, isHashtagRecorded, markHashtagRecorded } = await import('./outbound-poll.js');
+          if (!isHashtagRecorded(postUrl)) {
+            console.log(`[ad-hoc comment] [hashtags] ${scraped.authorName}: ${adHocTags.join(', ')}`);
+            recordHashtagSightings(adHocTags, scraped.authorName);
+            markHashtagRecorded(postUrl);
+          }
         }
 
         // Mark the post as seen so the outbound poll won't suggest it again.
@@ -1128,8 +1367,13 @@ export function startBot(): void {
         await notifyOutboundComment(comment);
         console.log(`[ad-hoc comment] Comment options sent for ${scraped.authorName} (profile: ${profileUrl || 'unknown'})`);
       } catch (err: any) {
-        console.error('[ad-hoc comment] Failed:', err);
-        await ctx.reply(`Failed to generate comment: ${err.message}`).catch(() => {});
+        const msg = err?.message ?? String(err);
+        const isLockTimeout = msg.includes('Browser lock not acquired');
+        console.error('[ad-hoc comment] Failed:', msg);
+        await ctx.reply(isLockTimeout
+          ? 'Browser is busy with another operation. Try again in a minute.'
+          : `Failed to generate comment: ${msg}`
+        ).catch(() => {});
       }
       return;
     }
@@ -1382,6 +1626,10 @@ function formatMessage(post: PendingPost): string {
     ? `\n\n*First comment:*\n${escMd(post.draft.firstComment)}`
     : '';
 
+  const loopbackSection = post.draft.loopbackComment
+    ? `\n\n*Loopback comment* _(next morning if no engagement):_\n${escMd(post.draft.loopbackComment)}`
+    : '';
+
   const sourceDateStr = post.draft.sourceDate
     ? new Date(post.draft.sourceDate).toLocaleDateString('en-US', {
         timeZone: 'America/Toronto',
@@ -1416,7 +1664,7 @@ function formatMessage(post: PendingPost): string {
 
 ${sourceNote}${metaLine ? `\n${metaLine}` : ''}
 
-${displayContent}${commentSection}${getNextCandidatesSummary()}`;
+${displayContent}${commentSection}${loopbackSection}${getNextCandidatesSummary()}`;
 }
 
 // --- Comment reply notification ---
@@ -1435,12 +1683,14 @@ function buildCommentKeyboard(reply: PendingReply) {
 }
 
 function formatCommentMessage(reply: PendingReply): string {
-  const threadLabel = reply.isReply ? 'reply-to-reply' : 'comment';
+  const isOutbound = reply.postType === 'outbound';
+  const threadLabel = isOutbound ? 'outbound thread reply' : reply.isReply ? 'reply-to-reply' : 'comment';
+  const icon = isOutbound ? '📨' : '💬';
   const reasoningSection = reply.reasoning
     ? `\n<b>AI reasoning:</b> <i>${esc(reply.reasoning)}</i>\n`
     : '';
 
-  return `💬 <b>New ${threadLabel}</b> | ${reply.postType}
+  return `${icon} <b>New ${threadLabel}</b>${isOutbound ? '' : ` | ${reply.postType}`}
 ${reply.postUrl}
 <i>"${esc(reply.postSnippet)}…"</i>
 

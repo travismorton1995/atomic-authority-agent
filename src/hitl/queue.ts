@@ -21,6 +21,9 @@ export interface PendingPost {
   publishFailures?: number; // consecutive publish attempt failures
   imageChoice?: 'ai' | 'og' | 'none' | 'custom' | 'stock'; // which image to use when posting
   wordCount?: number;        // word count of final post content
+  // Loopback comment — posted next morning if no external comments
+  loopbackStatus?: 'pending' | 'scheduled' | 'posted' | 'skipped';
+  loopbackScheduledFor?: string; // ISO timestamp with jitter (9:30am-12pm ET)
 }
 
 function readFile<T>(path: string, fallback: T): T {
@@ -171,6 +174,7 @@ export function markPublished(id: string, linkedInPostUrl?: string | null): Pend
   post.status = 'published';
   post.publishedAt = publishedAt;
   if (linkedInPostUrl) post.linkedInPostUrl = linkedInPostUrl;
+  if (post.draft.loopbackComment) post.loopbackStatus = 'pending';
 
   // Remove from pending and archive to history
   writeFile(PENDING_FILE, posts.filter(p => p.id !== id));

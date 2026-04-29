@@ -265,15 +265,24 @@ def render_page_1(c, data):
 
 def _draw_recent_posts_table(c, y, recent_posts):
     """Draw the Recent Posts table. Returns y after table."""
-    rows = [
-        ['Recent Posts', '', '', '', '', '', '', '', '', '', '', ''],
-        ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', 'Score'],
-    ]
+    # Check if any post has an early score
+    has_early = any(p.get('earlyScore') is not None for p in recent_posts)
+
+    if has_early:
+        rows = [
+            ['Recent Posts', '', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', '90m', 'Score'],
+        ]
+    else:
+        rows = [
+            ['Recent Posts', '', '', '', '', '', '', '', '', '', '', ''],
+            ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', 'Score'],
+        ]
     type_abbrev = {'change-management': 'chg-mgmt'}
     for p in recent_posts:
         indirect_str = f"+{p['indirectFollows']}" if p['indirectFollows'] > 0 else '-'
         ptype = p.get('postType', '')
-        rows.append([
+        row = [
             p['date'],
             p['title'],
             type_abbrev.get(ptype, ptype),
@@ -285,15 +294,27 @@ def _draw_recent_posts_table(c, y, recent_posts):
             str(p['sends']),
             str(p['directFollows']),
             indirect_str,
-            str(p['compositeScore']),
-        ])
+        ]
+        if has_early:
+            early = p.get('earlyScore')
+            row.append(str(early) if early is not None else '-')
+        row.append(str(p['compositeScore']))
+        rows.append(row)
 
-    col_widths = [
-        CONTENT_W * 0.07, CONTENT_W * 0.22, CONTENT_W * 0.09,
-        CONTENT_W * 0.07, CONTENT_W * 0.06, CONTENT_W * 0.06,
-        CONTENT_W * 0.06, CONTENT_W * 0.06, CONTENT_W * 0.06,
-        CONTENT_W * 0.07, CONTENT_W * 0.07, CONTENT_W * 0.06,
-    ]
+    if has_early:
+        col_widths = [
+            CONTENT_W * 0.07, CONTENT_W * 0.20, CONTENT_W * 0.08,
+            CONTENT_W * 0.07, CONTENT_W * 0.06, CONTENT_W * 0.06,
+            CONTENT_W * 0.05, CONTENT_W * 0.05, CONTENT_W * 0.05,
+            CONTENT_W * 0.07, CONTENT_W * 0.07, CONTENT_W * 0.06, CONTENT_W * 0.06,
+        ]
+    else:
+        col_widths = [
+            CONTENT_W * 0.07, CONTENT_W * 0.22, CONTENT_W * 0.09,
+            CONTENT_W * 0.07, CONTENT_W * 0.06, CONTENT_W * 0.06,
+            CONTENT_W * 0.06, CONTENT_W * 0.06, CONTENT_W * 0.06,
+            CONTENT_W * 0.07, CONTENT_W * 0.07, CONTENT_W * 0.06,
+        ]
 
     style_cmds = [
         ('SPAN', (0, 0), (-1, 0)),
@@ -425,6 +446,55 @@ def render_page_2(c, data):
     c.setFillColor(MID_GRAY)
     c.drawString(MARGIN, footnote_y,
                  'Avg Score uses a robust average (trimmed mean excluding outliers beyond 2σ; median for n < 5).')
+
+    # Hashtag trends from outbound network
+    ht = data.get('hashtagTrends')
+    if ht and len(ht) > 0:
+        y_ht = footnote_y - 16
+        ht_rows = [
+            ['Network Hashtag Trends', '', '', ''],
+            ['Hashtag', 'Sightings', 'Profiles', 'Used By'],
+        ]
+        # Dynamically fit as many rows as the remaining space allows
+        available = y_ht - 50  # reserve 50px for footer
+        row_height = 18
+        header_height = 50  # title + column header rows
+        max_data_rows = max(0, int((available - header_height) / row_height))
+
+        for h in ht[:max_data_rows]:
+            ht_rows.append([
+                h['tag'],
+                str(h['count']),
+                str(h['profileCount']),
+                ', '.join(h.get('topProfiles', [])[:3]),
+            ])
+
+        if max_data_rows > 0:
+            ht_widths = [CONTENT_W * 0.25, CONTENT_W * 0.12, CONTENT_W * 0.12, CONTENT_W * 0.46]
+            ht_table = Table(ht_rows, colWidths=ht_widths)
+            ht_table.setStyle(TableStyle([
+                ('SPAN', (0, 0), (-1, 0)),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('TEXTCOLOR', (0, 0), (-1, 0), NAVY),
+                ('LINEBELOW', (0, 0), (-1, 0), 1.5, AMBER),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+                ('FONTNAME', (0, 1), (-1, 1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 1), (-1, 1), 8),
+                ('TEXTCOLOR', (0, 1), (-1, 1), MID_GRAY),
+                ('LINEBELOW', (0, 1), (-1, 1), 0.5, LIGHT_GRAY),
+                ('TOPPADDING', (0, 1), (-1, 1), 2),
+                ('BOTTOMPADDING', (0, 1), (-1, 1), 3),
+                ('FONTSIZE', (0, 2), (-1, -1), 9),
+                ('TEXTCOLOR', (0, 2), (-1, -1), DARK_GRAY),
+                ('TOPPADDING', (0, 2), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 2), (-1, -1), 3),
+                ('ROWBACKGROUNDS', (0, 2), (-1, -1), [OFF_WHITE, white]),
+                ('LINEBELOW', (0, -1), (-1, -1), 0.5, LIGHT_GRAY),
+                ('ALIGN', (1, 1), (2, -1), 'RIGHT'),
+            ]))
+            tw, th = ht_table.wrapOn(c, sum(ht_widths), 400)
+            ht_table.drawOn(c, MARGIN, y_ht - th)
 
     draw_footer(c, 2, 6)
 
@@ -844,11 +914,12 @@ def render_page_4(c, data):
             followers_val = str(direct)
 
         metric_items = [
-            ('Impressions', fmt(post.get('impressions', 0)), 'x0.01'),
-            ('Reactions', str(post.get('reactions', 0)), 'x1'),
-            ('Comments', str(post.get('comments', 0)), 'x3'),
+            ('Followers', followers_val, 'x20'),
+            ('Saves', str(post.get('saves', 0)), 'x15'),
+            ('Sends', str(post.get('sends', 0)), 'x10'),
+            ('Comments', str(post.get('comments', 0)), 'x8'),
             ('Reposts', str(post.get('reposts', 0)), 'x5'),
-            ('Followers', followers_val, 'x10'),
+            ('Reactions', str(post.get('reactions', 0)), 'x1'),
         ]
         mx = MARGIN + 20
         spacing = (CONTENT_W - 30) / len(metric_items)

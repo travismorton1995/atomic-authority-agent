@@ -111,7 +111,24 @@ async function markVerified(name: string): Promise<void> {
   // the scheduler or the user's personal Chrome instance.
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aa-mentions-'));
   console.log('Copying LinkedIn session to temp profile...');
-  fs.cpSync(USER_DATA_DIR, tmpDir, { recursive: true });
+  // Copy with fallback — skip files locked by a running Chrome/Playwright instance
+  const copyRecursive = (src: string, dest: string) => {
+    const stat = fs.statSync(src, { throwIfNoEntry: false });
+    if (!stat) return;
+    if (stat.isDirectory()) {
+      fs.mkdirSync(dest, { recursive: true });
+      for (const entry of fs.readdirSync(src)) {
+        copyRecursive(path.join(src, entry), path.join(dest, entry));
+      }
+    } else {
+      try {
+        fs.copyFileSync(src, dest);
+      } catch {
+        // Skip locked/busy files — non-critical for mention testing
+      }
+    }
+  };
+  copyRecursive(USER_DATA_DIR, tmpDir);
   // Remove Chrome's profile lock from the copy so Playwright can open it
   for (const lock of ['SingletonLock', 'SingletonSocket', 'SingletonCookie']) {
     try { fs.rmSync(path.join(tmpDir, lock), { force: true }); } catch {}

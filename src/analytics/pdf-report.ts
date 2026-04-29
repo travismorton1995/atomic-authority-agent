@@ -387,6 +387,7 @@ export async function generatePdfReport(): Promise<Buffer> {
         directFollows: p.newFollowers,
         indirectFollows: Math.round(p.indirectFollowers),
         compositeScore: Math.round(p.compositeScore),
+        earlyScore: p.earlyScore !== null ? Math.round(p.earlyScore) : null,
       }));
 
     // Attribution

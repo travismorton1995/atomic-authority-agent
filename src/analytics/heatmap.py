@@ -25,20 +25,21 @@ def get_time_window(hour, minute=0):
     return None
 
 SCORE_WEIGHTS = {
-    'newFollowers': 10, 'reposts': 5, 'sends': 5,
-    'comments': 3, 'saves': 3, 'reactions': 1, 'impressions': 0.01,
+    'newFollowers': 20, 'saves': 15, 'sends': 10,
+    'comments': 8, 'reposts': 5, 'reactions': 1,
 }
 
 def composite_score(m, indirect=0):
     if not m: return 0
-    return sum((m.get(k, 0) or 0) * w for k, w in SCORE_WEIGHTS.items()) + indirect * 10
+    followers = (m.get('newFollowers', 0) or 0) + indirect
+    return followers * 20 + (m.get('saves', 0) or 0) * 15 + (m.get('sends', 0) or 0) * 10 + (m.get('comments', 0) or 0) * 8 + (m.get('reposts', 0) or 0) * 5 + (m.get('reactions', 0) or 0) * 1
 
 def load_indirect_map():
     """Load indirect followers per post from organic attribution."""
     if not os.path.exists(ORGANIC_FILE):
         return {}
     try:
-        with open(ORGANIC_FILE, 'r') as f:
+        with open(ORGANIC_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
         result = {}
         for entry in data.get('postRollup', []):
@@ -53,7 +54,7 @@ def load_indirect_map():
 def main():
     output_path = sys.argv[1] if len(sys.argv) > 1 else 'heatmap.png'
 
-    with open(HISTORY_FILE, 'r') as f:
+    with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
         history = json.load(f)
 
     indirect_map = load_indirect_map()

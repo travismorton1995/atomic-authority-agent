@@ -247,6 +247,9 @@ async function extractAndRegisterMentions(content: string): Promise<void> {
 }
 
 async function finalize(item: FeedItem, postType: PostType, combinedScore?: number, scoreBreakdown?: ScoreBreakdown, multipliers?: { balance: number; recency: number; postContent: number }, selectedHook?: string): Promise<PendingPost> {
+  const { startTypingIndicator } = await import('../hitl/telegram.js');
+  const stopTyping = startTypingIndicator();
+
   console.log(`Post type: ${postType}`);
 
   console.log('Synthesizing draft...');
@@ -318,6 +321,8 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
 
   // Extract and register any company names not yet in the mentions dictionary
   await extractAndRegisterMentions(post.finalContent);
+
+  stopTyping();
 
   try {
     await notifyTelegram(post);
@@ -794,14 +799,14 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost 
       const postContentFeedback = computeTagMultiplier(r.suggestedTags);
 
       const parsedMs = r.item.pubDate ? new Date(r.item.pubDate).getTime() : NaN;
-      const ageDays = isNaN(parsedMs) ? null : Math.floor((now - parsedMs) / (1000 * 60 * 60 * 24));
+      const ageHours = isNaN(parsedMs) ? null : (now - parsedMs) / (1000 * 60 * 60);
       const recencyMultiplier =
-        ageDays === null ? 1.0
-        : ageDays <= 1   ? 1.3
-        : ageDays <= 3   ? 1.0
-        : ageDays <= 7   ? 0.8
-        : ageDays <= 14  ? 0.6
-        :                  0.4;
+        ageHours === null  ? 1.0
+        : ageHours <= 24   ? 1.3   // less than 1 day old
+        : ageHours <= 72   ? 1.0   // 1-3 days
+        : ageHours <= 168  ? 0.8   // 3-7 days
+        : ageHours <= 336  ? 0.6   // 7-14 days
+        :                    0.4;  // 14+ days
 
       const combinedScore = r.score * balanceMultiplier * recencyMultiplier * postContentFeedback;
       return { item: r.item, postType, articleScore: r.score, scoreBreakdown: r.breakdown, combinedScore, balanceMultiplier, recencyMultiplier, postContentFeedback, reasoning: r.reasoning };

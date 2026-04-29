@@ -83,17 +83,25 @@ Return ONLY the final reply text — no quotes, no explanation, no preamble.`,
 }
 
 export async function generateReplies(
-  post: { content: string; postType: string; articleTitle?: string },
+  post: { content: string; postType: string; articleTitle?: string; articleText?: string; authorName?: string },
   comment: { author: string; text: string },
   thread: Array<{ author: string; text: string }> = [],
 ): Promise<GeneratedReplies> {
+  const isOutbound = post.postType === 'outbound';
   const threadSection = thread.length > 0
-    ? `\nOTHER COMMENTS IN THIS THREAD (for context only):\n${thread.map(c => `${c.author}: "${c.text.slice(0, 150)}"`).join('\n')}\n`
+    ? `\nCONVERSATION THREAD (includes your previous replies as "You (Travis)"):\n${thread.map(c => `${c.author}: "${c.text}"`).join('\n')}\n`
     : '';
 
-  const articleSection = post.articleTitle
-    ? `\nSource article: "${post.articleTitle}"\n`
-    : '';
+  let articleSection = '';
+  if (post.articleText) {
+    articleSection = `\nSOURCE ARTICLE: "${post.articleTitle ?? 'Unknown'}"\n---\n${post.articleText}\n---\nUse specific facts from this article to support your replies where relevant.\n`;
+  } else if (post.articleTitle) {
+    articleSection = `\nSource article: "${post.articleTitle}"\n`;
+  }
+
+  const postIntro = isOutbound
+    ? `You commented on this LinkedIn post by ${post.authorName ?? 'another user'}:\n${post.content}`
+    : `You wrote this LinkedIn post:\n${post.content}`;
 
   const message = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
@@ -101,8 +109,7 @@ export async function generateReplies(
     system: SYSTEM_PROMPT,
     messages: [{
       role: 'user',
-      content: `You wrote this LinkedIn post:
-${post.content}
+      content: `${postIntro}
 ${articleSection}${threadSection}
 ${comment.author} commented:
 "${comment.text}"
@@ -111,7 +118,7 @@ Do three things and return a single JSON object:
 
 1. CLASSIFY the comment as one of: question | agreement | pushback | adds-context | generic
 
-2. REASON about the comment in 2-3 sentences: What is the commenter's intent? How are they engaging with the post or other commenters? What do they want from this exchange?
+2. REASON about the comment in 2-3 sentences: What is the commenter's intent? How are they engaging with the post or other commenters? What do they want from this exchange? If you have already replied to this person in the thread, consider the full arc of the conversation.
 
 3. GENERATE 3 reply options that each take a DIFFERENT conversational approach. Choose the 3 most fitting from this list:
 ${REPLY_APPROACHES}
@@ -119,7 +126,8 @@ ${REPLY_APPROACHES}
 Each reply must:
 - Be 1 sentence. 2 short sentences only if genuinely necessary.
 - Address the commenter directly — never refer to them in third person ("the commenter", "their point", "their skepticism")
-- Draw on thread context and the source article where relevant — prefer verifiable facts over editorializing
+- Draw on the source article and thread context — prefer specific, verifiable facts over editorializing
+- If you have already replied in this thread, do NOT repeat points you already made. Advance the conversation.
 - Sound like the post author — same technical voice, direct, grounded
 
 ${ANTI_AI_RULES}

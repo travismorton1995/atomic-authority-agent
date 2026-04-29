@@ -25,7 +25,7 @@ export interface CommentPollStats {
 }
 
 export async function runCommentPoll(targetUrl?: string, opts: CommentPollOptions = {}): Promise<CommentPollStats> {
-  if (!existsSync(HISTORY_FILE)) return;
+  if (!existsSync(HISTORY_FILE)) return { postsChecked: 0, totalComments: 0, newComments: 0 };
 
   const myName = (process.env.LINKEDIN_DISPLAY_NAME ?? '').toLowerCase();
   if (!myName) console.warn('LINKEDIN_DISPLAY_NAME not set — own comments will not be filtered.');
@@ -96,10 +96,27 @@ export async function runCommentPoll(targetUrl?: string, opts: CommentPollOption
       // Mark seen immediately so a crash mid-loop doesn't re-notify
       markCommentSeen(comment.id);
 
-      // Build thread context: other comments in the thread, excluding own
+      // Build thread context: all comments including own replies, labeled for the LLM
       const thread = comments
-        .filter(c => c.id !== comment.id && !(myName && c.author.toLowerCase().includes(myName)))
-        .map(c => ({ author: c.author, text: c.text }));
+        .filter(c => c.id !== comment.id)
+        .map(c => {
+          const isOwn = myName && c.author.toLowerCase().includes(myName);
+          return { author: isOwn ? 'You (Travis)' : c.author, text: c.text };
+        });
+
+      // Fetch article text for richer context (cached per post, non-fatal)
+      let articleText: string | undefined;
+      if (post.draft?.sourceUrl && !post._cachedArticleText) {
+        try {
+          const { fetchArticle } = await import('../content/fetch-article.js');
+          const article = await fetchArticle(post.draft.sourceUrl);
+          if (article.fullText && article.fullText.length > 100) {
+            const words = article.fullText.split(/\s+/);
+            post._cachedArticleText = words.length > 1500 ? words.slice(0, 1500).join(' ') + ' [truncated]' : article.fullText;
+          }
+        } catch { /* non-fatal */ }
+      }
+      articleText = post._cachedArticleText;
 
       let generated;
       try {
@@ -108,6 +125,7 @@ export async function runCommentPoll(targetUrl?: string, opts: CommentPollOption
             content: post.finalContent,
             postType: post.draft?.postType ?? 'unknown',
             articleTitle: post.draft?.sourceTitle,
+            articleText,
           },
           { author: comment.author, text: comment.text },
           thread,

@@ -1,0 +1,661 @@
+{
+  "#breakthroughprize": {
+    "count": 2,
+    "profiles": {
+      "nvidia": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#futureofwork": {
+    "count": 4,
+    "profiles": {
+      "Andrew Thurlow": 3,
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#ai": {
+    "count": 6,
+    "profiles": {
+      "Andrew Thurlow": 3,
+      "Pratheeksha MC": 2,
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#careerstrategy": {
+    "count": 2,
+    "profiles": {
+      "Andrew Thurlow": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#techlayoffs": {
+    "count": 3,
+    "profiles": {
+      "Andrew Thurlow": 3
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#skillsreallocation": {
+    "count": 2,
+    "profiles": {
+      "Andrew Thurlow": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#candureactor": {
+    "count": 2,
+    "profiles": {
+      "Osama Baig": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#candu": {
+    "count": 2,
+    "profiles": {
+      "Osama Baig": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclear": {
+    "count": 7,
+    "profiles": {
+      "Osama Baig": 2,
+      "Joe Williams": 1,
+      "Idaho National Laboratory": 2,
+      "Joshua Guzman Bell, PE, MBA": 1,
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearengineering": {
+    "count": 2,
+    "profiles": {
+      "Osama Baig": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearenergy": {
+    "count": 9,
+    "profiles": {
+      "Osama Baig": 2,
+      "Nuclearn": 1,
+      "Idaho National Laboratory": 2,
+      "Ethan LI, CFA": 1,
+      "Vitalii Pronin": 1,
+      "Joshua Guzman Bell, PE, MBA": 1,
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#climatechange": {
+    "count": 2,
+    "profiles": {
+      "Osama Baig": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearpower": {
+    "count": 2,
+    "profiles": {
+      "Osama Baig": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nvidiagtc": {
+    "count": 1,
+    "profiles": {
+      "nvidia": 1
+    },
+    "lastSeen": "2026-04-27"
+  },
+  "#buildinpublic": {
+    "count": 2,
+    "profiles": {
+      "Katie A.": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#startuptools": {
+    "count": 2,
+    "profiles": {
+      "Katie A.": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#founderlife": {
+    "count": 2,
+    "profiles": {
+      "Katie A.": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#lovable": {
+    "count": 2,
+    "profiles": {
+      "Katie A.": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#entrepreneurship": {
+    "count": 2,
+    "profiles": {
+      "Katie A.": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#clubpeppermint": {
+    "count": 2,
+    "profiles": {
+      "Katie A.": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#iofp": {
+    "count": 2,
+    "profiles": {
+      "Building Ontario Fund": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#indigenousfinancing": {
+    "count": 2,
+    "profiles": {
+      "Building Ontario Fund": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#buildingontariofund": {
+    "count": 2,
+    "profiles": {
+      "Building Ontario Fund": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#brucepower": {
+    "count": 2,
+    "profiles": {
+      "Building Ontario Fund": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#impact": {
+    "count": 2,
+    "profiles": {
+      "Building Ontario Fund": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#indigenouspartnerships": {
+    "count": 2,
+    "profiles": {
+      "Building Ontario Fund": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#fightingcancertogether": {
+    "count": 2,
+    "profiles": {
+      "Building Ontario Fund": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#artificialintelligence": {
+    "count": 3,
+    "profiles": {
+      "Pratheeksha MC": 2,
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#cognizant": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#edtech": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#snowflake": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#enterpriseai": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#automation": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#energy": {
+    "count": 2,
+    "profiles": {
+      "Joe Williams": 1,
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#powergeneration": {
+    "count": 1,
+    "profiles": {
+      "Joe Williams": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#infrastructure": {
+    "count": 2,
+    "profiles": {
+      "Joe Williams": 2
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#epc": {
+    "count": 2,
+    "profiles": {
+      "Joe Williams": 1,
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#cleanenergy": {
+    "count": 3,
+    "profiles": {
+      "Joe Williams": 2,
+      "Ethan LI, CFA": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#engineeringjobs": {
+    "count": 1,
+    "profiles": {
+      "Joe Williams": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#aievaluation": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#opensource": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#responsibleai": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearai": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#energyinnovation": {
+    "count": 2,
+    "profiles": {
+      "Nuclearn": 1,
+      "Joe Williams": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#aiinenergy": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#digitaltransformation": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearreactors": {
+    "count": 2,
+    "profiles": {
+      "Idaho National Laboratory": 2
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#advancednuclear": {
+    "count": 2,
+    "profiles": {
+      "Idaho National Laboratory": 1,
+      "Joe Williams": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#nuclearresearch": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#northdakota": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#research": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#cybersecurity": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#criticalmaterials": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#stem": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#philippines": {
+    "count": 1,
+    "profiles": {
+      "Ethan LI, CFA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#energytransition": {
+    "count": 1,
+    "profiles": {
+      "Ethan LI, CFA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#smr": {
+    "count": 2,
+    "profiles": {
+      "Ethan LI, CFA": 1,
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#energypolicy": {
+    "count": 2,
+    "profiles": {
+      "Ethan LI, CFA": 1,
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#energyinfrastructure": {
+    "count": 2,
+    "profiles": {
+      "Ethan LI, CFA": 1,
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#projectfinance": {
+    "count": 1,
+    "profiles": {
+      "Ethan LI, CFA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#asean": {
+    "count": 1,
+    "profiles": {
+      "Ethan LI, CFA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#southeastasia": {
+    "count": 1,
+    "profiles": {
+      "Ethan LI, CFA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#procurement": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#supplychain": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#icv": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#localization": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#uae": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#advancedreactors": {
+    "count": 1,
+    "profiles": {
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#microreactors": {
+    "count": 1,
+    "profiles": {
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#futureofenergy": {
+    "count": 1,
+    "profiles": {
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearfuel": {
+    "count": 1,
+    "profiles": {
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#findingcriticalpath": {
+    "count": 1,
+    "profiles": {
+      "Joshua Guzman Bell, PE, MBA": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#techjobs": {
+    "count": 1,
+    "profiles": {
+      "Andrew Thurlow": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#quantumcomputing": {
+    "count": 1,
+    "profiles": {
+      "Andrew Thurlow": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#innovation": {
+    "count": 1,
+    "profiles": {
+      "Andrew Thurlow": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearsafety": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#aigovernance": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#canadiannuclearsafetycommission": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#cnsc": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#machinelearning": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#smallmodularreactors": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#nuclearinnovation": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-28"
+  },
+  "#terrapower": {
+    "count": 1,
+    "profiles": {
+      "Joe Williams": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#industrialsafety": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#visionai": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#canadiansmes": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#dayofmourning": {
+    "count": 1,
+    "profiles": {
+      "Bruce Power": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#cna2026": {
+    "count": 1,
+    "profiles": {
+      "Bruce Power": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#poweringthefuture": {
+    "count": 1,
+    "profiles": {
+      "Bruce Power": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#thefutureisnuclear": {
+    "count": 1,
+    "profiles": {
+      "Bruce Power": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#powerandpurpose": {
+    "count": 1,
+    "profiles": {
+      "Bruce Power": 1
+    },
+    "lastSeen": "2026-04-29"
+  }
+}

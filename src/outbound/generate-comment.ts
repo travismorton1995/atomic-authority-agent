@@ -87,17 +87,12 @@ export async function generateOutboundComment(
     ? `\n\nThe post links to an article. Use this for deeper context — but comment on the POST, not the article:\n---\n${articleContext}\n---`
     : '';
 
-  const message = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 400,
-    messages: [{
-      role: 'user',
-      content: `You are Travis Morton, MEng — an AI developer working at the intersection of AI and the nuclear industry. You are adding a comment to a LinkedIn post.
+  const promptContent = `You are Travis Morton, MEng — an AI developer working at the intersection of AI and the nuclear industry. You are adding a comment to a LinkedIn post.
 
 ${insiderContext}${colleagueContext ? `\n${colleagueContext}` : ''}${strangerContext ? `\n${strangerContext}` : ''}
 
 ${post.authorName} posted:
-"${post.text.slice(0, 800)}"${articleSection}
+"${post.text.slice(0, 2000)}"${articleSection}
 
 Do four things and return a single JSON object:
 
@@ -131,7 +126,14 @@ Return ONLY valid JSON:
     { "label": "<approach>", "text": "<comment>" },
     { "label": "<approach>", "text": "<comment>" }
   ]
-}`,
+}`;
+
+  const message = await client.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 400,
+    messages: [{
+      role: 'user',
+      content: promptContent,
     }],
   });
 

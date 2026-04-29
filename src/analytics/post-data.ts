@@ -6,27 +6,25 @@ import { getOrganicAttribution } from './organic-attribution.js';
 
 const HISTORY_FILE = 'posted_history.json';
 
-/** Weights for composite performance score — values audience growth potential. */
+/** Weights for composite performance score (based on 360brew research). */
 export const SCORE_WEIGHTS = {
-  newFollowers: 10,
+  newFollowers: 20,
+  saves: 15,
+  sends: 10,
+  comments: 8,
   reposts: 5,
-  sends: 5,
-  comments: 3,
-  saves: 3,
   reactions: 1,
-  impressions: 0.01,
 };
 
 /** Compute the weighted composite score from post metrics + optional indirect followers. */
 export function compositeScore(m: any, indirectFollowers: number = 0): number {
   if (!m) return 0;
   return ((m.newFollowers ?? 0) + indirectFollowers) * SCORE_WEIGHTS.newFollowers
-       + (m.reposts ?? 0)      * SCORE_WEIGHTS.reposts
+       + (m.saves ?? 0)        * SCORE_WEIGHTS.saves
        + (m.sends ?? 0)        * SCORE_WEIGHTS.sends
        + (m.comments ?? 0)     * SCORE_WEIGHTS.comments
-       + (m.saves ?? 0)        * SCORE_WEIGHTS.saves
-       + (m.reactions ?? 0)    * SCORE_WEIGHTS.reactions
-       + (m.impressions ?? 0)  * SCORE_WEIGHTS.impressions;
+       + (m.reposts ?? 0)      * SCORE_WEIGHTS.reposts
+       + (m.reactions ?? 0)    * SCORE_WEIGHTS.reactions;
 }
 
 export interface PostAnalyticsRecord {
@@ -53,6 +51,7 @@ export interface PostAnalyticsRecord {
   indirectFollowers: number;
   dayIndex: number; // days since first post (for trend analysis)
   postSnippet: string;
+  earlyScore: number | null; // composite score at ~90 min after publish
 }
 
 function getTimeWindow(hour: number, minute: number = 0): string {
@@ -142,6 +141,7 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
       indirectFollowers: indirect,
       dayIndex: (pubDate.getTime() - earliest) / (1000 * 60 * 60 * 24),
       postSnippet: content.split('\n')[0]?.slice(0, 80) ?? '',
+      earlyScore: p.earlyScore ?? null,
     };
   });
 }

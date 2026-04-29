@@ -1,5 +1,5 @@
 {
-  "lastComputed": "2026-04-24T04:02:27.329Z",
+  "lastComputed": "2026-04-29T04:18:26.026Z",
   "dailyAttributions": [
     {
       "date": "2026-03-18",
@@ -17935,121 +17935,4315 @@
           "label": "Canadian Strategic Missions Corporation takes one small step"
         }
       ]
+    },
+    {
+      "date": "2026-04-24",
+      "followerDelta": 9,
+      "unattributed": 0,
+      "items": [
+        {
+          "type": "post",
+          "id": "post_1773936340698",
+          "date": "2026-03-19",
+          "impressions": 2,
+          "ageInDays": 36,
+          "rawWeight": 10,
+          "normalizedWeight": 0.005271481286241434,
+          "attributedFollows": 0.0158144438587243,
+          "label": "NRC issues construction permit for first Natrium plant"
+        },
+        {
+          "type": "post",
+          "id": "post_1773967203024",
+          "date": "2026-03-20",
+          "impressions": 1,
+          "ageInDays": 35,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "U.K. releases new plans to speed nuclear deployment"
+        },
+        {
+          "type": "post",
+          "id": "post_1774024104693",
+          "date": "2026-03-23",
+          "impressions": 1,
+          "ageInDays": 32,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "X-energy forms partnership with Talen Energy to assess Xe-10"
+        },
+        {
+          "type": "post",
+          "id": "post_1774278044012",
+          "date": "2026-03-24",
+          "impressions": 1,
+          "ageInDays": 31,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "60 Years of U: Perspectives on resources, demand, and the ev"
+        },
+        {
+          "type": "post",
+          "id": "post_1774394112730",
+          "date": "2026-03-25",
+          "impressions": 1,
+          "ageInDays": 30,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "CNL demonstrates its cyber security incident response capabi"
+        },
+        {
+          "type": "post",
+          "id": "post_1774481713385",
+          "date": "2026-03-26",
+          "impressions": 1,
+          "ageInDays": 29,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "State news: Microreactors, legislation, executive orders, an"
+        },
+        {
+          "type": "post",
+          "id": "post_1774911665147",
+          "date": "2026-03-31",
+          "impressions": 1,
+          "ageInDays": 24,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "OpenAI in Talks with Helion to Secure Fusion Energy"
+        },
+        {
+          "type": "post",
+          "id": "post_1774998669141",
+          "date": "2026-04-01",
+          "impressions": 12,
+          "ageInDays": 23,
+          "rawWeight": 60,
+          "normalizedWeight": 0.0316288877174486,
+          "attributedFollows": 0.09488666315234581,
+          "label": "Bruce Power cobalt-60 harvest builds on innovation and partn"
+        },
+        {
+          "type": "post",
+          "id": "post_1775084468570",
+          "date": "2026-04-02",
+          "impressions": 1,
+          "ageInDays": 22,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs"
+        },
+        {
+          "type": "post",
+          "id": "post_1775516545301",
+          "date": "2026-04-07",
+          "impressions": 6,
+          "ageInDays": 17,
+          "rawWeight": 30,
+          "normalizedWeight": 0.0158144438587243,
+          "attributedFollows": 0.047443331576172906,
+          "label": "NRC proposed rule for licensing reactors authorized by DOE, "
+        },
+        {
+          "type": "post",
+          "id": "post_1775604886288",
+          "date": "2026-04-08",
+          "impressions": 3,
+          "ageInDays": 16,
+          "rawWeight": 15,
+          "normalizedWeight": 0.00790722192936215,
+          "attributedFollows": 0.023721665788086453,
+          "label": "Scaling Advanced Nuclear Power: Picking Winners Now"
+        },
+        {
+          "type": "post",
+          "id": "post_1775691516815",
+          "date": "2026-04-09",
+          "impressions": 1,
+          "ageInDays": 15,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "3D printing possibilities: Additive manufacturing impact lim"
+        },
+        {
+          "type": "post",
+          "id": "post_1775838020958",
+          "date": "2026-04-10",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776121268198",
+          "date": "2026-04-14",
+          "impressions": 8,
+          "ageInDays": 10,
+          "rawWeight": 40,
+          "normalizedWeight": 0.021085925144965736,
+          "attributedFollows": 0.0632577754348972,
+          "label": "First-of-a-kind microreactor test bed open for business"
+        },
+        {
+          "type": "post",
+          "id": "post_1776211357947",
+          "date": "2026-04-15",
+          "impressions": 38,
+          "ageInDays": 9,
+          "rawWeight": 190,
+          "normalizedWeight": 0.10015814443858724,
+          "attributedFollows": 0.30047443331576174,
+          "label": "Nuclear past and present collide in Ontario's Port Hope"
+        },
+        {
+          "type": "post",
+          "id": "post_1776294080154",
+          "date": "2026-04-16",
+          "impressions": 18,
+          "ageInDays": 8,
+          "rawWeight": 90,
+          "normalizedWeight": 0.047443331576172906,
+          "attributedFollows": 0.1423299947285187,
+          "label": "Bruce Power and SaskPower sign memorandum of understanding t"
+        },
+        {
+          "type": "post",
+          "id": "post_1776460115780",
+          "date": "2026-04-19",
+          "impressions": 27,
+          "ageInDays": 5,
+          "rawWeight": 135,
+          "normalizedWeight": 0.07116499736425935,
+          "attributedFollows": 0.21349499209277806,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776729000812",
+          "date": "2026-04-21",
+          "impressions": 21,
+          "ageInDays": 3,
+          "rawWeight": 105,
+          "normalizedWeight": 0.055350553505535055,
+          "attributedFollows": 0.16605166051660517,
+          "label": "MISO expects load to jump 35% by 2035 on data center growth"
+        },
+        {
+          "type": "post",
+          "id": "post_1776806980971",
+          "date": "2026-04-22",
+          "impressions": 1109,
+          "ageInDays": 2,
+          "rawWeight": 0,
+          "normalizedWeight": 0,
+          "attributedFollows": 4,
+          "label": "Canadian Strategic Missions Corporation takes one small step"
+        },
+        {
+          "type": "post",
+          "id": "post_1776902096033",
+          "date": "2026-04-23",
+          "impressions": 344,
+          "ageInDays": 1,
+          "rawWeight": 0,
+          "normalizedWeight": 0,
+          "attributedFollows": 2,
+          "label": "OECD NEA project gets ahead of AI use in nuclear industry"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775829736064_172745",
+          "date": "2026-04-10",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775844128858_c7667a",
+          "date": "2026-04-10",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775848500072_82caa1",
+          "date": "2026-04-10",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775868954318_40fea5",
+          "date": "2026-04-10",
+          "impressions": 2,
+          "ageInDays": 14,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Ontario's Nuclear Advantage"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775869452907_fb6ebb",
+          "date": "2026-04-10",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775960195183_u60z2r",
+          "date": "2026-04-11",
+          "impressions": 3,
+          "ageInDays": 13,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775960596437_4cb458",
+          "date": "2026-04-11",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775960916636_9891a0",
+          "date": "2026-04-11",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775993119653_stuhrz",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Mr. Curro Nicolau"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776001767476_m2srty",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Amir Olajuwon CPMP, LEED CIPP US Integrated Infrastructure Data Center Systems SME"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776002585551_jzhn2n",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Cesar A."
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776003154388_b9nx0u",
+          "date": "2026-04-12",
+          "impressions": 2,
+          "ageInDays": 12,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Jennifer Granholm"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776004199386_aqxqb7",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Herman Singh"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776009705108_d6422c",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776029035615_3ac8a3",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776032989650_xqlgll",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on James Snook"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776045229079_w36tmn",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Nuclear Taskforce"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776046599900_z8m1cs",
+          "date": "2026-04-12",
+          "impressions": 2,
+          "ageInDays": 12,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Rob Palumbo"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776050114536_cddbgt",
+          "date": "2026-04-12",
+          "impressions": 4,
+          "ageInDays": 12,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0021085925144965737,
+          "attributedFollows": 0.006325777543489721,
+          "label": "Comment on Polina Kushnerova"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776088937451_1f3264",
+          "date": "2026-04-13",
+          "impressions": 46,
+          "ageInDays": 11,
+          "rawWeight": 46,
+          "normalizedWeight": 0.024248813916710597,
+          "attributedFollows": 0.07274644175013179,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776091122328_30nld6",
+          "date": "2026-04-13",
+          "impressions": 5,
+          "ageInDays": 11,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776091718403_41a8e1",
+          "date": "2026-04-13",
+          "impressions": 2,
+          "ageInDays": 11,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Calgary.tech"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776095871439_3n32kl",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776111496092_jqrema",
+          "date": "2026-04-13",
+          "impressions": 2,
+          "ageInDays": 11,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Nate Glubish"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776114712441_a5b569",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776120092193_piyr4q",
+          "date": "2026-04-13",
+          "impressions": 3,
+          "ageInDays": 11,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776120131245_9l6tvd",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776124091264_d5rwhd",
+          "date": "2026-04-13",
+          "impressions": 13,
+          "ageInDays": 11,
+          "rawWeight": 13,
+          "normalizedWeight": 0.006852925672113864,
+          "attributedFollows": 0.02055877701634159,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776125016813_a84007",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Harris Walker"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776127732165_d1a619",
+          "date": "2026-04-13",
+          "impressions": 8,
+          "ageInDays": 11,
+          "rawWeight": 8,
+          "normalizedWeight": 0.004217185028993147,
+          "attributedFollows": 0.012651555086979443,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776130817997_035273",
+          "date": "2026-04-13",
+          "impressions": 6,
+          "ageInDays": 11,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0031628887717448603,
+          "attributedFollows": 0.009488666315234581,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776131367252_23f645",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Ontario's Nuclear Advantage"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776137289433_358836",
+          "date": "2026-04-13",
+          "impressions": 5,
+          "ageInDays": 11,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "Comment on Ontario Power Generation"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776165343368_546d56",
+          "date": "2026-04-14",
+          "impressions": 9,
+          "ageInDays": 10,
+          "rawWeight": 9,
+          "normalizedWeight": 0.004744333157617291,
+          "attributedFollows": 0.014232999472851872,
+          "label": "Comment on HARIKARAN M"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776175338184_71c5a7",
+          "date": "2026-04-14",
+          "impressions": 3,
+          "ageInDays": 10,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on Joshua Guzman Bell, PE, MBA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776177914482_6qdyz4",
+          "date": "2026-04-14",
+          "impressions": 1,
+          "ageInDays": 10,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Kristin SCHUMANN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776200534459_1f472c",
+          "date": "2026-04-14",
+          "impressions": 1,
+          "ageInDays": 10,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776218214694_rm1m39",
+          "date": "2026-04-14",
+          "impressions": 1,
+          "ageInDays": 10,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776258372652_ba2de0",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776263819624_1jqtd9",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776265330170_2a9a95",
+          "date": "2026-04-15",
+          "impressions": 5,
+          "ageInDays": 9,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776276135172_48fcc2",
+          "date": "2026-04-15",
+          "impressions": 3,
+          "ageInDays": 9,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776284312522_5b2df9",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776286931235_156da0",
+          "date": "2026-04-15",
+          "impressions": 11,
+          "ageInDays": 9,
+          "rawWeight": 11,
+          "normalizedWeight": 0.005798629414865577,
+          "attributedFollows": 0.01739588824459673,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776287345336_d32o1n",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776287874195_7sx15p",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on WIRED"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776293090714_klrmqp",
+          "date": "2026-04-15",
+          "impressions": 2,
+          "ageInDays": 9,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Herman Singh"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776296171780_73225b",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776303630102_jq1bvo",
+          "date": "2026-04-15",
+          "impressions": 3,
+          "ageInDays": 9,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on Andrew Thurlow"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776305714440_38eb1a",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Vector Institute"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776307980907_q3m2s2",
+          "date": "2026-04-15",
+          "impressions": 2,
+          "ageInDays": 9,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Nuclear Engineering International"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776340934756_9d2a2f",
+          "date": "2026-04-16",
+          "impressions": 34,
+          "ageInDays": 8,
+          "rawWeight": 34,
+          "normalizedWeight": 0.017923036373220874,
+          "attributedFollows": 0.05376910911966262,
+          "label": "Comment on Vitalii Pronin"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776350253519_rggf3a",
+          "date": "2026-04-16",
+          "impressions": 28,
+          "ageInDays": 8,
+          "rawWeight": 28,
+          "normalizedWeight": 0.014760147601476014,
+          "attributedFollows": 0.04428044280442804,
+          "label": "Comment on Evan Solomon"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776351799990_xxml3d",
+          "date": "2026-04-16",
+          "impressions": 1,
+          "ageInDays": 8,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776355012571_ohg5fg",
+          "date": "2026-04-16",
+          "impressions": 3,
+          "ageInDays": 8,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on Joe Williams"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776373337923_79b634",
+          "date": "2026-04-16",
+          "impressions": 1,
+          "ageInDays": 8,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776427335587_b3c9d0",
+          "date": "2026-04-17",
+          "impressions": 5,
+          "ageInDays": 7,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776438162458_689e90",
+          "date": "2026-04-17",
+          "impressions": 4,
+          "ageInDays": 7,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0021085925144965737,
+          "attributedFollows": 0.006325777543489721,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776459778361_3yw16p",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 7,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776479695800_f22648",
+          "date": "2026-04-17",
+          "impressions": 2,
+          "ageInDays": 7,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776479965423_061110",
+          "date": "2026-04-17",
+          "impressions": 9,
+          "ageInDays": 7,
+          "rawWeight": 9,
+          "normalizedWeight": 0.004744333157617291,
+          "attributedFollows": 0.014232999472851872,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776480573533_86ja8n",
+          "date": "2026-04-17",
+          "impressions": 2,
+          "ageInDays": 7,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776481012101_3l7vib",
+          "date": "2026-04-17",
+          "impressions": 2,
+          "ageInDays": 7,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Grisha Bogolyubov"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776517334237_c9e634",
+          "date": "2026-04-18",
+          "impressions": 2,
+          "ageInDays": 6,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on Vector Institute"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776517434622_2va27k",
+          "date": "2026-04-18",
+          "impressions": 3,
+          "ageInDays": 6,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776518194354_5gvp7w",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 6,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Brandon Kim"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776564935483_cf6f82",
+          "date": "2026-04-18",
+          "impressions": 17,
+          "ageInDays": 6,
+          "rawWeight": 17,
+          "normalizedWeight": 0.008961518186610437,
+          "attributedFollows": 0.02688455455983131,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776565735428_89da5e",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 6,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776568532751_k4zup1",
+          "date": "2026-04-18",
+          "impressions": 6,
+          "ageInDays": 6,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0031628887717448603,
+          "attributedFollows": 0.009488666315234581,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776603833952_z7lj5d",
+          "date": "2026-04-19",
+          "impressions": 4,
+          "ageInDays": 5,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0021085925144965737,
+          "attributedFollows": 0.006325777543489721,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776632558910_653j9c",
+          "date": "2026-04-19",
+          "impressions": 3,
+          "ageInDays": 5,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0015814443858724301,
+          "attributedFollows": 0.004744333157617291,
+          "label": "Comment on SYED MUKEETH UR RAHIMAN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776640663806_jbrqao",
+          "date": "2026-04-19",
+          "impressions": 8,
+          "ageInDays": 5,
+          "rawWeight": 8,
+          "normalizedWeight": 0.004217185028993147,
+          "attributedFollows": 0.012651555086979443,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776652083221_7v1tfy",
+          "date": "2026-04-19",
+          "impressions": 4,
+          "ageInDays": 5,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0021085925144965737,
+          "attributedFollows": 0.006325777543489721,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776686551380_a9b25f",
+          "date": "2026-04-20",
+          "impressions": 2,
+          "ageInDays": 4,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776697332440_003a49",
+          "date": "2026-04-20",
+          "impressions": 1,
+          "ageInDays": 4,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776708134998_436fee",
+          "date": "2026-04-20",
+          "impressions": 217,
+          "ageInDays": 4,
+          "rawWeight": 217,
+          "normalizedWeight": 0.11439114391143912,
+          "attributedFollows": 0.34317343173431736,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776716461246_21cd38",
+          "date": "2026-04-20",
+          "impressions": 62,
+          "ageInDays": 4,
+          "rawWeight": 62,
+          "normalizedWeight": 0.03268318397469689,
+          "attributedFollows": 0.09804955192409068,
+          "label": "Comment on Osama Baig"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776724549808_1a5ca1",
+          "date": "2026-04-20",
+          "impressions": 2,
+          "ageInDays": 4,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0010542962572482868,
+          "attributedFollows": 0.0031628887717448607,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776729874747_asl3cx",
+          "date": "2026-04-20",
+          "impressions": 14,
+          "ageInDays": 4,
+          "rawWeight": 14,
+          "normalizedWeight": 0.007380073800738007,
+          "attributedFollows": 0.02214022140221402,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776783734884_8cfa63",
+          "date": "2026-04-21",
+          "impressions": 1,
+          "ageInDays": 3,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on dave-geyer"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776805334842_5f3d3f",
+          "date": "2026-04-21",
+          "impressions": 22,
+          "ageInDays": 3,
+          "rawWeight": 22,
+          "normalizedWeight": 0.011597258829731154,
+          "attributedFollows": 0.03479177648919346,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776819428143_6t7rou",
+          "date": "2026-04-21",
+          "impressions": 11,
+          "ageInDays": 3,
+          "rawWeight": 11,
+          "normalizedWeight": 0.005798629414865577,
+          "attributedFollows": 0.01739588824459673,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776819935444_5u7ipn",
+          "date": "2026-04-21",
+          "impressions": 13,
+          "ageInDays": 3,
+          "rawWeight": 13,
+          "normalizedWeight": 0.006852925672113864,
+          "attributedFollows": 0.02055877701634159,
+          "label": "Comment on Ethan LI, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776859331344_401ef0",
+          "date": "2026-04-22",
+          "impressions": 58,
+          "ageInDays": 2,
+          "rawWeight": 58,
+          "normalizedWeight": 0.030574591460200317,
+          "attributedFollows": 0.09172377438060095,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776870137674_b493d8",
+          "date": "2026-04-22",
+          "impressions": 41,
+          "ageInDays": 2,
+          "rawWeight": 41,
+          "normalizedWeight": 0.02161307327358988,
+          "attributedFollows": 0.06483921982076964,
+          "label": "Comment on Vitalii Pronin"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776880946079_9287e2",
+          "date": "2026-04-22",
+          "impressions": 15,
+          "ageInDays": 2,
+          "rawWeight": 15,
+          "normalizedWeight": 0.00790722192936215,
+          "attributedFollows": 0.023721665788086453,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776881196975_m9uulp",
+          "date": "2026-04-22",
+          "impressions": 1,
+          "ageInDays": 2,
+          "rawWeight": 1,
+          "normalizedWeight": 0.0005271481286241434,
+          "attributedFollows": 0.0015814443858724304,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776891734952_9a1c7d",
+          "date": "2026-04-22",
+          "impressions": 10,
+          "ageInDays": 2,
+          "rawWeight": 10,
+          "normalizedWeight": 0.005271481286241434,
+          "attributedFollows": 0.0158144438587243,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776955214025_1dbe08",
+          "date": "2026-04-23",
+          "impressions": 5,
+          "ageInDays": 1,
+          "rawWeight": 5,
+          "normalizedWeight": 0.002635740643120717,
+          "attributedFollows": 0.00790722192936215,
+          "label": "Comment on Ontario's Nuclear Advantage"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776956532564_0d71f2",
+          "date": "2026-04-23",
+          "impressions": 39,
+          "ageInDays": 1,
+          "rawWeight": 39,
+          "normalizedWeight": 0.02055877701634159,
+          "attributedFollows": 0.06167633104902477,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776967333455_8aaf2e",
+          "date": "2026-04-23",
+          "impressions": 31,
+          "ageInDays": 1,
+          "rawWeight": 31,
+          "normalizedWeight": 0.016341591987348445,
+          "attributedFollows": 0.04902477596204534,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776978133639_2c4dfe",
+          "date": "2026-04-23",
+          "impressions": 34,
+          "ageInDays": 1,
+          "rawWeight": 34,
+          "normalizedWeight": 0.017923036373220874,
+          "attributedFollows": 0.05376910911966262,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776978734224_xdhf6o",
+          "date": "2026-04-23",
+          "impressions": 287,
+          "ageInDays": 1,
+          "rawWeight": 287,
+          "normalizedWeight": 0.15129151291512916,
+          "attributedFollows": 0.45387453874538747,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-25",
+      "followerDelta": 5,
+      "unattributed": 0,
+      "items": [
+        {
+          "type": "post",
+          "id": "post_1773936340698",
+          "date": "2026-03-19",
+          "impressions": 1,
+          "ageInDays": 37,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "NRC issues construction permit for first Natrium plant"
+        },
+        {
+          "type": "post",
+          "id": "post_1773967203024",
+          "date": "2026-03-20",
+          "impressions": 1,
+          "ageInDays": 36,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "U.K. releases new plans to speed nuclear deployment"
+        },
+        {
+          "type": "post",
+          "id": "post_1774024104693",
+          "date": "2026-03-23",
+          "impressions": 1,
+          "ageInDays": 33,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "X-energy forms partnership with Talen Energy to assess Xe-10"
+        },
+        {
+          "type": "post",
+          "id": "post_1774278044012",
+          "date": "2026-03-24",
+          "impressions": 1,
+          "ageInDays": 32,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "60 Years of U: Perspectives on resources, demand, and the ev"
+        },
+        {
+          "type": "post",
+          "id": "post_1774394112730",
+          "date": "2026-03-25",
+          "impressions": 1,
+          "ageInDays": 31,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "CNL demonstrates its cyber security incident response capabi"
+        },
+        {
+          "type": "post",
+          "id": "post_1774481713385",
+          "date": "2026-03-26",
+          "impressions": 1,
+          "ageInDays": 30,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "State news: Microreactors, legislation, executive orders, an"
+        },
+        {
+          "type": "post",
+          "id": "post_1774911665147",
+          "date": "2026-03-31",
+          "impressions": 1,
+          "ageInDays": 25,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "OpenAI in Talks with Helion to Secure Fusion Energy"
+        },
+        {
+          "type": "post",
+          "id": "post_1774998669141",
+          "date": "2026-04-01",
+          "impressions": 17,
+          "ageInDays": 24,
+          "rawWeight": 85,
+          "normalizedWeight": 0.04001883239171375,
+          "attributedFollows": 0.12005649717514125,
+          "label": "Bruce Power cobalt-60 harvest builds on innovation and partn"
+        },
+        {
+          "type": "post",
+          "id": "post_1775084468570",
+          "date": "2026-04-02",
+          "impressions": 1,
+          "ageInDays": 23,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs"
+        },
+        {
+          "type": "post",
+          "id": "post_1775516545301",
+          "date": "2026-04-07",
+          "impressions": 2,
+          "ageInDays": 18,
+          "rawWeight": 10,
+          "normalizedWeight": 0.004708097928436911,
+          "attributedFollows": 0.014124293785310733,
+          "label": "NRC proposed rule for licensing reactors authorized by DOE, "
+        },
+        {
+          "type": "post",
+          "id": "post_1775604886288",
+          "date": "2026-04-08",
+          "impressions": 4,
+          "ageInDays": 17,
+          "rawWeight": 20,
+          "normalizedWeight": 0.009416195856873822,
+          "attributedFollows": 0.028248587570621465,
+          "label": "Scaling Advanced Nuclear Power: Picking Winners Now"
+        },
+        {
+          "type": "post",
+          "id": "post_1775691516815",
+          "date": "2026-04-09",
+          "impressions": 1,
+          "ageInDays": 16,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0023540489642184556,
+          "attributedFollows": 0.007062146892655366,
+          "label": "3D printing possibilities: Additive manufacturing impact lim"
+        },
+        {
+          "type": "post",
+          "id": "post_1775838020958",
+          "date": "2026-04-10",
+          "impressions": 3,
+          "ageInDays": 15,
+          "rawWeight": 15,
+          "normalizedWeight": 0.007062146892655367,
+          "attributedFollows": 0.0211864406779661,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776121268198",
+          "date": "2026-04-14",
+          "impressions": 4,
+          "ageInDays": 11,
+          "rawWeight": 20,
+          "normalizedWeight": 0.009416195856873822,
+          "attributedFollows": 0.028248587570621465,
+          "label": "First-of-a-kind microreactor test bed open for business"
+        },
+        {
+          "type": "post",
+          "id": "post_1776211357947",
+          "date": "2026-04-15",
+          "impressions": 36,
+          "ageInDays": 10,
+          "rawWeight": 180,
+          "normalizedWeight": 0.0847457627118644,
+          "attributedFollows": 0.2542372881355932,
+          "label": "Nuclear past and present collide in Ontario's Port Hope"
+        },
+        {
+          "type": "post",
+          "id": "post_1776294080154",
+          "date": "2026-04-16",
+          "impressions": 13,
+          "ageInDays": 9,
+          "rawWeight": 65,
+          "normalizedWeight": 0.030602636534839925,
+          "attributedFollows": 0.09180790960451977,
+          "label": "Bruce Power and SaskPower sign memorandum of understanding t"
+        },
+        {
+          "type": "post",
+          "id": "post_1776460115780",
+          "date": "2026-04-19",
+          "impressions": 14,
+          "ageInDays": 6,
+          "rawWeight": 70,
+          "normalizedWeight": 0.03295668549905838,
+          "attributedFollows": 0.09887005649717513,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776729000812",
+          "date": "2026-04-21",
+          "impressions": 10,
+          "ageInDays": 4,
+          "rawWeight": 50,
+          "normalizedWeight": 0.023540489642184557,
+          "attributedFollows": 0.07062146892655367,
+          "label": "MISO expects load to jump 35% by 2035 on data center growth"
+        },
+        {
+          "type": "post",
+          "id": "post_1776806980971",
+          "date": "2026-04-22",
+          "impressions": 487,
+          "ageInDays": 3,
+          "rawWeight": 1019,
+          "normalizedWeight": 0.4797551789077213,
+          "attributedFollows": 3.439265536723164,
+          "label": "Canadian Strategic Missions Corporation takes one small step"
+        },
+        {
+          "type": "post",
+          "id": "post_1776902096033",
+          "date": "2026-04-23",
+          "impressions": 109,
+          "ageInDays": 2,
+          "rawWeight": 545,
+          "normalizedWeight": 0.2565913370998117,
+          "attributedFollows": 0.7697740112994351,
+          "label": "OECD NEA project gets ahead of AI use in nuclear industry"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-26",
+      "followerDelta": 1,
+      "unattributed": 0,
+      "items": [
+        {
+          "type": "post",
+          "id": "post_1773936340698",
+          "date": "2026-03-19",
+          "impressions": 2,
+          "ageInDays": 38,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "NRC issues construction permit for first Natrium plant"
+        },
+        {
+          "type": "post",
+          "id": "post_1773967203024",
+          "date": "2026-03-20",
+          "impressions": 2,
+          "ageInDays": 37,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "U.K. releases new plans to speed nuclear deployment"
+        },
+        {
+          "type": "post",
+          "id": "post_1774024104693",
+          "date": "2026-03-23",
+          "impressions": 2,
+          "ageInDays": 34,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "X-energy forms partnership with Talen Energy to assess Xe-10"
+        },
+        {
+          "type": "post",
+          "id": "post_1774278044012",
+          "date": "2026-03-24",
+          "impressions": 2,
+          "ageInDays": 33,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "60 Years of U: Perspectives on resources, demand, and the ev"
+        },
+        {
+          "type": "post",
+          "id": "post_1774394112730",
+          "date": "2026-03-25",
+          "impressions": 2,
+          "ageInDays": 32,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "CNL demonstrates its cyber security incident response capabi"
+        },
+        {
+          "type": "post",
+          "id": "post_1774481713385",
+          "date": "2026-03-26",
+          "impressions": 2,
+          "ageInDays": 31,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "State news: Microreactors, legislation, executive orders, an"
+        },
+        {
+          "type": "post",
+          "id": "post_1774911665147",
+          "date": "2026-03-31",
+          "impressions": 4,
+          "ageInDays": 26,
+          "rawWeight": 20,
+          "normalizedWeight": 0.003495281370150297,
+          "attributedFollows": 0.003495281370150297,
+          "label": "OpenAI in Talks with Helion to Secure Fusion Energy"
+        },
+        {
+          "type": "post",
+          "id": "post_1774998669141",
+          "date": "2026-04-01",
+          "impressions": 17,
+          "ageInDays": 25,
+          "rawWeight": 85,
+          "normalizedWeight": 0.014854945823138763,
+          "attributedFollows": 0.014854945823138763,
+          "label": "Bruce Power cobalt-60 harvest builds on innovation and partn"
+        },
+        {
+          "type": "post",
+          "id": "post_1775084468570",
+          "date": "2026-04-02",
+          "impressions": 2,
+          "ageInDays": 24,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs"
+        },
+        {
+          "type": "post",
+          "id": "post_1775516545301",
+          "date": "2026-04-07",
+          "impressions": 4,
+          "ageInDays": 19,
+          "rawWeight": 20,
+          "normalizedWeight": 0.003495281370150297,
+          "attributedFollows": 0.003495281370150297,
+          "label": "NRC proposed rule for licensing reactors authorized by DOE, "
+        },
+        {
+          "type": "post",
+          "id": "post_1775604886288",
+          "date": "2026-04-08",
+          "impressions": 4,
+          "ageInDays": 18,
+          "rawWeight": 20,
+          "normalizedWeight": 0.003495281370150297,
+          "attributedFollows": 0.003495281370150297,
+          "label": "Scaling Advanced Nuclear Power: Picking Winners Now"
+        },
+        {
+          "type": "post",
+          "id": "post_1775691516815",
+          "date": "2026-04-09",
+          "impressions": 3,
+          "ageInDays": 17,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0026214610276127227,
+          "attributedFollows": 0.0026214610276127227,
+          "label": "3D printing possibilities: Additive manufacturing impact lim"
+        },
+        {
+          "type": "post",
+          "id": "post_1775838020958",
+          "date": "2026-04-10",
+          "impressions": 6,
+          "ageInDays": 16,
+          "rawWeight": 30,
+          "normalizedWeight": 0.005242922055225445,
+          "attributedFollows": 0.005242922055225445,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776121268198",
+          "date": "2026-04-14",
+          "impressions": 11,
+          "ageInDays": 12,
+          "rawWeight": 55,
+          "normalizedWeight": 0.009612023767913317,
+          "attributedFollows": 0.009612023767913317,
+          "label": "First-of-a-kind microreactor test bed open for business"
+        },
+        {
+          "type": "post",
+          "id": "post_1776211357947",
+          "date": "2026-04-15",
+          "impressions": 47,
+          "ageInDays": 11,
+          "rawWeight": 235,
+          "normalizedWeight": 0.04106955609926599,
+          "attributedFollows": 0.04106955609926599,
+          "label": "Nuclear past and present collide in Ontario's Port Hope"
+        },
+        {
+          "type": "post",
+          "id": "post_1776294080154",
+          "date": "2026-04-16",
+          "impressions": 11,
+          "ageInDays": 10,
+          "rawWeight": 55,
+          "normalizedWeight": 0.009612023767913317,
+          "attributedFollows": 0.009612023767913317,
+          "label": "Bruce Power and SaskPower sign memorandum of understanding t"
+        },
+        {
+          "type": "post",
+          "id": "post_1776460115780",
+          "date": "2026-04-19",
+          "impressions": 13,
+          "ageInDays": 7,
+          "rawWeight": 65,
+          "normalizedWeight": 0.011359664452988466,
+          "attributedFollows": 0.011359664452988466,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776729000812",
+          "date": "2026-04-21",
+          "impressions": 12,
+          "ageInDays": 5,
+          "rawWeight": 60,
+          "normalizedWeight": 0.01048584411045089,
+          "attributedFollows": 0.01048584411045089,
+          "label": "MISO expects load to jump 35% by 2035 on data center growth"
+        },
+        {
+          "type": "post",
+          "id": "post_1776806980971",
+          "date": "2026-04-22",
+          "impressions": 355,
+          "ageInDays": 4,
+          "rawWeight": 1775,
+          "normalizedWeight": 0.3102062216008389,
+          "attributedFollows": 0.3102062216008389,
+          "label": "Canadian Strategic Missions Corporation takes one small step"
+        },
+        {
+          "type": "post",
+          "id": "post_1776902096033",
+          "date": "2026-04-23",
+          "impressions": 81,
+          "ageInDays": 3,
+          "rawWeight": 405,
+          "normalizedWeight": 0.07077944774554351,
+          "attributedFollows": 0.07077944774554351,
+          "label": "OECD NEA project gets ahead of AI use in nuclear industry"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1775993119653_stuhrz",
+          "date": "2026-04-12",
+          "impressions": 2,
+          "ageInDays": 14,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Mr. Curro Nicolau"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776001767476_m2srty",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Amir Olajuwon CPMP, LEED CIPP US Integrated Infrastructure Data Center Systems SME"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776002585551_jzhn2n",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Cesar A."
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776003154388_b9nx0u",
+          "date": "2026-04-12",
+          "impressions": 3,
+          "ageInDays": 14,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Jennifer Granholm"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776004199386_aqxqb7",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Herman Singh"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776009705108_d6422c",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776029035615_3ac8a3",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776032989650_xqlgll",
+          "date": "2026-04-12",
+          "impressions": 2,
+          "ageInDays": 14,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on James Snook"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776045229079_w36tmn",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Nuclear Taskforce"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776046599900_z8m1cs",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Rob Palumbo"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776050114536_cddbgt",
+          "date": "2026-04-12",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Polina Kushnerova"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776088937451_1f3264",
+          "date": "2026-04-13",
+          "impressions": 62,
+          "ageInDays": 13,
+          "rawWeight": 62,
+          "normalizedWeight": 0.01083537224746592,
+          "attributedFollows": 0.01083537224746592,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776091122328_30nld6",
+          "date": "2026-04-13",
+          "impressions": 2,
+          "ageInDays": 13,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776091718403_41a8e1",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Calgary.tech"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776095871439_3n32kl",
+          "date": "2026-04-13",
+          "impressions": 3,
+          "ageInDays": 13,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776114712441_a5b569",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776120092193_piyr4q",
+          "date": "2026-04-13",
+          "impressions": 8,
+          "ageInDays": 13,
+          "rawWeight": 8,
+          "normalizedWeight": 0.0013981125480601187,
+          "attributedFollows": 0.0013981125480601187,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776120131245_9l6tvd",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776124091264_d5rwhd",
+          "date": "2026-04-13",
+          "impressions": 40,
+          "ageInDays": 13,
+          "rawWeight": 40,
+          "normalizedWeight": 0.006990562740300594,
+          "attributedFollows": 0.006990562740300594,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776125016813_a84007",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Harris Walker"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776127732165_d1a619",
+          "date": "2026-04-13",
+          "impressions": 6,
+          "ageInDays": 13,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0010485844110450892,
+          "attributedFollows": 0.0010485844110450892,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776130817997_035273",
+          "date": "2026-04-13",
+          "impressions": 4,
+          "ageInDays": 13,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006990562740300594,
+          "attributedFollows": 0.0006990562740300594,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776131367252_23f645",
+          "date": "2026-04-13",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Ontario's Nuclear Advantage"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776137289433_358836",
+          "date": "2026-04-13",
+          "impressions": 3,
+          "ageInDays": 13,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Ontario Power Generation"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776165343368_546d56",
+          "date": "2026-04-14",
+          "impressions": 6,
+          "ageInDays": 12,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0010485844110450892,
+          "attributedFollows": 0.0010485844110450892,
+          "label": "Comment on HARIKARAN M"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776175338184_71c5a7",
+          "date": "2026-04-14",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Joshua Guzman Bell, PE, MBA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776177914482_6qdyz4",
+          "date": "2026-04-14",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Kristin SCHUMANN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776200534459_1f472c",
+          "date": "2026-04-14",
+          "impressions": 3,
+          "ageInDays": 12,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776218214694_rm1m39",
+          "date": "2026-04-14",
+          "impressions": 4,
+          "ageInDays": 12,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006990562740300594,
+          "attributedFollows": 0.0006990562740300594,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776258372652_ba2de0",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776263819624_1jqtd9",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776265330170_2a9a95",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776276135172_48fcc2",
+          "date": "2026-04-15",
+          "impressions": 5,
+          "ageInDays": 11,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0008738203425375742,
+          "attributedFollows": 0.0008738203425375742,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776284312522_5b2df9",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776286931235_156da0",
+          "date": "2026-04-15",
+          "impressions": 15,
+          "ageInDays": 11,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0026214610276127227,
+          "attributedFollows": 0.0026214610276127227,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776287345336_d32o1n",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776287874195_7sx15p",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on WIRED"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776293090714_klrmqp",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Herman Singh"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776296171780_73225b",
+          "date": "2026-04-15",
+          "impressions": 2,
+          "ageInDays": 11,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776303630102_jq1bvo",
+          "date": "2026-04-15",
+          "impressions": 4,
+          "ageInDays": 11,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006990562740300594,
+          "attributedFollows": 0.0006990562740300594,
+          "label": "Comment on Andrew Thurlow"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776305714440_38eb1a",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Vector Institute"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776307980907_q3m2s2",
+          "date": "2026-04-15",
+          "impressions": 9,
+          "ageInDays": 11,
+          "rawWeight": 9,
+          "normalizedWeight": 0.0015728766165676337,
+          "attributedFollows": 0.0015728766165676337,
+          "label": "Comment on Nuclear Engineering International"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776340934756_9d2a2f",
+          "date": "2026-04-16",
+          "impressions": 27,
+          "ageInDays": 10,
+          "rawWeight": 27,
+          "normalizedWeight": 0.004718629849702901,
+          "attributedFollows": 0.004718629849702901,
+          "label": "Comment on Vitalii Pronin"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776350253519_rggf3a",
+          "date": "2026-04-16",
+          "impressions": 17,
+          "ageInDays": 10,
+          "rawWeight": 17,
+          "normalizedWeight": 0.0029709891646277527,
+          "attributedFollows": 0.0029709891646277527,
+          "label": "Comment on Evan Solomon"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776351799990_xxml3d",
+          "date": "2026-04-16",
+          "impressions": 1,
+          "ageInDays": 10,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776355012571_ohg5fg",
+          "date": "2026-04-16",
+          "impressions": 2,
+          "ageInDays": 10,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Joe Williams"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776373337923_79b634",
+          "date": "2026-04-16",
+          "impressions": 2,
+          "ageInDays": 10,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776395993398_02c019",
+          "date": "2026-04-16",
+          "impressions": 2,
+          "ageInDays": 10,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776427335587_b3c9d0",
+          "date": "2026-04-17",
+          "impressions": 2,
+          "ageInDays": 9,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776438162458_689e90",
+          "date": "2026-04-17",
+          "impressions": 4,
+          "ageInDays": 9,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006990562740300594,
+          "attributedFollows": 0.0006990562740300594,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776459778361_3yw16p",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776479695800_f22648",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776479965423_061110",
+          "date": "2026-04-17",
+          "impressions": 5,
+          "ageInDays": 9,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0008738203425375742,
+          "attributedFollows": 0.0008738203425375742,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776480573533_86ja8n",
+          "date": "2026-04-17",
+          "impressions": 3,
+          "ageInDays": 9,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776481012101_3l7vib",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Grisha Bogolyubov"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776517334237_c9e634",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 8,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Vector Institute"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776517434622_2va27k",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 8,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776518194354_5gvp7w",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 8,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Brandon Kim"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776564935483_cf6f82",
+          "date": "2026-04-18",
+          "impressions": 12,
+          "ageInDays": 8,
+          "rawWeight": 12,
+          "normalizedWeight": 0.0020971688220901784,
+          "attributedFollows": 0.0020971688220901784,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776565735428_89da5e",
+          "date": "2026-04-18",
+          "impressions": 2,
+          "ageInDays": 8,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776568532751_k4zup1",
+          "date": "2026-04-18",
+          "impressions": 7,
+          "ageInDays": 8,
+          "rawWeight": 7,
+          "normalizedWeight": 0.001223348479552604,
+          "attributedFollows": 0.001223348479552604,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776603833952_z7lj5d",
+          "date": "2026-04-19",
+          "impressions": 3,
+          "ageInDays": 7,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776632558910_653j9c",
+          "date": "2026-04-19",
+          "impressions": 2,
+          "ageInDays": 7,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on SYED MUKEETH UR RAHIMAN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776640663806_jbrqao",
+          "date": "2026-04-19",
+          "impressions": 5,
+          "ageInDays": 7,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0008738203425375742,
+          "attributedFollows": 0.0008738203425375742,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776652083221_7v1tfy",
+          "date": "2026-04-19",
+          "impressions": 1,
+          "ageInDays": 7,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776686551380_a9b25f",
+          "date": "2026-04-20",
+          "impressions": 1,
+          "ageInDays": 6,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776697332440_003a49",
+          "date": "2026-04-20",
+          "impressions": 2,
+          "ageInDays": 6,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776708134998_436fee",
+          "date": "2026-04-20",
+          "impressions": 113,
+          "ageInDays": 6,
+          "rawWeight": 113,
+          "normalizedWeight": 0.01974833974134918,
+          "attributedFollows": 0.01974833974134918,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776716461246_21cd38",
+          "date": "2026-04-20",
+          "impressions": 85,
+          "ageInDays": 6,
+          "rawWeight": 85,
+          "normalizedWeight": 0.014854945823138763,
+          "attributedFollows": 0.014854945823138763,
+          "label": "Comment on Osama Baig"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776724549808_1a5ca1",
+          "date": "2026-04-20",
+          "impressions": 1,
+          "ageInDays": 6,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017476406850751484,
+          "attributedFollows": 0.00017476406850751484,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776729874747_asl3cx",
+          "date": "2026-04-20",
+          "impressions": 7,
+          "ageInDays": 6,
+          "rawWeight": 7,
+          "normalizedWeight": 0.001223348479552604,
+          "attributedFollows": 0.001223348479552604,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776783734884_8cfa63",
+          "date": "2026-04-21",
+          "impressions": 2,
+          "ageInDays": 5,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on dave-geyer"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776805334842_5f3d3f",
+          "date": "2026-04-21",
+          "impressions": 15,
+          "ageInDays": 5,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0026214610276127227,
+          "attributedFollows": 0.0026214610276127227,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776819428143_6t7rou",
+          "date": "2026-04-21",
+          "impressions": 10,
+          "ageInDays": 5,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017476406850751485,
+          "attributedFollows": 0.0017476406850751485,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776819935444_5u7ipn",
+          "date": "2026-04-21",
+          "impressions": 3,
+          "ageInDays": 5,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Ethan LI, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776859331344_401ef0",
+          "date": "2026-04-22",
+          "impressions": 27,
+          "ageInDays": 4,
+          "rawWeight": 27,
+          "normalizedWeight": 0.004718629849702901,
+          "attributedFollows": 0.004718629849702901,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776870137674_b493d8",
+          "date": "2026-04-22",
+          "impressions": 41,
+          "ageInDays": 4,
+          "rawWeight": 41,
+          "normalizedWeight": 0.007165326808808109,
+          "attributedFollows": 0.007165326808808109,
+          "label": "Comment on Vitalii Pronin"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776880946079_9287e2",
+          "date": "2026-04-22",
+          "impressions": 6,
+          "ageInDays": 4,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0010485844110450892,
+          "attributedFollows": 0.0010485844110450892,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776881196975_m9uulp",
+          "date": "2026-04-22",
+          "impressions": 4,
+          "ageInDays": 4,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006990562740300594,
+          "attributedFollows": 0.0006990562740300594,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776891734952_9a1c7d",
+          "date": "2026-04-22",
+          "impressions": 3,
+          "ageInDays": 4,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776955214025_1dbe08",
+          "date": "2026-04-23",
+          "impressions": 3,
+          "ageInDays": 3,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005242922055225446,
+          "attributedFollows": 0.0005242922055225446,
+          "label": "Comment on Ontario's Nuclear Advantage"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776956532564_0d71f2",
+          "date": "2026-04-23",
+          "impressions": 2,
+          "ageInDays": 3,
+          "rawWeight": 2,
+          "normalizedWeight": 0.0003495281370150297,
+          "attributedFollows": 0.0003495281370150297,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776967333455_8aaf2e",
+          "date": "2026-04-23",
+          "impressions": 9,
+          "ageInDays": 3,
+          "rawWeight": 9,
+          "normalizedWeight": 0.0015728766165676337,
+          "attributedFollows": 0.0015728766165676337,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776978133639_2c4dfe",
+          "date": "2026-04-23",
+          "impressions": 14,
+          "ageInDays": 3,
+          "rawWeight": 14,
+          "normalizedWeight": 0.002446696959105208,
+          "attributedFollows": 0.002446696959105208,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776978734224_xdhf6o",
+          "date": "2026-04-23",
+          "impressions": 68,
+          "ageInDays": 3,
+          "rawWeight": 68,
+          "normalizedWeight": 0.01188395665851101,
+          "attributedFollows": 0.01188395665851101,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777032144940_094eb7",
+          "date": "2026-04-24",
+          "impressions": 8,
+          "ageInDays": 2,
+          "rawWeight": 8,
+          "normalizedWeight": 0.0013981125480601187,
+          "attributedFollows": 0.0013981125480601187,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777038834401_raywnb",
+          "date": "2026-04-24",
+          "impressions": 28,
+          "ageInDays": 2,
+          "rawWeight": 28,
+          "normalizedWeight": 0.004893393918210416,
+          "attributedFollows": 0.004893393918210416,
+          "label": "Comment on Lovable"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777043011979_sqqm6c",
+          "date": "2026-04-24",
+          "impressions": 18,
+          "ageInDays": 2,
+          "rawWeight": 18,
+          "normalizedWeight": 0.0031457532331352674,
+          "attributedFollows": 0.0031457532331352674,
+          "label": "Comment on caorilne"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777045405628_3e5778",
+          "date": "2026-04-24",
+          "impressions": 128,
+          "ageInDays": 2,
+          "rawWeight": 128,
+          "normalizedWeight": 0.0223698007689619,
+          "attributedFollows": 0.0223698007689619,
+          "label": "Comment on Ontario Power Generation"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777056322969_ee31d1",
+          "date": "2026-04-24",
+          "impressions": 7,
+          "ageInDays": 2,
+          "rawWeight": 7,
+          "normalizedWeight": 0.001223348479552604,
+          "attributedFollows": 0.001223348479552604,
+          "label": "Comment on Calgary.tech"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777058375247_gtkvwk",
+          "date": "2026-04-24",
+          "impressions": 8,
+          "ageInDays": 2,
+          "rawWeight": 8,
+          "normalizedWeight": 0.0013981125480601187,
+          "attributedFollows": 0.0013981125480601187,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777060989921_e8f2fa",
+          "date": "2026-04-24",
+          "impressions": 60,
+          "ageInDays": 2,
+          "rawWeight": 60,
+          "normalizedWeight": 0.01048584411045089,
+          "attributedFollows": 0.01048584411045089,
+          "label": "Comment on nvidia"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777080539020_534d18",
+          "date": "2026-04-24",
+          "impressions": 24,
+          "ageInDays": 2,
+          "rawWeight": 24,
+          "normalizedWeight": 0.004194337644180357,
+          "attributedFollows": 0.004194337644180357,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777082782435_c7e41a",
+          "date": "2026-04-24",
+          "impressions": 87,
+          "ageInDays": 2,
+          "rawWeight": 87,
+          "normalizedWeight": 0.015204473960153793,
+          "attributedFollows": 0.015204473960153793,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777121433770_stg2lm",
+          "date": "2026-04-25",
+          "impressions": 8,
+          "ageInDays": 1,
+          "rawWeight": 8,
+          "normalizedWeight": 0.0013981125480601187,
+          "attributedFollows": 0.0013981125480601187,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777122132910_e4fc92",
+          "date": "2026-04-25",
+          "impressions": 206,
+          "ageInDays": 1,
+          "rawWeight": 206,
+          "normalizedWeight": 0.03600139811254806,
+          "attributedFollows": 0.03600139811254806,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777126001119_l4zg3o",
+          "date": "2026-04-25",
+          "impressions": 1320,
+          "ageInDays": 1,
+          "rawWeight": 1320,
+          "normalizedWeight": 0.2306885704299196,
+          "attributedFollows": 0.2306885704299196,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777150932803_590f98",
+          "date": "2026-04-25",
+          "impressions": 141,
+          "ageInDays": 1,
+          "rawWeight": 141,
+          "normalizedWeight": 0.024641733659559593,
+          "attributedFollows": 0.024641733659559593,
+          "label": "Comment on Ontario Power Generation"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777161059183_0d83bd",
+          "date": "2026-04-25",
+          "impressions": 44,
+          "ageInDays": 1,
+          "rawWeight": 44,
+          "normalizedWeight": 0.007689619014330654,
+          "attributedFollows": 0.007689619014330654,
+          "label": "Comment on SYED MUKEETH UR RAHIMAN"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-27",
+      "followerDelta": 5,
+      "unattributed": 0,
+      "items": [
+        {
+          "type": "post",
+          "id": "post_1773936340698",
+          "date": "2026-03-19",
+          "impressions": 1,
+          "ageInDays": 39,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0017605633802816902,
+          "attributedFollows": 0.008802816901408451,
+          "label": "NRC issues construction permit for first Natrium plant"
+        },
+        {
+          "type": "post",
+          "id": "post_1773967203024",
+          "date": "2026-03-20",
+          "impressions": 1,
+          "ageInDays": 38,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0017605633802816902,
+          "attributedFollows": 0.008802816901408451,
+          "label": "U.K. releases new plans to speed nuclear deployment"
+        },
+        {
+          "type": "post",
+          "id": "post_1774024104693",
+          "date": "2026-03-23",
+          "impressions": 1,
+          "ageInDays": 35,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0017605633802816902,
+          "attributedFollows": 0.008802816901408451,
+          "label": "X-energy forms partnership with Talen Energy to assess Xe-10"
+        },
+        {
+          "type": "post",
+          "id": "post_1774278044012",
+          "date": "2026-03-24",
+          "impressions": 1,
+          "ageInDays": 34,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0017605633802816902,
+          "attributedFollows": 0.008802816901408451,
+          "label": "60 Years of U: Perspectives on resources, demand, and the ev"
+        },
+        {
+          "type": "post",
+          "id": "post_1774394112730",
+          "date": "2026-03-25",
+          "impressions": 1,
+          "ageInDays": 33,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0017605633802816902,
+          "attributedFollows": 0.008802816901408451,
+          "label": "CNL demonstrates its cyber security incident response capabi"
+        },
+        {
+          "type": "post",
+          "id": "post_1774481713385",
+          "date": "2026-03-26",
+          "impressions": 1,
+          "ageInDays": 32,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0017605633802816902,
+          "attributedFollows": 0.008802816901408451,
+          "label": "State news: Microreactors, legislation, executive orders, an"
+        },
+        {
+          "type": "post",
+          "id": "post_1774911665147",
+          "date": "2026-03-31",
+          "impressions": 6,
+          "ageInDays": 27,
+          "rawWeight": 30,
+          "normalizedWeight": 0.01056338028169014,
+          "attributedFollows": 0.0528169014084507,
+          "label": "OpenAI in Talks with Helion to Secure Fusion Energy"
+        },
+        {
+          "type": "post",
+          "id": "post_1774998669141",
+          "date": "2026-04-01",
+          "impressions": 19,
+          "ageInDays": 26,
+          "rawWeight": 95,
+          "normalizedWeight": 0.03345070422535211,
+          "attributedFollows": 0.16725352112676056,
+          "label": "Bruce Power cobalt-60 harvest builds on innovation and partn"
+        },
+        {
+          "type": "post",
+          "id": "post_1775084468570",
+          "date": "2026-04-02",
+          "impressions": 9,
+          "ageInDays": 25,
+          "rawWeight": 45,
+          "normalizedWeight": 0.01584507042253521,
+          "attributedFollows": 0.07922535211267606,
+          "label": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs"
+        },
+        {
+          "type": "post",
+          "id": "post_1775516545301",
+          "date": "2026-04-07",
+          "impressions": 9,
+          "ageInDays": 20,
+          "rawWeight": 45,
+          "normalizedWeight": 0.01584507042253521,
+          "attributedFollows": 0.07922535211267606,
+          "label": "NRC proposed rule for licensing reactors authorized by DOE, "
+        },
+        {
+          "type": "post",
+          "id": "post_1775604886288",
+          "date": "2026-04-08",
+          "impressions": 10,
+          "ageInDays": 19,
+          "rawWeight": 50,
+          "normalizedWeight": 0.017605633802816902,
+          "attributedFollows": 0.08802816901408451,
+          "label": "Scaling Advanced Nuclear Power: Picking Winners Now"
+        },
+        {
+          "type": "post",
+          "id": "post_1775691516815",
+          "date": "2026-04-09",
+          "impressions": 6,
+          "ageInDays": 18,
+          "rawWeight": 30,
+          "normalizedWeight": 0.01056338028169014,
+          "attributedFollows": 0.0528169014084507,
+          "label": "3D printing possibilities: Additive manufacturing impact lim"
+        },
+        {
+          "type": "post",
+          "id": "post_1775838020958",
+          "date": "2026-04-10",
+          "impressions": 7,
+          "ageInDays": 17,
+          "rawWeight": 35,
+          "normalizedWeight": 0.01232394366197183,
+          "attributedFollows": 0.06161971830985915,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776121268198",
+          "date": "2026-04-14",
+          "impressions": 17,
+          "ageInDays": 13,
+          "rawWeight": 85,
+          "normalizedWeight": 0.02992957746478873,
+          "attributedFollows": 0.14964788732394366,
+          "label": "First-of-a-kind microreactor test bed open for business"
+        },
+        {
+          "type": "post",
+          "id": "post_1776294080154",
+          "date": "2026-04-16",
+          "impressions": 19,
+          "ageInDays": 11,
+          "rawWeight": 95,
+          "normalizedWeight": 0.03345070422535211,
+          "attributedFollows": 0.16725352112676056,
+          "label": "Bruce Power and SaskPower sign memorandum of understanding t"
+        },
+        {
+          "type": "post",
+          "id": "post_1776460115780",
+          "date": "2026-04-19",
+          "impressions": 19,
+          "ageInDays": 8,
+          "rawWeight": 95,
+          "normalizedWeight": 0.03345070422535211,
+          "attributedFollows": 0.16725352112676056,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776729000812",
+          "date": "2026-04-21",
+          "impressions": 15,
+          "ageInDays": 6,
+          "rawWeight": 75,
+          "normalizedWeight": 0.02640845070422535,
+          "attributedFollows": 0.13204225352112675,
+          "label": "MISO expects load to jump 35% by 2035 on data center growth"
+        },
+        {
+          "type": "post",
+          "id": "post_1776806980971",
+          "date": "2026-04-22",
+          "impressions": 310,
+          "ageInDays": 5,
+          "rawWeight": 1550,
+          "normalizedWeight": 0.545774647887324,
+          "attributedFollows": 2.72887323943662,
+          "label": "Canadian Strategic Missions Corporation takes one small step"
+        },
+        {
+          "type": "post",
+          "id": "post_1776902096033",
+          "date": "2026-04-23",
+          "impressions": 116,
+          "ageInDays": 4,
+          "rawWeight": 580,
+          "normalizedWeight": 0.20422535211267606,
+          "attributedFollows": 1.0211267605633803,
+          "label": "OECD NEA project gets ahead of AI use in nuclear industry"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-28",
+      "followerDelta": 3,
+      "unattributed": 0,
+      "items": [
+        {
+          "type": "post",
+          "id": "post_1773936340698",
+          "date": "2026-03-19",
+          "impressions": 2,
+          "ageInDays": 40,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "NRC issues construction permit for first Natrium plant"
+        },
+        {
+          "type": "post",
+          "id": "post_1773967203024",
+          "date": "2026-03-20",
+          "impressions": 2,
+          "ageInDays": 39,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "U.K. releases new plans to speed nuclear deployment"
+        },
+        {
+          "type": "post",
+          "id": "post_1774024104693",
+          "date": "2026-03-23",
+          "impressions": 2,
+          "ageInDays": 36,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "X-energy forms partnership with Talen Energy to assess Xe-10"
+        },
+        {
+          "type": "post",
+          "id": "post_1774278044012",
+          "date": "2026-03-24",
+          "impressions": 2,
+          "ageInDays": 35,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "60 Years of U: Perspectives on resources, demand, and the ev"
+        },
+        {
+          "type": "post",
+          "id": "post_1774394112730",
+          "date": "2026-03-25",
+          "impressions": 2,
+          "ageInDays": 34,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "CNL demonstrates its cyber security incident response capabi"
+        },
+        {
+          "type": "post",
+          "id": "post_1774481713385",
+          "date": "2026-03-26",
+          "impressions": 2,
+          "ageInDays": 33,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "State news: Microreactors, legislation, executive orders, an"
+        },
+        {
+          "type": "post",
+          "id": "post_1774911665147",
+          "date": "2026-03-31",
+          "impressions": 2,
+          "ageInDays": 28,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "OpenAI in Talks with Helion to Secure Fusion Energy"
+        },
+        {
+          "type": "post",
+          "id": "post_1774998669141",
+          "date": "2026-04-01",
+          "impressions": 13,
+          "ageInDays": 27,
+          "rawWeight": 65,
+          "normalizedWeight": 0.011050663039782386,
+          "attributedFollows": 0.022101326079564772,
+          "label": "Bruce Power cobalt-60 harvest builds on innovation and partn"
+        },
+        {
+          "type": "post",
+          "id": "post_1775084468570",
+          "date": "2026-04-02",
+          "impressions": 2,
+          "ageInDays": 26,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs"
+        },
+        {
+          "type": "post",
+          "id": "post_1775516545301",
+          "date": "2026-04-07",
+          "impressions": 3,
+          "ageInDays": 21,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0025501530091805507,
+          "attributedFollows": 0.0051003060183611015,
+          "label": "NRC proposed rule for licensing reactors authorized by DOE, "
+        },
+        {
+          "type": "post",
+          "id": "post_1775604886288",
+          "date": "2026-04-08",
+          "impressions": 8,
+          "ageInDays": 20,
+          "rawWeight": 40,
+          "normalizedWeight": 0.006800408024481469,
+          "attributedFollows": 0.013600816048962938,
+          "label": "Scaling Advanced Nuclear Power: Picking Winners Now"
+        },
+        {
+          "type": "post",
+          "id": "post_1775691516815",
+          "date": "2026-04-09",
+          "impressions": 2,
+          "ageInDays": 19,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "3D printing possibilities: Additive manufacturing impact lim"
+        },
+        {
+          "type": "post",
+          "id": "post_1775838020958",
+          "date": "2026-04-10",
+          "impressions": 4,
+          "ageInDays": 18,
+          "rawWeight": 20,
+          "normalizedWeight": 0.0034002040122407345,
+          "attributedFollows": 0.006800408024481469,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776121268198",
+          "date": "2026-04-14",
+          "impressions": 2,
+          "ageInDays": 14,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "First-of-a-kind microreactor test bed open for business"
+        },
+        {
+          "type": "post",
+          "id": "post_1776294080154",
+          "date": "2026-04-16",
+          "impressions": 13,
+          "ageInDays": 12,
+          "rawWeight": 65,
+          "normalizedWeight": 0.011050663039782386,
+          "attributedFollows": 0.022101326079564772,
+          "label": "Bruce Power and SaskPower sign memorandum of understanding t"
+        },
+        {
+          "type": "post",
+          "id": "post_1776460115780",
+          "date": "2026-04-19",
+          "impressions": 10,
+          "ageInDays": 9,
+          "rawWeight": 50,
+          "normalizedWeight": 0.008500510030601836,
+          "attributedFollows": 0.017001020061203673,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776729000812",
+          "date": "2026-04-21",
+          "impressions": 11,
+          "ageInDays": 7,
+          "rawWeight": 55,
+          "normalizedWeight": 0.00935056103366202,
+          "attributedFollows": 0.01870112206732404,
+          "label": "MISO expects load to jump 35% by 2035 on data center growth"
+        },
+        {
+          "type": "post",
+          "id": "post_1776806980971",
+          "date": "2026-04-22",
+          "impressions": 203,
+          "ageInDays": 6,
+          "rawWeight": 1015,
+          "normalizedWeight": 0.17256035362121727,
+          "attributedFollows": 0.34512070724243454,
+          "label": "Canadian Strategic Missions Corporation takes one small step"
+        },
+        {
+          "type": "post",
+          "id": "post_1776902096033",
+          "date": "2026-04-23",
+          "impressions": 67,
+          "ageInDays": 5,
+          "rawWeight": 0,
+          "normalizedWeight": 0,
+          "attributedFollows": 1,
+          "label": "OECD NEA project gets ahead of AI use in nuclear industry"
+        },
+        {
+          "type": "post",
+          "id": "post_1777075411026",
+          "date": "2026-04-27",
+          "impressions": 53,
+          "ageInDays": 1,
+          "rawWeight": 265,
+          "normalizedWeight": 0.04505270316218973,
+          "attributedFollows": 0.09010540632437947,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776165343368_546d56",
+          "date": "2026-04-14",
+          "impressions": 6,
+          "ageInDays": 14,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0010200612036722204,
+          "attributedFollows": 0.002040122407344441,
+          "label": "Comment on HARIKARAN M"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776175338184_71c5a7",
+          "date": "2026-04-14",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Joshua Guzman Bell, PE, MBA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776177914482_6qdyz4",
+          "date": "2026-04-14",
+          "impressions": 2,
+          "ageInDays": 14,
+          "rawWeight": 2,
+          "normalizedWeight": 0.00034002040122407346,
+          "attributedFollows": 0.0006800408024481469,
+          "label": "Comment on Kristin SCHUMANN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776200534459_1f472c",
+          "date": "2026-04-14",
+          "impressions": 1,
+          "ageInDays": 14,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776218214694_rm1m39",
+          "date": "2026-04-14",
+          "impressions": 4,
+          "ageInDays": 14,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006800408024481469,
+          "attributedFollows": 0.0013600816048962938,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776258372652_ba2de0",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776263819624_1jqtd9",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776265330170_2a9a95",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776276135172_48fcc2",
+          "date": "2026-04-15",
+          "impressions": 5,
+          "ageInDays": 13,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0008500510030601836,
+          "attributedFollows": 0.0017001020061203672,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776284312522_5b2df9",
+          "date": "2026-04-15",
+          "impressions": 2,
+          "ageInDays": 13,
+          "rawWeight": 2,
+          "normalizedWeight": 0.00034002040122407346,
+          "attributedFollows": 0.0006800408024481469,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776286931235_156da0",
+          "date": "2026-04-15",
+          "impressions": 27,
+          "ageInDays": 13,
+          "rawWeight": 27,
+          "normalizedWeight": 0.004590275416524991,
+          "attributedFollows": 0.009180550833049982,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776287345336_d32o1n",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776287874195_7sx15p",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on WIRED"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776293090714_klrmqp",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Herman Singh"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776296171780_73225b",
+          "date": "2026-04-15",
+          "impressions": 2,
+          "ageInDays": 13,
+          "rawWeight": 2,
+          "normalizedWeight": 0.00034002040122407346,
+          "attributedFollows": 0.0006800408024481469,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776303630102_jq1bvo",
+          "date": "2026-04-15",
+          "impressions": 15,
+          "ageInDays": 13,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0025501530091805507,
+          "attributedFollows": 0.0051003060183611015,
+          "label": "Comment on Andrew Thurlow"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776305714440_38eb1a",
+          "date": "2026-04-15",
+          "impressions": 15,
+          "ageInDays": 13,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0025501530091805507,
+          "attributedFollows": 0.0051003060183611015,
+          "label": "Comment on Vector Institute"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776307980907_q3m2s2",
+          "date": "2026-04-15",
+          "impressions": 1,
+          "ageInDays": 13,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Nuclear Engineering International"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776340934756_9d2a2f",
+          "date": "2026-04-16",
+          "impressions": 39,
+          "ageInDays": 12,
+          "rawWeight": 39,
+          "normalizedWeight": 0.006630397823869432,
+          "attributedFollows": 0.013260795647738865,
+          "label": "Comment on Vitalii Pronin"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776350253519_rggf3a",
+          "date": "2026-04-16",
+          "impressions": 32,
+          "ageInDays": 12,
+          "rawWeight": 32,
+          "normalizedWeight": 0.005440326419585175,
+          "attributedFollows": 0.01088065283917035,
+          "label": "Comment on Evan Solomon"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776351799990_xxml3d",
+          "date": "2026-04-16",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776355012571_ohg5fg",
+          "date": "2026-04-16",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Joe Williams"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776373337923_79b634",
+          "date": "2026-04-16",
+          "impressions": 1,
+          "ageInDays": 12,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Bruce Power"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776395993398_02c019",
+          "date": "2026-04-16",
+          "impressions": 23,
+          "ageInDays": 12,
+          "rawWeight": 23,
+          "normalizedWeight": 0.003910234614076844,
+          "attributedFollows": 0.007820469228153689,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776427335587_b3c9d0",
+          "date": "2026-04-17",
+          "impressions": 8,
+          "ageInDays": 11,
+          "rawWeight": 8,
+          "normalizedWeight": 0.0013600816048962938,
+          "attributedFollows": 0.0027201632097925877,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776438162458_689e90",
+          "date": "2026-04-17",
+          "impressions": 3,
+          "ageInDays": 11,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005100306018361102,
+          "attributedFollows": 0.0010200612036722204,
+          "label": "Comment on AtkinsRéalis"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776459778361_3yw16p",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776479695800_f22648",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Susan Brown"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776479965423_061110",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776480573533_86ja8n",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776481012101_3l7vib",
+          "date": "2026-04-17",
+          "impressions": 1,
+          "ageInDays": 11,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Grisha Bogolyubov"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776517334237_c9e634",
+          "date": "2026-04-18",
+          "impressions": 7,
+          "ageInDays": 10,
+          "rawWeight": 7,
+          "normalizedWeight": 0.0011900714042842571,
+          "attributedFollows": 0.0023801428085685142,
+          "label": "Comment on Vector Institute"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776517434622_2va27k",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 10,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776518194354_5gvp7w",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 10,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Brandon Kim"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776564935483_cf6f82",
+          "date": "2026-04-18",
+          "impressions": 7,
+          "ageInDays": 10,
+          "rawWeight": 7,
+          "normalizedWeight": 0.0011900714042842571,
+          "attributedFollows": 0.0023801428085685142,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776565735428_89da5e",
+          "date": "2026-04-18",
+          "impressions": 1,
+          "ageInDays": 10,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776568532751_k4zup1",
+          "date": "2026-04-18",
+          "impressions": 6,
+          "ageInDays": 10,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0010200612036722204,
+          "attributedFollows": 0.002040122407344441,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776603833952_z7lj5d",
+          "date": "2026-04-19",
+          "impressions": 1,
+          "ageInDays": 9,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776632558910_653j9c",
+          "date": "2026-04-19",
+          "impressions": 3,
+          "ageInDays": 9,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005100306018361102,
+          "attributedFollows": 0.0010200612036722204,
+          "label": "Comment on SYED MUKEETH UR RAHIMAN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776640663806_jbrqao",
+          "date": "2026-04-19",
+          "impressions": 7,
+          "ageInDays": 9,
+          "rawWeight": 7,
+          "normalizedWeight": 0.0011900714042842571,
+          "attributedFollows": 0.0023801428085685142,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776652083221_7v1tfy",
+          "date": "2026-04-19",
+          "impressions": 6,
+          "ageInDays": 9,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0010200612036722204,
+          "attributedFollows": 0.002040122407344441,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776686551380_a9b25f",
+          "date": "2026-04-20",
+          "impressions": 1,
+          "ageInDays": 8,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776697332440_003a49",
+          "date": "2026-04-20",
+          "impressions": 2,
+          "ageInDays": 8,
+          "rawWeight": 2,
+          "normalizedWeight": 0.00034002040122407346,
+          "attributedFollows": 0.0006800408024481469,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776708134998_436fee",
+          "date": "2026-04-20",
+          "impressions": 50,
+          "ageInDays": 8,
+          "rawWeight": 50,
+          "normalizedWeight": 0.008500510030601836,
+          "attributedFollows": 0.017001020061203673,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776716461246_21cd38",
+          "date": "2026-04-20",
+          "impressions": 97,
+          "ageInDays": 8,
+          "rawWeight": 97,
+          "normalizedWeight": 0.016490989459367562,
+          "attributedFollows": 0.032981978918735125,
+          "label": "Comment on Osama Baig"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776724549808_1a5ca1",
+          "date": "2026-04-20",
+          "impressions": 1,
+          "ageInDays": 8,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776729874747_asl3cx",
+          "date": "2026-04-20",
+          "impressions": 105,
+          "ageInDays": 8,
+          "rawWeight": 105,
+          "normalizedWeight": 0.017851071064263854,
+          "attributedFollows": 0.03570214212852771,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776783734884_8cfa63",
+          "date": "2026-04-21",
+          "impressions": 1,
+          "ageInDays": 7,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on dave-geyer"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776805334842_5f3d3f",
+          "date": "2026-04-21",
+          "impressions": 4,
+          "ageInDays": 7,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006800408024481469,
+          "attributedFollows": 0.0013600816048962938,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776819428143_6t7rou",
+          "date": "2026-04-21",
+          "impressions": 2,
+          "ageInDays": 7,
+          "rawWeight": 2,
+          "normalizedWeight": 0.00034002040122407346,
+          "attributedFollows": 0.0006800408024481469,
+          "label": "Comment on World Nuclear News"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776819935444_5u7ipn",
+          "date": "2026-04-21",
+          "impressions": 1,
+          "ageInDays": 7,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Ethan LI, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776859331344_401ef0",
+          "date": "2026-04-22",
+          "impressions": 27,
+          "ageInDays": 6,
+          "rawWeight": 27,
+          "normalizedWeight": 0.004590275416524991,
+          "attributedFollows": 0.009180550833049982,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776870137674_b493d8",
+          "date": "2026-04-22",
+          "impressions": 15,
+          "ageInDays": 6,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0025501530091805507,
+          "attributedFollows": 0.0051003060183611015,
+          "label": "Comment on Vitalii Pronin"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776880946079_9287e2",
+          "date": "2026-04-22",
+          "impressions": 9,
+          "ageInDays": 6,
+          "rawWeight": 9,
+          "normalizedWeight": 0.0015300918055083305,
+          "attributedFollows": 0.003060183611016661,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776881196975_m9uulp",
+          "date": "2026-04-22",
+          "impressions": 1,
+          "ageInDays": 6,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776891734952_9a1c7d",
+          "date": "2026-04-22",
+          "impressions": 7,
+          "ageInDays": 6,
+          "rawWeight": 7,
+          "normalizedWeight": 0.0011900714042842571,
+          "attributedFollows": 0.0023801428085685142,
+          "label": "Comment on Pratheeksha MC"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776955214025_1dbe08",
+          "date": "2026-04-23",
+          "impressions": 1,
+          "ageInDays": 5,
+          "rawWeight": 1,
+          "normalizedWeight": 0.00017001020061203673,
+          "attributedFollows": 0.00034002040122407346,
+          "label": "Comment on Ontario's Nuclear Advantage"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776956532564_0d71f2",
+          "date": "2026-04-23",
+          "impressions": 7,
+          "ageInDays": 5,
+          "rawWeight": 7,
+          "normalizedWeight": 0.0011900714042842571,
+          "attributedFollows": 0.0023801428085685142,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776967333455_8aaf2e",
+          "date": "2026-04-23",
+          "impressions": 3,
+          "ageInDays": 5,
+          "rawWeight": 3,
+          "normalizedWeight": 0.0005100306018361102,
+          "attributedFollows": 0.0010200612036722204,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776978133639_2c4dfe",
+          "date": "2026-04-23",
+          "impressions": 10,
+          "ageInDays": 5,
+          "rawWeight": 10,
+          "normalizedWeight": 0.0017001020061203672,
+          "attributedFollows": 0.0034002040122407345,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1776978734224_xdhf6o",
+          "date": "2026-04-23",
+          "impressions": 41,
+          "ageInDays": 5,
+          "rawWeight": 41,
+          "normalizedWeight": 0.006970418225093505,
+          "attributedFollows": 0.01394083645018701,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777032144940_094eb7",
+          "date": "2026-04-24",
+          "impressions": 5,
+          "ageInDays": 4,
+          "rawWeight": 5,
+          "normalizedWeight": 0.0008500510030601836,
+          "attributedFollows": 0.0017001020061203672,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777038834401_raywnb",
+          "date": "2026-04-24",
+          "impressions": 15,
+          "ageInDays": 4,
+          "rawWeight": 15,
+          "normalizedWeight": 0.0025501530091805507,
+          "attributedFollows": 0.0051003060183611015,
+          "label": "Comment on Lovable"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777043011979_sqqm6c",
+          "date": "2026-04-24",
+          "impressions": 8,
+          "ageInDays": 4,
+          "rawWeight": 8,
+          "normalizedWeight": 0.0013600816048962938,
+          "attributedFollows": 0.0027201632097925877,
+          "label": "Comment on caorilne"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777045405628_3e5778",
+          "date": "2026-04-24",
+          "impressions": 53,
+          "ageInDays": 4,
+          "rawWeight": 53,
+          "normalizedWeight": 0.009010540632437947,
+          "attributedFollows": 0.018021081264875893,
+          "label": "Comment on Ontario Power Generation"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777056322969_ee31d1",
+          "date": "2026-04-24",
+          "impressions": 2,
+          "ageInDays": 4,
+          "rawWeight": 2,
+          "normalizedWeight": 0.00034002040122407346,
+          "attributedFollows": 0.0006800408024481469,
+          "label": "Comment on Calgary.tech"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777058375247_gtkvwk",
+          "date": "2026-04-24",
+          "impressions": 4,
+          "ageInDays": 4,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006800408024481469,
+          "attributedFollows": 0.0013600816048962938,
+          "label": "Comment on TechCrunch"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777060989921_e8f2fa",
+          "date": "2026-04-24",
+          "impressions": 42,
+          "ageInDays": 4,
+          "rawWeight": 42,
+          "normalizedWeight": 0.007140428425705543,
+          "attributedFollows": 0.014280856851411085,
+          "label": "Comment on nvidia"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777080539020_534d18",
+          "date": "2026-04-24",
+          "impressions": 12,
+          "ageInDays": 4,
+          "rawWeight": 12,
+          "normalizedWeight": 0.002040122407344441,
+          "attributedFollows": 0.004080244814688882,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777082782435_c7e41a",
+          "date": "2026-04-24",
+          "impressions": 23,
+          "ageInDays": 4,
+          "rawWeight": 23,
+          "normalizedWeight": 0.003910234614076844,
+          "attributedFollows": 0.007820469228153689,
+          "label": "Comment on Office of Nuclear Energy | U.S. Department of Energy"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777121433770_stg2lm",
+          "date": "2026-04-25",
+          "impressions": 6,
+          "ageInDays": 3,
+          "rawWeight": 6,
+          "normalizedWeight": 0.0010200612036722204,
+          "attributedFollows": 0.002040122407344441,
+          "label": "Comment on Nuclearn"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777122132910_e4fc92",
+          "date": "2026-04-25",
+          "impressions": 73,
+          "ageInDays": 3,
+          "rawWeight": 73,
+          "normalizedWeight": 0.012410744644678682,
+          "attributedFollows": 0.024821489289357363,
+          "label": "Comment on Mash'al Qureshi"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777126001119_l4zg3o",
+          "date": "2026-04-25",
+          "impressions": 378,
+          "ageInDays": 3,
+          "rawWeight": 378,
+          "normalizedWeight": 0.06426385583134989,
+          "attributedFollows": 0.12852771166269977,
+          "label": "Comment on Ruan Steyn, MBA, MSc, PMP"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777150932803_590f98",
+          "date": "2026-04-25",
+          "impressions": 140,
+          "ageInDays": 3,
+          "rawWeight": 140,
+          "normalizedWeight": 0.023801428085685142,
+          "attributedFollows": 0.047602856171370285,
+          "label": "Comment on Ontario Power Generation"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777161059183_0d83bd",
+          "date": "2026-04-25",
+          "impressions": 45,
+          "ageInDays": 3,
+          "rawWeight": 45,
+          "normalizedWeight": 0.007650459027541652,
+          "attributedFollows": 0.015300918055083304,
+          "label": "Comment on SYED MUKEETH UR RAHIMAN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777208723433_t6kklv",
+          "date": "2026-04-26",
+          "impressions": 4,
+          "ageInDays": 2,
+          "rawWeight": 4,
+          "normalizedWeight": 0.0006800408024481469,
+          "attributedFollows": 0.0013600816048962938,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777209939615_gz3b4z",
+          "date": "2026-04-26",
+          "impressions": 36,
+          "ageInDays": 2,
+          "rawWeight": 36,
+          "normalizedWeight": 0.006120367222033322,
+          "attributedFollows": 0.012240734444066644,
+          "label": "Comment on Canadian Nuclear Association"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777220804148_0623dd",
+          "date": "2026-04-26",
+          "impressions": 649,
+          "ageInDays": 2,
+          "rawWeight": 649,
+          "normalizedWeight": 0.11033662019721183,
+          "attributedFollows": 0.22067324039442365,
+          "label": "Comment on nvidia"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777237347554_becc2f",
+          "date": "2026-04-26",
+          "impressions": 371,
+          "ageInDays": 2,
+          "rawWeight": 371,
+          "normalizedWeight": 0.06307378442706563,
+          "attributedFollows": 0.12614756885413125,
+          "label": "Comment on Peter Moore"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777255772398_f7a4f7",
+          "date": "2026-04-26",
+          "impressions": 50,
+          "ageInDays": 2,
+          "rawWeight": 50,
+          "normalizedWeight": 0.008500510030601836,
+          "attributedFollows": 0.017001020061203673,
+          "label": "Comment on Idaho National Laboratory"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777258160408_b13457",
+          "date": "2026-04-26",
+          "impressions": 102,
+          "ageInDays": 2,
+          "rawWeight": 102,
+          "normalizedWeight": 0.017341040462427744,
+          "attributedFollows": 0.03468208092485549,
+          "label": "Comment on Osama Baig"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777291354347_ed4f0d",
+          "date": "2026-04-27",
+          "impressions": 1177,
+          "ageInDays": 1,
+          "rawWeight": 1177,
+          "normalizedWeight": 0.20010200612036722,
+          "attributedFollows": 0.40020401224073443,
+          "label": "Comment on Joe Williams"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777311079483_cd3342",
+          "date": "2026-04-27",
+          "impressions": 85,
+          "ageInDays": 1,
+          "rawWeight": 85,
+          "normalizedWeight": 0.014450867052023121,
+          "attributedFollows": 0.028901734104046242,
+          "label": "Comment on ALL IN"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777313435082_4aa5cd",
+          "date": "2026-04-27",
+          "impressions": 90,
+          "ageInDays": 1,
+          "rawWeight": 90,
+          "normalizedWeight": 0.015300918055083304,
+          "attributedFollows": 0.03060183611016661,
+          "label": "Comment on Amy Harder"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777319751549_9d9bfa",
+          "date": "2026-04-27",
+          "impressions": 155,
+          "ageInDays": 1,
+          "rawWeight": 155,
+          "normalizedWeight": 0.02635158109486569,
+          "attributedFollows": 0.05270316218973138,
+          "label": "Comment on Bill Gates"
+        },
+        {
+          "type": "comment",
+          "id": "oc_1777321879385_y4kmbz",
+          "date": "2026-04-27",
+          "impressions": 42,
+          "ageInDays": 1,
+          "rawWeight": 42,
+          "normalizedWeight": 0.007140428425705543,
+          "attributedFollows": 0.014280856851411085,
+          "label": "Comment on Woodley B. Preucil, CFA"
+        }
+      ]
     }
   ],
   "postRollup": [
     {
       "id": "post_1774998669141",
       "label": "Bruce Power cobalt-60 harvest builds on innovation and partn",
-      "totalAttributed": 43.17,
+      "totalAttributed": 43.58,
       "linkedInAttributed": 18
     },
     {
       "id": "post_1773967203024",
       "label": "U.K. releases new plans to speed nuclear deployment",
-      "totalAttributed": 33.01,
+      "totalAttributed": 33.04,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1776211357947",
       "label": "Nuclear past and present collide in Ontario's Port Hope",
-      "totalAttributed": 16.39,
+      "totalAttributed": 16.99,
       "linkedInAttributed": 14
     },
     {
       "id": "post_1773936340698",
       "label": "NRC issues construction permit for first Natrium plant",
-      "totalAttributed": 16.33,
+      "totalAttributed": 16.36,
       "linkedInAttributed": 1
+    },
+    {
+      "id": "post_1776806980971",
+      "label": "Canadian Strategic Missions Corporation takes one small step",
+      "totalAttributed": 11,
+      "linkedInAttributed": 6
     },
     {
       "id": "post_1774911665147",
       "label": "OpenAI in Talks with Helion to Secure Fusion Energy",
-      "totalAttributed": 10.76,
+      "totalAttributed": 10.84,
       "linkedInAttributed": 1
     },
     {
       "id": "post_1775084468570",
       "label": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs",
-      "totalAttributed": 6.97,
+      "totalAttributed": 7.07,
       "linkedInAttributed": 4
     },
     {
       "id": "post_1774024104693",
       "label": "X-energy forms partnership with Talen Energy to assess Xe-10",
-      "totalAttributed": 6.9,
+      "totalAttributed": 6.93,
       "linkedInAttributed": 1
     },
     {
       "id": "post_1774278044012",
       "label": "60 Years of U: Perspectives on resources, demand, and the ev",
-      "totalAttributed": 5.28,
+      "totalAttributed": 5.31,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1774394112730",
       "label": "CNL demonstrates its cyber security incident response capabi",
-      "totalAttributed": 5.25,
+      "totalAttributed": 5.28,
       "linkedInAttributed": 0
+    },
+    {
+      "id": "post_1776902096033",
+      "label": "OECD NEA project gets ahead of AI use in nuclear industry",
+      "totalAttributed": 4.86,
+      "linkedInAttributed": 3
     },
     {
       "id": "post_1774481713385",
       "label": "State news: Microreactors, legislation, executive orders, an",
-      "totalAttributed": 4.2,
+      "totalAttributed": 4.23,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1775604886288",
       "label": "Scaling Advanced Nuclear Power: Picking Winners Now",
-      "totalAttributed": 3.76,
+      "totalAttributed": 3.92,
       "linkedInAttributed": 3
     },
     {
       "id": "post_1776121268198",
       "label": "First-of-a-kind microreactor test bed open for business",
-      "totalAttributed": 1.63,
+      "totalAttributed": 1.88,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1775516545301",
       "label": "NRC proposed rule for licensing reactors authorized by DOE, ",
-      "totalAttributed": 1.55,
+      "totalAttributed": 1.7,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1776294080154",
       "label": "Bruce Power and SaskPower sign memorandum of understanding t",
-      "totalAttributed": 0.88,
-      "linkedInAttributed": 0
-    },
-    {
-      "id": "post_1775691516815",
-      "label": "3D printing possibilities: Additive manufacturing impact lim",
-      "totalAttributed": 0.72,
+      "totalAttributed": 1.31,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1776460115780",
       "label": "Weekly insider observations from NPX",
-      "totalAttributed": 0.64,
+      "totalAttributed": 1.15,
+      "linkedInAttributed": 0
+    },
+    {
+      "id": "post_1775691516815",
+      "label": "3D printing possibilities: Additive manufacturing impact lim",
+      "totalAttributed": 0.8,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1775838020958",
       "label": "Weekly insider observations from NPX",
-      "totalAttributed": 0.52,
-      "linkedInAttributed": 0
-    },
-    {
-      "id": "post_1776806980971",
-      "label": "Canadian Strategic Missions Corporation takes one small step",
-      "totalAttributed": 0.18,
+      "totalAttributed": 0.62,
       "linkedInAttributed": 0
     },
     {
       "id": "post_1776729000812",
       "label": "MISO expects load to jump 35% by 2035 on data center growth",
-      "totalAttributed": 0.1,
+      "totalAttributed": 0.5,
+      "linkedInAttributed": 0
+    },
+    {
+      "id": "post_1777075411026",
+      "label": "Weekly insider observations from NPX",
+      "totalAttributed": 0.09,
       "linkedInAttributed": 0
     }
   ],
@@ -18057,32 +22251,62 @@
     {
       "profileUrl": "https://www.linkedin.com/company/ontario-power-generation/",
       "profileName": "Ontario Power Generation",
-      "totalAttributed": 4.43,
-      "commentCount": 3
+      "totalAttributed": 4.55,
+      "commentCount": 5
     },
     {
       "profileUrl": "https://www.linkedin.com/in/amyaharder/",
       "profileName": "Amy Harder",
-      "totalAttributed": 4.05,
-      "commentCount": 3
+      "totalAttributed": 4.1,
+      "commentCount": 5
     },
     {
       "profileUrl": "https://www.linkedin.com/company/techcrunch/",
       "profileName": "TechCrunch",
-      "totalAttributed": 1.79,
+      "totalAttributed": 1.81,
       "commentCount": 20
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/ruan-steyn/",
+      "profileName": "Ruan Steyn, MBA, MSc, PMP",
+      "totalAttributed": 0.65,
+      "commentCount": 5
     },
     {
       "profileUrl": "https://www.linkedin.com/in/susanbrownceozortrex/",
       "profileName": "Susan Brown",
-      "totalAttributed": 0.56,
+      "totalAttributed": 0.57,
       "commentCount": 16
     },
     {
       "profileUrl": "https://www.linkedin.com/company/vector-institute/",
       "profileName": "Vector Institute",
+      "totalAttributed": 0.56,
+      "commentCount": 8
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/showcase/nuclearenergygov/",
+      "profileName": "Office of Nuclear Energy | U.S. Department of Energy",
       "totalAttributed": 0.52,
-      "commentCount": 7
+      "commentCount": 3
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/company/world-nuclear-news/",
+      "profileName": "world-nuclear-news",
+      "totalAttributed": 0.45,
+      "commentCount": 6
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/mashal-qureshi/",
+      "profileName": "Mash'al Qureshi",
+      "totalAttributed": 0.45,
+      "commentCount": 5
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/joe-williams-300431189/",
+      "profileName": "Joe Williams",
+      "totalAttributed": 0.41,
+      "commentCount": 2
     },
     {
       "profileUrl": "https://www.linkedin.com/in/josh-bell/",
@@ -18091,14 +22315,26 @@
       "commentCount": 3
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/mashal-qureshi/",
-      "profileName": "Mash'al Qureshi",
-      "totalAttributed": 0.24,
-      "commentCount": 4
+      "profileUrl": "https://www.linkedin.com/company/nvidia/",
+      "profileName": "nvidia",
+      "totalAttributed": 0.25,
+      "commentCount": 2
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/ruan-steyn/",
-      "profileName": "Ruan Steyn, MBA, MSc, PMP",
+      "profileUrl": "https://www.linkedin.com/in/osamabaig1/",
+      "profileName": "Osama Baig",
+      "totalAttributed": 0.19,
+      "commentCount": 3
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/vitaliipronin/",
+      "profileName": "Vitalii Pronin",
+      "totalAttributed": 0.18,
+      "commentCount": 2
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/ethan-li-cfa-56394182/",
+      "profileName": "ethan-li-cfa-56394182",
       "totalAttributed": 0.17,
       "commentCount": 3
     },
@@ -18111,32 +22347,68 @@
     {
       "profileUrl": "https://www.linkedin.com/company/bruce-power/",
       "profileName": "Bruce Power",
+      "totalAttributed": 0.16,
+      "commentCount": 4
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/woodley-b-preucil-cfa-5926b010/",
+      "profileName": "Woodley B. Preucil, CFA",
       "totalAttributed": 0.15,
-      "commentCount": 4
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/ethan-li-cfa-56394182/",
-      "profileName": "ethan-li-cfa-56394182",
-      "totalAttributed": 0.14,
-      "commentCount": 2
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/company/atkinsrealis/",
-      "profileName": "AtkinsRéalis",
-      "totalAttributed": 0.12,
-      "commentCount": 4
+      "commentCount": 8
     },
     {
       "profileUrl": "https://www.linkedin.com/in/syed-mukeeth-ur-rahiman-349120244/",
       "profileName": "HARIKARAN M",
-      "totalAttributed": 0.1,
-      "commentCount": 2
+      "totalAttributed": 0.15,
+      "commentCount": 3
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/company/canadian-nuclear-association/",
+      "profileName": "Canadian Nuclear Association",
+      "totalAttributed": 0.15,
+      "commentCount": 5
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/company/atkinsrealis/",
+      "profileName": "AtkinsRéalis",
+      "totalAttributed": 0.14,
+      "commentCount": 4
     },
     {
       "profileUrl": "https://www.linkedin.com/company/world-nuclear-news/posts/",
       "profileName": "World Nuclear News",
-      "totalAttributed": 0.08,
-      "commentCount": 2
+      "totalAttributed": 0.13,
+      "commentCount": 3
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/peter-moore-0a3286113/",
+      "profileName": "Peter Moore",
+      "totalAttributed": 0.13,
+      "commentCount": 1
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/company/nuclearn/",
+      "profileName": "Nuclearn",
+      "totalAttributed": 0.11,
+      "commentCount": 6
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/evan-solomon-31906a8b/",
+      "profileName": "Evan Solomon",
+      "totalAttributed": 0.1,
+      "commentCount": 1
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/company/idaho-national-laboratory/",
+      "profileName": "Idaho National Laboratory",
+      "totalAttributed": 0.1,
+      "commentCount": 4
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/pratheeksha-mc-497073361/",
+      "profileName": "Pratheeksha MC",
+      "totalAttributed": 0.09,
+      "commentCount": 7
     },
     {
       "profileUrl": "Dr Latif Khattak MD,FRSPH,MsPH,CHPE, MSc,Ms Nutrition",
@@ -18145,22 +22417,10 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/company/world-nuclear-news/",
-      "profileName": "world-nuclear-news",
-      "totalAttributed": 0.07,
-      "commentCount": 6
-    },
-    {
       "profileUrl": "https://www.linkedin.com/in/artemxtech/",
       "profileName": "artemxtech",
       "totalAttributed": 0.06,
       "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/pratheeksha-mc-497073361/",
-      "profileName": "Pratheeksha MC",
-      "totalAttributed": 0.06,
-      "commentCount": 6
     },
     {
       "profileUrl": "https://www.linkedin.com/in/grisha-bogolyubov-851575334/",
@@ -18169,8 +22429,26 @@
       "commentCount": 1
     },
     {
+      "profileUrl": "https://www.linkedin.com/company/ontario-s-nuclear-advantage/",
+      "profileName": "ontario-s-nuclear-advantage",
+      "totalAttributed": 0.05,
+      "commentCount": 4
+    },
+    {
       "profileUrl": "https://www.linkedin.com/in/rob-palumbo-canada/",
       "profileName": "Rob Palumbo",
+      "totalAttributed": 0.05,
+      "commentCount": 1
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/polina-kushnerova/",
+      "profileName": "Polina Kushnerova",
+      "totalAttributed": 0.05,
+      "commentCount": 1
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/williamhgates/",
+      "profileName": "Bill Gates",
       "totalAttributed": 0.05,
       "commentCount": 1
     },
@@ -18179,12 +22457,6 @@
       "profileName": "Peter Moore",
       "totalAttributed": 0.04,
       "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/company/ontario-s-nuclear-advantage/",
-      "profileName": "ontario-s-nuclear-advantage",
-      "totalAttributed": 0.04,
-      "commentCount": 3
     },
     {
       "profileUrl": "https://www.linkedin.com/in/harris-walker/",
@@ -18199,16 +22471,10 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/polina-kushnerova/",
-      "profileName": "Polina Kushnerova",
+      "profileUrl": "https://www.linkedin.com/company/techcrunch/posts/",
+      "profileName": "TechCrunch",
       "totalAttributed": 0.04,
-      "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/evan-solomon-31906a8b/",
-      "profileName": "Evan Solomon",
-      "totalAttributed": 0.04,
-      "commentCount": 1
+      "commentCount": 3
     },
     {
       "profileUrl": "https://www.linkedin.com/in/travisscottfisher/",
@@ -18217,16 +22483,10 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/company/nuclearn/",
-      "profileName": "Nuclearn",
+      "profileUrl": "https://www.linkedin.com/in/jennifergranholm/",
+      "profileName": "Jennifer Granholm",
       "totalAttributed": 0.03,
-      "commentCount": 4
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/woodley-b-preucil-cfa-5926b010/",
-      "profileName": "Woodley B. Preucil, CFA",
-      "totalAttributed": 0.03,
-      "commentCount": 4
+      "commentCount": 1
     },
     {
       "profileUrl": "https://www.linkedin.com/in/nateglubish/",
@@ -18235,20 +22495,8 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/company/techcrunch/posts/",
-      "profileName": "TechCrunch",
-      "totalAttributed": 0.03,
-      "commentCount": 2
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/vitaliipronin/",
-      "profileName": "Vitalii Pronin",
-      "totalAttributed": 0.03,
-      "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/company/canadian-nuclear-association/",
-      "profileName": "Canadian Nuclear Association",
+      "profileUrl": "https://www.linkedin.com/company/nuclear-engineering-international-magazine/posts/",
+      "profileName": "Nuclear Engineering International",
       "totalAttributed": 0.03,
       "commentCount": 1
     },
@@ -18259,22 +22507,16 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/jennifergranholm/",
-      "profileName": "Jennifer Granholm",
+      "profileUrl": "https://www.linkedin.com/in/herman-singh-b669357/",
+      "profileName": "Herman Singh",
       "totalAttributed": 0.02,
-      "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/company/nuclear-engineering-international-magazine/posts/",
-      "profileName": "Nuclear Engineering International",
-      "totalAttributed": 0.02,
-      "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/osamabaig1/",
-      "profileName": "Osama Baig",
-      "totalAttributed": 0.01,
       "commentCount": 2
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/andrew-thurlow-b2337b148/",
+      "profileName": "Andrew Thurlow",
+      "totalAttributed": 0.02,
+      "commentCount": 1
     },
     {
       "profileUrl": "https://www.linkedin.com//www.linkedin.com/in/muhammadirfanraza/",
@@ -18289,16 +22531,34 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/herman-singh-b669357/",
-      "profileName": "Herman Singh",
+      "profileUrl": "https://www.linkedin.com/in/mr-curro-nicolau-b50a73239/",
+      "profileName": "Mr. Curro Nicolau",
       "totalAttributed": 0.01,
-      "commentCount": 2
+      "commentCount": 1
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/amirolajuwon/",
+      "profileName": "Amir Olajuwon CPMP, LEED CIPP US Integrated Infrastructure Data Center Systems SME",
+      "totalAttributed": 0.01,
+      "commentCount": 1
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/in/cesar-a-4b68671b/",
+      "profileName": "Cesar A.",
+      "totalAttributed": 0.01,
+      "commentCount": 1
     },
     {
       "profileUrl": "https://www.linkedin.com/in/jpsnook/",
       "profileName": "James Snook",
       "totalAttributed": 0.01,
       "commentCount": 1
+    },
+    {
+      "profileUrl": "https://www.linkedin.com/company/calgary-tech/",
+      "profileName": "Calgary.tech",
+      "totalAttributed": 0.01,
+      "commentCount": 2
     },
     {
       "profileUrl": "https://www.linkedin.com/company/bruce-power/posts/",
@@ -18313,22 +22573,16 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/andrew-thurlow-b2337b148/",
-      "profileName": "Andrew Thurlow",
+      "profileUrl": "https://www.linkedin.com/company/lovable-dev/posts/",
+      "profileName": "Lovable",
       "totalAttributed": 0.01,
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/showcase/nuclearenergygov/",
-      "profileName": "Office of Nuclear Energy | U.S. Department of Energy",
+      "profileUrl": "https://www.linkedin.com/in/caorilne/",
+      "profileName": "caorilne",
       "totalAttributed": 0.01,
       "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/company/idaho-national-laboratory/",
-      "profileName": "Idaho National Laboratory",
-      "totalAttributed": 0.01,
-      "commentCount": 2
     },
     {
       "profileUrl": "Chris Good",
@@ -18337,32 +22591,8 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/mr-curro-nicolau-b50a73239/",
-      "profileName": "Mr. Curro Nicolau",
-      "totalAttributed": 0,
-      "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/amirolajuwon/",
-      "profileName": "Amir Olajuwon CPMP, LEED CIPP US Integrated Infrastructure Data Center Systems SME",
-      "totalAttributed": 0,
-      "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/in/cesar-a-4b68671b/",
-      "profileName": "Cesar A.",
-      "totalAttributed": 0,
-      "commentCount": 1
-    },
-    {
       "profileUrl": "https://www.linkedin.com/company/nuclear-taskforce/posts/",
       "profileName": "Nuclear Taskforce",
-      "totalAttributed": 0,
-      "commentCount": 1
-    },
-    {
-      "profileUrl": "https://www.linkedin.com/company/calgary-tech/",
-      "profileName": "Calgary.tech",
       "totalAttributed": 0,
       "commentCount": 1
     },
@@ -18379,14 +22609,14 @@
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/joe-williams-300431189/",
-      "profileName": "Joe Williams",
+      "profileUrl": "https://www.linkedin.com/in/brandon-kim-b29b1b4b/",
+      "profileName": "Brandon Kim",
       "totalAttributed": 0,
       "commentCount": 1
     },
     {
-      "profileUrl": "https://www.linkedin.com/in/brandon-kim-b29b1b4b/",
-      "profileName": "Brandon Kim",
+      "profileUrl": "https://www.linkedin.com/in/dave-geyer/",
+      "profileName": "dave-geyer",
       "totalAttributed": 0,
       "commentCount": 1
     }

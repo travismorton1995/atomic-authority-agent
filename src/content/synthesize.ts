@@ -35,6 +35,7 @@ export interface HookCandidate {
 export interface DraftPost {
   content: string;
   firstComment: string;
+  loopbackComment?: string;  // next-day re-engagement comment (posted if no external comments)
   title: string;            // short 3-5 word internal title for tracking/reporting
   postType: PostType;
   sourceTitle: string;
@@ -426,7 +427,7 @@ export async function synthesizePost(item: FeedItem, postType: PostType, selecte
   // One clear instruction block, no ambiguity.
   const hashtagPerf = getConfidenceWeightedHashtagPerformance();
   let hashtagGuidance = '\nHASHTAG SELECTION (follow these rules exactly — this is your only source for hashtag decisions):\n';
-  hashtagGuidance += 'Use the PYRAMID structure: 1 broad tag + 2-3 niche tags + 1 optional branded tag. Never exceed 5 total.\n';
+  hashtagGuidance += 'Use the PYRAMID structure: 1 broad tag + 2 niche tags + 1 underused tag (from the curated list with fewer than 3 posts in performance data, or no data at all) + 1 optional branded tag. Never exceed 5 total.\n';
 
   if (hashtagPerf.length > 0) {
     const globalAvg = robustAverage(hashtagPerf.map(h => h.score));
@@ -451,9 +452,9 @@ ${below.length > 0 ? `Below average:\n${below.map(formatLine).join('\n')}` : ''}
   hashtagGuidance += `\nCURATED FALLBACK LIST (use these ONLY when no performance data exists for a relevant topic):
 Broad: #NuclearEnergy, #CleanEnergy, #AI, #ArtificialIntelligence
 Nuclear niche: #SMR, #NuclearInnovation, #NuclearTechnology, #NetZero, #AdvancedReactors, #NuclearSafety, #EnergyTransition, #Decarbonization
-AI niche: #GenerativeAI, #AIAutomation, #MachineLearning, #FutureOfWork, #LLM, #AIGovernance
-Regulatory: #NRC, #LicensingReform, #EnergyPolicy, #CriticalInfrastructure
-Branded: #NPX (only when directly relevant to NPX work)
+AI niche: #GenerativeAI, #AIAutomation, #MachineLearning, #FutureOfWork, #LLM, #AIGovernance, #AIinEnergy
+Regulatory: #NRC, #CNSC, #LicensingReform, #EnergyPolicy, #CriticalInfrastructure
+Branded: #NPX (only when directly relevant to NPX work), #NuclearAI (use to establish niche ownership)
 
 PRIORITY ORDER: Performance data > Curated list > Relevance judgment. Never force an irrelevant hashtag just because it performed well.\n`;
 
@@ -556,6 +557,69 @@ RULES:
   const commentText = commentMessage.content[0].type === 'text' ? commentMessage.content[0].text.trim() : '';
   const firstComment = commentText;
 
+  // Generate loopback comment — next-day re-engagement if no external comments
+  let loopbackComment = '';
+  try {
+    const articleSource = item.fullText
+      ? `SOURCE ARTICLE: "${item.title}"\n---\n${item.fullText.split(/\s+/).slice(0, 1500).join(' ')}\n---`
+      : `SOURCE ARTICLE: "${item.title}"\nSummary: ${item.summary}`;
+
+    const loopbackMessage = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: `You wrote this LinkedIn post yesterday:
+
+${content}
+
+Your first comment was:
+"${firstComment}"
+
+${articleSource}
+
+Write a LOOPBACK COMMENT to re-engage the algorithm the morning after publishing. This comment will be posted as a reply to your own post if no one else has commented yet.
+
+PURPOSE: Expand the post's "Interest Graph" by introducing new technical keywords that weren't in the original post. This shows the algorithm new entry points for indexing and surfaces the post to a wider set of technical professionals.
+
+KEYWORD DELTA RULE (CRITICAL): Your loopback comment MUST contain at least 3 specific technical terms, acronyms, or proper nouns that DO NOT appear anywhere in the original post above. These should be semantically related but distinct. For example, if the post mentions "SMR", the loopback might use "BWRX-300", "grid-scale", or "cooling cycles." If the post mentions "AI governance", the loopback might use "RAG architecture", "vector databases", or "semantic gap."
+
+Pick ONE of these structures:
+
+1. SOURCE-FACT DEEP DIVE: [Reference to specific detail in the article] + [Non-obvious technical stat] + [Comparison/Nuance] + [Constraint-based Question]
+
+2. IMPLEMENTATION FRICTION PIVOT: [Context] + [Technical Keyword] + [The 'Human' Bottleneck] + [Role-Specific Question]
+
+3. FUTURE-PROOFING QUESTION: [Industry Trend] + [Technical Counter-point] + [Scenario Question]
+
+RULES:
+- Minimum 25 words
+- Must use facts extracted from the source article above
+- Do NOT restate the post's main argument — add a NEW angle
+- No em dashes. Use commas or periods instead.
+- No AI-isms: "transformative," "revolutionary," "game-changer," "landscape," "navigate," "leverage," etc.
+- No contrasting reframe patterns: "It's not X, it's Y" / "Not just X, Y"
+- Sound like a real person adding a genuine afterthought the next morning
+- Output ONLY the comment text — no preamble, no labels, no quotes`,
+      }],
+    });
+
+    const rawLoopback = loopbackMessage.content[0].type === 'text' ? loopbackMessage.content[0].text.trim() : '';
+
+    if (rawLoopback && rawLoopback.split(/\s+/).length >= 25) {
+      // Screen for AI-isms
+      const { screenReply } = await import('./reply.js');
+      loopbackComment = await screenReply(rawLoopback);
+      // Hard clean: em dashes
+      loopbackComment = loopbackComment.replace(/\s*[—–]\s*/g, ', ').replace(/,\s*,/g, ',').trim();
+      console.log(`Loopback comment generated (${loopbackComment.split(/\s+/).length} words)`);
+    } else {
+      console.warn(`Loopback comment too short or empty (${rawLoopback.split(/\s+/).length} words) — skipping.`);
+    }
+  } catch (err) {
+    console.warn(`Loopback comment generation failed: ${(err as Error).message}`);
+  }
+
   const finalWordCount = content.split(/\s+/).filter(Boolean).length;
 
   // Generate short internal title (3-5 words) for tracking and reporting
@@ -578,6 +642,7 @@ RULES:
   return {
     content,
     firstComment,
+    loopbackComment: loopbackComment || undefined,
     title,
     postType,
     sourceTitle: item.title,

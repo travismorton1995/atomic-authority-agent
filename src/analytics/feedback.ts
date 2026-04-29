@@ -122,11 +122,21 @@ export function getCorrelationInsights(): CorrelationInsight[] {
     { name: 'Days since first post', values: posts.map(p => p.dayIndex) },
   ];
 
-  return attributes
+  const results = attributes
     .map(attr => {
       const result = correlate(attr.values, scores);
       const direction = result.r > 0.1 ? 'positive' : result.r < -0.1 ? 'negative' : 'none';
       return { attribute: attr.name, r: result.r, direction, significant: result.significant };
-    })
-    .sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
+    });
+
+  // Early score vs final score — do posts that start strong finish strong?
+  // Computed separately since it uses a filtered subset of posts.
+  const withEarly = posts.filter(p => p.earlyScore !== null);
+  if (withEarly.length >= 5) {
+    const earlyResult = correlate(withEarly.map(p => p.earlyScore!), withEarly.map(p => p.compositeScore));
+    const direction = earlyResult.r > 0.1 ? 'positive' : earlyResult.r < -0.1 ? 'negative' : 'none';
+    results.push({ attribute: '90-min early score', r: earlyResult.r, direction, significant: earlyResult.significant });
+  }
+
+  return results.sort((a, b) => Math.abs(b.r) - Math.abs(a.r));
 }

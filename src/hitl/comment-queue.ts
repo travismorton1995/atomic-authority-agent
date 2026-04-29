@@ -16,7 +16,7 @@ export interface PendingReply {
   replyLabels: [string, string, string];    // approach labels — display only
   recommendationReason: string;             // 1-liner why option 0 is suggested
   reasoning: string;
-  status: 'pending' | 'replied' | 'skipped';
+  status: 'pending' | 'approved' | 'replied' | 'skipped';
   selectedOption?: 1 | 2 | 3;
   createdAt: string;
   repliedAt?: string;
@@ -72,6 +72,10 @@ export function updateReplyStatus(id: string, updates: Partial<PendingReply>): v
     state.pendingReplies[idx] = { ...state.pendingReplies[idx], ...updates };
     save(state);
   }
+}
+
+export function getApprovedReplies(): PendingReply[] {
+  return load().pendingReplies.filter(r => r.status === 'approved');
 }
 
 export function recordPoll(): void {

@@ -29,7 +29,7 @@ export interface PendingComment {
   commentLabels: [string, string];
   recommendationReason: string;
   reasoning: string;
-  status: 'pending' | 'posted' | 'skipped';
+  status: 'pending' | 'approved' | 'posted' | 'skipped';
   selectedOption?: 1 | 2;
   createdAt: string;
   postedAt?: string;
@@ -210,6 +210,10 @@ export function addPendingComment(comment: PendingComment): void {
 
 export function getPendingComment(id: string): PendingComment | null {
   return loadState().pendingComments.find(c => c.id === id) ?? null;
+}
+
+export function getApprovedComments(): PendingComment[] {
+  return loadState().pendingComments.filter(c => c.status === 'approved');
 }
 
 export function updateCommentStatus(id: string, updates: Partial<PendingComment>): void {

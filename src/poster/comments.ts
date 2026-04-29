@@ -48,7 +48,7 @@ export async function scrapeComments(postUrl: string): Promise<ScrapedComment[]>
     }
 
     // Expand reply threads
-    const replyExpandBtns = page.locator('button[aria-label*="replies"]');
+    const replyExpandBtns = page.locator('button[aria-label*="repl"]');
     const expandCount = await replyExpandBtns.count();
     for (let i = 0; i < expandCount; i++) {
       await replyExpandBtns.nth(i).click().catch(() => {});
@@ -126,7 +126,7 @@ export async function postCommentReply(
     }
 
     // Expand reply threads
-    const replyExpandBtns = page.locator('button[aria-label*="replies"]');
+    const replyExpandBtns = page.locator('button[aria-label*="repl"]');
     const expandCount = await replyExpandBtns.count();
     for (let i = 0; i < expandCount; i++) {
       await replyExpandBtns.nth(i).click().catch(() => {});

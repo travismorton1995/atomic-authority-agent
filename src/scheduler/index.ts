@@ -53,7 +53,7 @@ function alreadyPostedToday(): boolean {
   }
 }
 import { postToLinkedIn, pingSession, LinkedInSessionExpiredError } from '../poster/index.js';
-import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler, setOnMetricsHandler, setOnRewriteHandler } from '../hitl/telegram.js';
+import { startBot, sendAlert, sendMessage, setOnRejectHandler, setOnGenerateHandler, setOnPollHandler, setOnOutboundHandler, setOnMetricsHandler, setOnRewriteHandler, rehydrateBurstTimer } from '../hitl/telegram.js';
 import { runPipeline, rewritePost } from '../content/pipeline.js';
 import { sendDailyPrompt, sendFridayPrompt } from '../hitl/daily-notes.js';
 import { runWeeklyReport } from '../cli/fetch-metrics.js';
@@ -180,9 +180,18 @@ async function publishDuePosts() {
 
 console.log('Atomic Authority scheduler starting...');
 startBot();
+rehydrateBurstTimer();
 setOnRejectHandler(runGenerate);
 setOnGenerateHandler(runGenerate);
-setOnPollHandler(() => runCommentPollGuarded());
+setOnPollHandler(async () => {
+  await runCommentPollGuarded();
+  try {
+    const { runOutboundReplyMonitor } = await import('../outbound/monitor-replies.js');
+    await runOutboundReplyMonitor();
+  } catch (err) {
+    console.error(`[outbound-monitor] Error: ${(err as Error).message}`);
+  }
+});
 setOnOutboundHandler(async () => {
   if (outboundPollRunning) throw new Error('Outbound poll already running — try again shortly.');
   outboundPollRunning = true;
@@ -231,9 +240,26 @@ cron.schedule('45 16 * * 1,2,3,4,5', async () => {
   }
 }, { timezone: 'America/Toronto' });
 
-// Poll every minute for posts due to be published
+// Poll every minute for posts due to be published + loopback comments
 cron.schedule('* * * * *', async () => {
   await publishDuePosts();
+  // Post any loopback comments whose scheduled time has arrived
+  try {
+    const { postDueLoopbacks } = await import('./loopback.js');
+    await postDueLoopbacks();
+  } catch (err) {
+    console.error(`[loopback] Post error: ${(err as Error).message}`);
+  }
+}, { timezone: 'America/Toronto' });
+
+// Loopback eligibility check at 9am ET — checks if yesterday's post needs a loopback comment
+cron.schedule('0 9 * * *', async () => {
+  try {
+    const { checkLoopbackEligibility } = await import('./loopback.js');
+    await checkLoopbackEligibility();
+  } catch (err) {
+    console.error(`[loopback] Eligibility check error: ${(err as Error).message}`);
+  }
 }, { timezone: 'America/Toronto' });
 
 // Daily maintenance at 8am ET: session check, cleanup, weekly report (Mondays).
@@ -333,6 +359,7 @@ async function runCommentPollGuarded(opts?: CommentPollOptions): Promise<Comment
 // First hour after a post: poll every 5 min (critical engagement window).
 // Hours 1-2: poll every 10 min.
 // Quiet period: full sweep every 3 hours.
+// Also triggers 90-min early score snapshot when a post hits the window.
 cron.schedule('*/5 * * * 1-5', async () => {
   const ageMs = getMostRecentPostAge();
   const withinFirstHour = ageMs !== null && ageMs < 1 * 60 * 60 * 1000;
@@ -340,21 +367,57 @@ cron.schedule('*/5 * * * 1-5', async () => {
   const lastPoll = getLastPollAt();
   const minutesSincePoll = lastPoll ? (Date.now() - lastPoll.getTime()) / 60_000 : Infinity;
 
+  let ranCommentPoll = false;
   if (withinFirstHour) {
     // Critical first hour: poll every 5 min (every tick)
     await runCommentPollGuarded({ recentOnly: true });
+    ranCommentPoll = true;
   } else if (withinActiveWindow && minutesSincePoll >= 10) {
     // Hours 1-2: poll every 10 min
     await runCommentPollGuarded({ recentOnly: true });
-  } else if (minutesSincePoll >= 180) {
+    ranCommentPoll = true;
+  } else if (minutesSincePoll >= 120) {
     // Quiet period: full sweep of all posts in the 14-day window
     await runCommentPollGuarded();
+    ranCommentPoll = true;
+  }
+
+  // Outbound reply monitor — runs on same frequency as comment poll
+  if (ranCommentPoll) {
+    try {
+      const { runOutboundReplyMonitor } = await import('../outbound/monitor-replies.js');
+      await runOutboundReplyMonitor();
+    } catch (err) {
+      console.error(`[outbound-monitor] Error: ${(err as Error).message}`);
+    }
+    // Flush any replies/comments approved while the monitor was running
+    try {
+      const { flushApprovedReplies, flushApprovedOutboundComments } = await import('../hitl/telegram.js');
+      await flushApprovedReplies();
+      await flushApprovedOutboundComments();
+    } catch (err) {
+      console.error(`[flush] Error: ${(err as Error).message}`);
+    }
+  }
+
+  // 90-min early score snapshot — captures first-window performance
+  const { getPostNeedingEarlyScore, captureEarlyScore } = await import('../analytics/early-score.js');
+  const earlyTarget = getPostNeedingEarlyScore();
+  if (earlyTarget) {
+    console.log(`[early-score] Post ${earlyTarget.id} is in the 90-min window — capturing snapshot...`);
+    await captureEarlyScore(earlyTarget);
   }
 }, { timezone: 'America/Toronto' });
 
 // Weekends: 8am and 8pm ET only — full sweep
 cron.schedule('0 8,20 * * 6,0', async () => {
   await runCommentPollGuarded();
+  try {
+    const { runOutboundReplyMonitor } = await import('../outbound/monitor-replies.js');
+    await runOutboundReplyMonitor();
+  } catch (err) {
+    console.error(`[outbound-monitor] Error: ${(err as Error).message}`);
+  }
 }, { timezone: 'America/Toronto' });
 
 // --- Outbound engagement polling ---

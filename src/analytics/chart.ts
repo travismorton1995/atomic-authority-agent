@@ -255,7 +255,7 @@ export async function generateHeatmapChart(): Promise<Buffer | null> {
   try {
     execSync(`python "${scriptPath}" "${tmpFile}"`, {
       cwd: path.resolve('.'),
-      timeout: 30000,
+      timeout: 60000,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
