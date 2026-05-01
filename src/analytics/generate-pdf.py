@@ -45,7 +45,30 @@ MARGIN = 40
 CONTENT_W = PAGE_W - 2 * MARGIN
 RIGHT_EDGE = PAGE_W - MARGIN
 
+BADGE_A_COLOR = HexColor('#8E24AA')  # purple — authority (saves)
+BADGE_D_COLOR = HexColor('#00897B')  # teal — discussion (comments)
+
 # ── Drawing helpers ───────────────────────────────────────────────────
+
+def draw_circle_badge(c, x, y, letter, color, size=10):
+    """Draw a colored circle with a white letter inside."""
+    radius = size / 2
+    c.setFillColor(color)
+    c.circle(x + radius, y + radius, radius, fill=1, stroke=0)
+    c.setFillColor(white)
+    c.setFont('Helvetica-Bold', size * 0.7)
+    c.drawCentredString(x + radius, y + radius - size * 0.22, letter)
+
+def draw_utility_badges(c, x, y, authority, discussion, size=10, spacing=2):
+    """Draw A and/or D circle badges side by side. Returns total width used."""
+    offset = 0
+    if authority:
+        draw_circle_badge(c, x + offset, y, 'A', BADGE_A_COLOR, size)
+        offset += size + spacing
+    if discussion:
+        draw_circle_badge(c, x + offset, y, 'D', BADGE_D_COLOR, size)
+        offset += size + spacing
+    return offset
 
 def draw_page_bg(c):
     """Fill page with off-white background."""
@@ -244,7 +267,7 @@ def render_page_1(c, data):
         f"{total_posts} posts",
         f"Score: med {stats.get('median', 0):.1f} / avg {stats.get('mean', 0):.1f}",
         f"Reactions: {fmt(kpis.get('totalReactions', 0))}",
-        f"Comments: {fmt(kpis.get('totalComments', 0))}",
+        f"Ext. Comments: {fmt(kpis.get('totalComments', 0))}",
         f"Reposts: {fmt(kpis.get('totalReposts', 0))}",
     ]
     c.drawString(MARGIN, y_stats, '  |  '.join(parts))
@@ -260,6 +283,16 @@ def render_page_1(c, data):
     if recent_posts:
         y_table = _draw_recent_posts_table(c, y_table, recent_posts)
 
+    # Badge legend — above footer line
+    legend_y = 42
+    c.setFont('Helvetica-Oblique', 6.5)
+    draw_circle_badge(c, MARGIN, legend_y - 1, 'A', BADGE_A_COLOR, 7)
+    c.setFillColor(MID_GRAY)
+    c.drawString(MARGIN + 9, legend_y, 'Authority (Saves/React > 15%)')
+    draw_circle_badge(c, MARGIN + 140, legend_y - 1, 'D', BADGE_D_COLOR, 7)
+    c.setFillColor(MID_GRAY)
+    c.drawString(MARGIN + 149, legend_y, 'Discussion (Ext.Comm/React > 10%)')
+
     draw_footer(c, 1, 6)
 
 
@@ -271,12 +304,12 @@ def _draw_recent_posts_table(c, y, recent_posts):
     if has_early:
         rows = [
             ['Recent Posts', '', '', '', '', '', '', '', '', '', '', '', ''],
-            ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', '90m', 'Score'],
+            ['Date', 'Title', 'Type', 'Impr', 'React', 'ExtC', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', '90m', 'Score'],
         ]
     else:
         rows = [
             ['Recent Posts', '', '', '', '', '', '', '', '', '', '', ''],
-            ['Date', 'Title', 'Type', 'Impr', 'React', 'Comm', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', 'Score'],
+            ['Date', 'Title', 'Type', 'Impr', 'React', 'ExtC', 'Repo', 'Saves', 'Sends', 'Dir Flw', 'Ind Flw', 'Score'],
         ]
     type_abbrev = {'change-management': 'chg-mgmt'}
     for p in recent_posts:
@@ -349,8 +382,20 @@ def _draw_recent_posts_table(c, y, recent_posts):
     t = Table(rows, colWidths=col_widths)
     t.setStyle(TableStyle(style_cmds))
     tw, th = t.wrapOn(c, sum(col_widths), 400)
-    t.drawOn(c, MARGIN, y - th)
-    return y - th - 8
+    table_bottom = y - th
+    t.drawOn(c, MARGIN, table_bottom)
+
+    # Draw badge circles to the right of the table for each row
+    row_height = (th - 30) / max(len(recent_posts), 1)  # 30px for title + header rows
+    for i, p in enumerate(recent_posts):
+        has_a = p.get('authorityBadge', False)
+        has_d = p.get('discussionBadge', False)
+        if has_a or has_d:
+            badge_y = table_bottom + th - 30 - (i + 1) * row_height + (row_height - 8) / 2
+            badge_x = MARGIN + sum(col_widths) + 2
+            draw_utility_badges(c, badge_x, badge_y, has_a, has_d, size=8, spacing=1)
+
+    return table_bottom - 8
 
 
 def _draw_ranking_table(c, x, y, title, entries, min_count=3, max_rows=8, col_widths=None):
@@ -429,10 +474,10 @@ def render_page_2(c, data):
 
     tags_y = y
     tags_end = _draw_ranking_table(c, MARGIN, tags_y, 'Tags (min 3)', data.get('tagRanking', []),
-                                   min_count=3, max_rows=8, col_widths=half_col_widths)
+                                   min_count=3, max_rows=5, col_widths=half_col_widths)
 
     ht_end = _draw_ranking_table(c, MARGIN + half_w + 20, tags_y, 'Hashtags (min 3)', data.get('hashtagRanking', []),
-                                 min_count=3, max_rows=8, col_widths=half_col_widths)
+                                 min_count=3, max_rows=5, col_widths=half_col_widths)
 
     # Feeds table below, full width
     y = min(tags_end, ht_end)
@@ -513,9 +558,9 @@ def _draw_type_distribution(c, y, data):
         return y
 
     target_weights = {
-        'bridge': 30, 'explainer': 20, 'contrarian': 15,
+        'bridge': 30, 'explainer': 20, 'contrarian': 10,
         'myth-busting': 15, 'change-management': 10,
-        'hot-take': 5, 'prediction': 5,
+        'hot-take': 5, 'prediction': 10,
     }
     w_total = sum(target_weights.values())
 
@@ -798,8 +843,8 @@ def render_page_4(c, data):
         return
 
     for i, post in enumerate(top_posts[:3]):
-        y -= 8
-        card_h = 220
+        y -= 6
+        card_h = 205
         card_y = y - card_h
         type_color = TYPE_COLORS.get(post.get('postType', ''), MID_GRAY)
 
@@ -824,13 +869,19 @@ def render_page_4(c, data):
             c.setFont('Helvetica-Bold', 14)
             c.drawCentredString(MARGIN + CONTENT_W / 2, row1_y - 2, title)
 
-        # Composite score (top-right)
+        # Composite score (top-right) with badge circles
         c.setFillColor(AMBER)
         c.setFont('Helvetica-Bold', 28)
         c.drawRightString(RIGHT_EDGE - 15, row1_y - 5, f"{post.get('compositeScore', 0):.0f}")
         c.setFillColor(MID_GRAY)
         c.setFont('Helvetica', 7)
         c.drawRightString(RIGHT_EDGE - 15, row1_y - 18, 'composite score')
+        # Draw badge circles below the score
+        has_a = post.get('authorityBadge', False)
+        has_d = post.get('discussionBadge', False)
+        if has_a or has_d:
+            badge_x = RIGHT_EDGE - 15 - (14 * (int(has_a) + int(has_d)))
+            draw_utility_badges(c, badge_x, row1_y - 34, has_a, has_d, size=12)
 
         # ── Row 2: Badge + Date ──
         row2_y = row1_y - 22
@@ -938,6 +989,16 @@ def render_page_4(c, data):
             mx += spacing
 
         y = card_y
+
+    # Badge legend — above footer line
+    legend_y = 42
+    c.setFont('Helvetica-Oblique', 6.5)
+    draw_circle_badge(c, MARGIN, legend_y - 1, 'A', BADGE_A_COLOR, 7)
+    c.setFillColor(MID_GRAY)
+    c.drawString(MARGIN + 9, legend_y, 'Authority (Saves/React > 15%)')
+    draw_circle_badge(c, MARGIN + 140, legend_y - 1, 'D', BADGE_D_COLOR, 7)
+    c.setFillColor(MID_GRAY)
+    c.drawString(MARGIN + 149, legend_y, 'Discussion (Ext.Comm/React > 10%)')
 
     draw_footer(c, 4, 6)
 

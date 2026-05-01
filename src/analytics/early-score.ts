@@ -61,7 +61,7 @@ export async function captureEarlyScore(post: { id: string; linkedInPostUrl: str
     return null;
   }
 
-  const release = await acquireBrowserLock(30_000);
+  const release = await acquireBrowserLock();
   let score: number | null = null;
 
   try {

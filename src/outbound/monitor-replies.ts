@@ -3,6 +3,7 @@
 // finds replies to our comment thread, and generates response options.
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import crypto from 'crypto';
 import { chromium } from 'playwright';
 import path from 'path';
 import { acquireBrowserLock } from '../poster/browser-lock.js';
@@ -89,7 +90,7 @@ async function scrapeCommentsWithPage(page: import('playwright').Page, postUrl: 
   });
 
   return rawComments.map(c => ({
-    id: c.dataId,
+    id: c.dataId || crypto.createHash('md5').update(`${postUrl}:${c.author}:${c.text.slice(0, 50)}`).digest('hex'),
     author: c.author,
     text: c.text,
     isReply: c.isReply,
@@ -180,7 +181,22 @@ export interface OutboundMonitorStats {
  * the 3-day window, scrapes their threads, and generates reply options for
  * new responses.
  */
+let monitorRunning = false;
+
 export async function runOutboundReplyMonitor(): Promise<OutboundMonitorStats> {
+  if (monitorRunning) {
+    console.log('[outbound-monitor] Already running — skipping.');
+    return { postsChecked: 0, newReplies: 0 };
+  }
+  monitorRunning = true;
+  try {
+    return await _runMonitor();
+  } finally {
+    monitorRunning = false;
+  }
+}
+
+async function _runMonitor(): Promise<OutboundMonitorStats> {
   const monitorable = getMonitorableComments();
   if (monitorable.length === 0) return { postsChecked: 0, newReplies: 0 };
 
@@ -212,7 +228,7 @@ export async function runOutboundReplyMonitor(): Promise<OutboundMonitorStats> {
   let newReplies = 0;
 
   // --- Browser phase: scrape all posts, then release the lock ---
-  const release = await acquireBrowserLock(60_000);
+  const release = await acquireBrowserLock();
   try {
     const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
       channel: 'chrome',
@@ -280,9 +296,14 @@ export async function runOutboundReplyMonitor(): Promise<OutboundMonitorStats> {
       continue;
     }
 
-    const newThreadReplies = thread.filter(c =>
-      !c.author.toLowerCase().includes(myName) && !isCommentSeen(c.id)
-    );
+    const newThreadReplies = thread.filter(c => {
+      if (c.author.toLowerCase().includes(myName)) return false;
+      if (isCommentSeen(c.id)) return false;
+      // Content-based dedup: also check a hash of author+text in case the comment ID changed between scrapes
+      const contentHash = crypto.createHash('md5').update(`${comments[0].postUrl}:${c.author}:${c.text.slice(0, 50)}`).digest('hex');
+      if (isCommentSeen(contentHash)) return false;
+      return true;
+    });
 
     if (newThreadReplies.length === 0) {
       console.log(`  [outbound-monitor] ${comments[0].profileName} (${dateLabel}): ${thread.length} reply(ies) in thread, 0 new`);
@@ -314,6 +335,9 @@ export async function runOutboundReplyMonitor(): Promise<OutboundMonitorStats> {
 
     for (const reply of newThreadReplies) {
       markCommentSeen(reply.id);
+      // Also mark content hash so we don't re-detect if the comment ID changes between scrapes
+      const contentHash = crypto.createHash('md5').update(`${comments[0].postUrl}:${reply.author}:${reply.text.slice(0, 50)}`).digest('hex');
+      markCommentSeen(contentHash);
 
       try {
         const generated = await generateReplies(

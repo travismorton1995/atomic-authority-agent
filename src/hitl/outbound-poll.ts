@@ -247,7 +247,7 @@ export async function runOutboundPoll(): Promise<void> {
   const candidates: Candidate[] = [];
   const seenIds = new Set<string>(); // deduplicate across profiles and hashtags
 
-  const { context, page, release } = await openScrapeContext(15_000);
+  const { context, page, release } = await openScrapeContext();
   const scrapeStart = Date.now();
   let profilesChecked = 0;
 
@@ -563,7 +563,7 @@ export async function runPrePostBurst(): Promise<void> {
 
     const candidates: Candidate[] = [];
     const seenIds = new Set<string>();
-    const { context, page, release } = await openScrapeContext(15_000);
+    const { context, page, release } = await openScrapeContext();
     const scrapeStart = Date.now();
     let profilesChecked = 0;
 

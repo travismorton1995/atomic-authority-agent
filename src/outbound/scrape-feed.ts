@@ -123,7 +123,7 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
   const isCompany = profileUrl.includes('/company/');
   const activityUrl = profileUrl.replace(/\/$/, '') + (isCompany ? '/posts/' : '/recent-activity/shares/');
 
-  const release = await acquireBrowserLock(30_000);
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',
@@ -140,8 +140,8 @@ export async function scrapeProfilePosts(profileUrl: string): Promise<ScrapedPos
 
 // Opens a shared browser context for scraping multiple profiles in one session.
 // Caller MUST call release() after closing the context.
-export async function openScrapeContext(lockTimeoutMs?: number): Promise<{ context: BrowserContext; page: Page; release: () => void }> {
-  const release = await acquireBrowserLock(lockTimeoutMs);
+export async function openScrapeContext(): Promise<{ context: BrowserContext; page: Page; release: () => void }> {
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',

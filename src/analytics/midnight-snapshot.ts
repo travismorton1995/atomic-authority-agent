@@ -30,7 +30,7 @@ interface SnapshotResult {
 async function runSnapshotAttempt(): Promise<SnapshotResult> {
   const result: SnapshotResult = { followers: false, postMetrics: false, commentMetrics: false, attribution: false };
 
-  const release = await acquireBrowserLock(120_000);
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',

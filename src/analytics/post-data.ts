@@ -16,13 +16,15 @@ export const SCORE_WEIGHTS = {
   reactions: 1,
 };
 
-/** Compute the weighted composite score from post metrics + optional indirect followers. */
-export function compositeScore(m: any, indirectFollowers: number = 0): number {
+/** Compute the weighted composite score from post metrics + optional indirect followers.
+ *  When externalComments is provided, it's used instead of m.comments (excludes author comments). */
+export function compositeScore(m: any, indirectFollowers: number = 0, externalComments?: number): number {
   if (!m) return 0;
+  const comments = externalComments ?? (m.comments ?? 0);
   return ((m.newFollowers ?? 0) + indirectFollowers) * SCORE_WEIGHTS.newFollowers
        + (m.saves ?? 0)        * SCORE_WEIGHTS.saves
        + (m.sends ?? 0)        * SCORE_WEIGHTS.sends
-       + (m.comments ?? 0)     * SCORE_WEIGHTS.comments
+       + comments              * SCORE_WEIGHTS.comments
        + (m.reposts ?? 0)      * SCORE_WEIGHTS.reposts
        + (m.reactions ?? 0)    * SCORE_WEIGHTS.reactions;
 }
@@ -43,7 +45,7 @@ export interface PostAnalyticsRecord {
   imageChoice: string;
   impressions: number;
   reactions: number;
-  comments: number;
+  comments: number;            // external comments only (author comments excluded)
   reposts: number;
   saves: number;
   sends: number;
@@ -52,6 +54,12 @@ export interface PostAnalyticsRecord {
   dayIndex: number; // days since first post (for trend analysis)
   postSnippet: string;
   earlyScore: number | null; // composite score at ~90 min after publish
+  // Utility signals
+  externalComments: number;       // comments minus author's own (first comment, replies, loopback)
+  authorityRatio: number;         // saves / reactions (target: >15%)
+  discussionDensity: number;      // externalComments / reactions (target: >10%)
+  authorityBadge: boolean;        // meets authority target
+  discussionBadge: boolean;       // meets discussion target
 }
 
 function getTimeWindow(hour: number, minute: number = 0): string {
@@ -100,6 +108,27 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
     }
   } catch { /* graceful */ }
 
+  // Count author comments per post (first comment + loopback + replies we posted)
+  const authorCommentCounts = new Map<string, number>();
+  for (const p of withMetrics) {
+    let count = 0;
+    if (p.draft?.firstComment) count++; // first comment
+    if (p.loopbackStatus === 'posted') count++; // loopback
+    authorCommentCounts.set(p.linkedInPostUrl ?? '', count);
+  }
+  // Add replies we posted from comment_state.json
+  try {
+    const COMMENT_STATE = 'comment_state.json';
+    if (existsSync(COMMENT_STATE)) {
+      const cs = JSON.parse(readFileSync(COMMENT_STATE, 'utf-8'));
+      for (const r of cs.pendingReplies ?? []) {
+        if (r.status === 'replied' && r.postUrl) {
+          authorCommentCounts.set(r.postUrl, (authorCommentCounts.get(r.postUrl) ?? 0) + 1);
+        }
+      }
+    }
+  } catch { /* graceful */ }
+
   // Find earliest publish date for dayIndex calculation
   const earliest = Math.min(...withMetrics.map((p: any) => new Date(p.publishedAt).getTime()));
 
@@ -113,10 +142,13 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
     const wc = p.wordCount ?? content.split(/\s+/).filter(Boolean).length;
 
     const indirect = indirectMap.get(p.id) ?? 0;
+    // Prefer scraped author comment count (accurate) over estimated count (first comment + loopback + replies)
+    const authorComments = p.authorCommentCount ?? authorCommentCounts.get(p.linkedInPostUrl ?? '') ?? 0;
+    const extComments = Math.max(0, (p.metrics?.comments ?? 0) - authorComments);
 
     return {
       id: p.id,
-      compositeScore: compositeScore(p.metrics, indirect),
+      compositeScore: compositeScore(p.metrics, indirect, extComments),
       postType: p.draft?.postType ?? 'unknown',
       wordCount: wc,
       contentTags: p.draft?.contentTags ?? [],
@@ -133,7 +165,7 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
         ?? (p.draft?.imageUrl ? 'og' : 'none'),
       impressions: p.metrics?.impressions ?? 0,
       reactions: p.metrics?.reactions ?? 0,
-      comments: p.metrics?.comments ?? 0,
+      comments: extComments,
       reposts: p.metrics?.reposts ?? 0,
       saves: p.metrics?.saves ?? 0,
       sends: p.metrics?.sends ?? 0,
@@ -142,6 +174,12 @@ export function loadPostsWithMetrics(maxAgeDays?: number): PostAnalyticsRecord[]
       dayIndex: (pubDate.getTime() - earliest) / (1000 * 60 * 60 * 24),
       postSnippet: content.split('\n')[0]?.slice(0, 80) ?? '',
       earlyScore: p.earlyScore ?? null,
+      // Utility signals
+      externalComments: extComments,
+      authorityRatio: (p.metrics?.reactions ?? 0) > 0 ? (p.metrics?.saves ?? 0) / (p.metrics?.reactions ?? 1) * 100 : 0,
+      discussionDensity: (p.metrics?.reactions ?? 0) > 0 ? extComments / (p.metrics?.reactions ?? 1) * 100 : 0,
+      authorityBadge: (p.metrics?.reactions ?? 0) > 0 && (p.metrics?.saves ?? 0) / (p.metrics?.reactions ?? 1) * 100 >= 15,
+      discussionBadge: (p.metrics?.reactions ?? 0) > 0 && extComments / (p.metrics?.reactions ?? 1) * 100 >= 10,
     };
   });
 }

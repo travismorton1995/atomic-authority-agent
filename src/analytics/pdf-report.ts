@@ -216,6 +216,19 @@ async function buildTopPosts(tmpDir: string): Promise<TopPost[]> {
       } catch { /* use empty */ }
     }
 
+    // Compute badges using same logic as PostAnalyticsRecord
+    const reactions = p.metrics?.reactions ?? 0;
+    const saves = p.metrics?.saves ?? 0;
+    // Prefer scraped author comment count over estimate
+    let authorComments = p.authorCommentCount;
+    if (authorComments == null) {
+      authorComments = p.draft?.firstComment ? 1 : 0;
+      if (p.loopbackStatus === 'posted') authorComments++;
+    }
+    const externalComments = Math.max(0, (p.metrics?.comments ?? 0) - authorComments);
+    const authorityBadge = reactions > 0 && (saves / reactions * 100) >= 15;
+    const discussionBadge = reactions > 0 && (externalComments / reactions * 100) >= 10;
+
     return {
       rank: i + 1,
       title,
@@ -224,15 +237,17 @@ async function buildTopPosts(tmpDir: string): Promise<TopPost[]> {
       postType: p.draft?.postType ?? 'unknown',
       compositeScore: entry.score,
       impressions: p.metrics?.impressions ?? 0,
-      reactions: p.metrics?.reactions ?? 0,
-      comments: p.metrics?.comments ?? 0,
+      reactions,
+      comments: externalComments,
       reposts: p.metrics?.reposts ?? 0,
-      saves: p.metrics?.saves ?? 0,
+      saves,
       newFollowers: p.metrics?.newFollowers ?? 0,
       indirectFollowers: entry.indirect,
       publishedAt: p.publishedAt ?? '',
       imageChoice: choice,
       imagePath,
+      authorityBadge,
+      discussionBadge,
     };
   }));
 }
@@ -388,6 +403,8 @@ export async function generatePdfReport(): Promise<Buffer> {
         indirectFollows: Math.round(p.indirectFollowers),
         compositeScore: Math.round(p.compositeScore),
         earlyScore: p.earlyScore !== null ? Math.round(p.earlyScore) : null,
+        authorityBadge: p.authorityBadge,
+        discussionBadge: p.discussionBadge,
       }));
 
     // Attribution

@@ -15,13 +15,14 @@
     "lastSeen": "2026-04-28"
   },
   "#ai": {
-    "count": 6,
+    "count": 10,
     "profiles": {
-      "Andrew Thurlow": 3,
-      "Pratheeksha MC": 2,
-      "Idaho National Laboratory": 1
+      "Andrew Thurlow": 4,
+      "Pratheeksha MC": 4,
+      "Idaho National Laboratory": 1,
+      "Calgary.tech": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#careerstrategy": {
     "count": 2,
@@ -52,22 +53,23 @@
     "lastSeen": "2026-04-28"
   },
   "#candu": {
-    "count": 2,
+    "count": 3,
     "profiles": {
-      "Osama Baig": 2
+      "Osama Baig": 2,
+      "Mash'al Qureshi": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#nuclear": {
-    "count": 7,
+    "count": 9,
     "profiles": {
       "Osama Baig": 2,
       "Joe Williams": 1,
-      "Idaho National Laboratory": 2,
+      "Idaho National Laboratory": 4,
       "Joshua Guzman Bell, PE, MBA": 1,
       "Mash'al Qureshi": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#nuclearengineering": {
     "count": 2,
@@ -77,17 +79,17 @@
     "lastSeen": "2026-04-28"
   },
   "#nuclearenergy": {
-    "count": 9,
+    "count": 12,
     "profiles": {
       "Osama Baig": 2,
-      "Nuclearn": 1,
-      "Idaho National Laboratory": 2,
+      "Nuclearn": 2,
+      "Idaho National Laboratory": 3,
       "Ethan LI, CFA": 1,
       "Vitalii Pronin": 1,
       "Joshua Guzman Bell, PE, MBA": 1,
-      "Mash'al Qureshi": 1
+      "Mash'al Qureshi": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#climatechange": {
     "count": 2,
@@ -202,12 +204,13 @@
     "lastSeen": "2026-04-28"
   },
   "#artificialintelligence": {
-    "count": 3,
+    "count": 6,
     "profiles": {
-      "Pratheeksha MC": 2,
-      "Mash'al Qureshi": 1
+      "Pratheeksha MC": 4,
+      "Mash'al Qureshi": 1,
+      "Andrew Thurlow": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#cognizant": {
     "count": 1,
@@ -340,11 +343,11 @@
     "lastSeen": "2026-04-28"
   },
   "#nuclearreactors": {
-    "count": 2,
+    "count": 3,
     "profiles": {
-      "Idaho National Laboratory": 2
+      "Idaho National Laboratory": 3
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#advancednuclear": {
     "count": 2,
@@ -355,11 +358,11 @@
     "lastSeen": "2026-04-29"
   },
   "#nuclearresearch": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#northdakota": {
     "count": 1,
@@ -369,18 +372,19 @@
     "lastSeen": "2026-04-28"
   },
   "#research": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 3
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#cybersecurity": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 1,
+      "Andrew Thurlow": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#criticalmaterials": {
     "count": 1,
@@ -404,11 +408,12 @@
     "lastSeen": "2026-04-28"
   },
   "#energytransition": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Ethan LI, CFA": 1
+      "Ethan LI, CFA": 1,
+      "Calgary.tech": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#smr": {
     "count": 2,
@@ -456,11 +461,12 @@
     "lastSeen": "2026-04-28"
   },
   "#procurement": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Vitalii Pronin": 1
+      "Vitalii Pronin": 1,
+      "Idaho National Laboratory": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#supplychain": {
     "count": 1,
@@ -540,32 +546,34 @@
     "lastSeen": "2026-04-28"
   },
   "#innovation": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Andrew Thurlow": 1
+      "Andrew Thurlow": 1,
+      "Calgary.tech": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#nuclearsafety": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Mash'al Qureshi": 1
+      "Mash'al Qureshi": 2,
+      "Nuclearn": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#aigovernance": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Mash'al Qureshi": 1
+      "Mash'al Qureshi": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#canadiannuclearsafetycommission": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Mash'al Qureshi": 1
+      "Mash'al Qureshi": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#cnsc": {
     "count": 1,
@@ -575,25 +583,26 @@
     "lastSeen": "2026-04-28"
   },
   "#machinelearning": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Mash'al Qureshi": 1
+      "Mash'al Qureshi": 2,
+      "Andrew Thurlow": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-30"
   },
   "#smallmodularreactors": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Mash'al Qureshi": 1
+      "Mash'al Qureshi": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#nuclearinnovation": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Mash'al Qureshi": 1
+      "Mash'al Qureshi": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-04-29"
   },
   "#terrapower": {
     "count": 1,
@@ -631,31 +640,403 @@
     "lastSeen": "2026-04-29"
   },
   "#cna2026": {
-    "count": 1,
+    "count": 9,
     "profiles": {
-      "Bruce Power": 1
+      "Bruce Power": 7,
+      "Canadian Nuclear Association": 2
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-04-30"
   },
   "#poweringthefuture": {
-    "count": 1,
+    "count": 5,
     "profiles": {
-      "Bruce Power": 1
+      "Bruce Power": 5
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-04-30"
   },
   "#thefutureisnuclear": {
+    "count": 2,
+    "profiles": {
+      "Bruce Power": 2
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#powerandpurpose": {
+    "count": 5,
+    "profiles": {
+      "Bruce Power": 5
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#swiggy": {
     "count": 1,
     "profiles": {
-      "Bruce Power": 1
+      "Pratheeksha MC": 1
     },
     "lastSeen": "2026-04-29"
   },
-  "#powerandpurpose": {
+  "#ecommerce": {
     "count": 1,
     "profiles": {
-      "Bruce Power": 1
+      "Pratheeksha MC": 1
     },
     "lastSeen": "2026-04-29"
+  },
+  "#aiagents": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#idaho": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#smallbusiness": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#govcon": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#unmannedaerialsystems": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#nationalsecurity": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#drones": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#tech": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#criticalinfrastructure": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#hashtag": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#canadiannuclear": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#naturallanguageprocessing": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#regtech": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#nuclearregulation": {
+    "count": 1,
+    "profiles": {
+      "Mash'al Qureshi": 1
+    },
+    "lastSeen": "2026-04-29"
+  },
+  "#aisecurity": {
+    "count": 1,
+    "profiles": {
+      "Andrew Thurlow": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#multiagentsystems": {
+    "count": 1,
+    "profiles": {
+      "Andrew Thurlow": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#techinnovation": {
+    "count": 1,
+    "profiles": {
+      "Andrew Thurlow": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#futureofai": {
+    "count": 1,
+    "profiles": {
+      "Andrew Thurlow": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#calgarytech": {
+    "count": 3,
+    "profiles": {
+      "Calgary.tech": 3
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#cleantech": {
+    "count": 2,
+    "profiles": {
+      "Calgary.tech": 2
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#climatetech": {
+    "count": 2,
+    "profiles": {
+      "Calgary.tech": 2
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#yyc": {
+    "count": 3,
+    "profiles": {
+      "Calgary.tech": 3
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#industrialinnovation": {
+    "count": 1,
+    "profiles": {
+      "Calgary.tech": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#canadiantechhttps": {
+    "count": 2,
+    "profiles": {
+      "Calgary.tech": 2
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#startups": {
+    "count": 2,
+    "profiles": {
+      "Calgary.tech": 2
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#canadiantech": {
+    "count": 1,
+    "profiles": {
+      "Calgary.tech": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#constructiontechhttps": {
+    "count": 1,
+    "profiles": {
+      "Calgary.tech": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#allintalks": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#torontotechweek": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#aiincanada": {
+    "count": 1,
+    "profiles": {
+      "Vector Institute": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#hydrogen": {
+    "count": 1,
+    "profiles": {
+      "AtkinsRéalis": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#energystorage": {
+    "count": 1,
+    "profiles": {
+      "AtkinsRéalis": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#netzero": {
+    "count": 1,
+    "profiles": {
+      "AtkinsRéalis": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#allenergy": {
+    "count": 1,
+    "profiles": {
+      "AtkinsRéalis": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#mcdonalds": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#customersupport": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#aibots": {
+    "count": 1,
+    "profiles": {
+      "Pratheeksha MC": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#simplotgames": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#workforce": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#serviceaward": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#community": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#simplot": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#nuclearn": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#aiinnuclear": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#infosecurity": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#leadership": {
+    "count": 1,
+    "profiles": {
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#projectmanagement": {
+    "count": 1,
+    "profiles": {
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#datadriven": {
+    "count": 1,
+    "profiles": {
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#execution": {
+    "count": 1,
+    "profiles": {
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#capitalplanning": {
+    "count": 1,
+    "profiles": {
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+    },
+    "lastSeen": "2026-04-30"
+  },
+  "#pmo": {
+    "count": 1,
+    "profiles": {
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+    },
+    "lastSeen": "2026-04-30"
   }
 }

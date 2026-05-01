@@ -228,7 +228,7 @@ export async function scrapeAllPostMetrics(page: import('playwright').Page): Pro
 }
 
 export async function runMetricsFetch() {
-  const release = await acquireBrowserLock(60_000);
+  const release = await acquireBrowserLock();
   const context = await chromium.launchPersistentContext(USER_DATA_DIR, {
     channel: 'chrome',
     headless: process.env.LINKEDIN_HEADLESS === 'true',

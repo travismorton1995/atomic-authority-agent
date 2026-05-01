@@ -65,11 +65,12 @@ FORMATTING RULE (applies to both post and comment): Never use em dashes (—). R
 
 HASHTAG RULE: Count all hashtags in the post. If there are more than 5, the revised version must trim to the 3–5 most relevant. Fewer is better — 3–4 is ideal. A post with 6+ hashtags should have its score bumped by at least 1 point. All hashtags must use CamelCase (e.g. #NuclearEnergy not #nuclearenergy). Fix any lowercase-only hashtags in the revision.
 
-SCANNABILITY CHECK (mandatory 2:1 structure — this is the most important formatting rule):
+SCANNABILITY CHECK (mandatory 2:1 structure with bullet exception):
 - Every paragraph after the hook must be either a One-Liner (80–120 chars, single sentence) or a Mini-Paragraph (250–350 chars, 2–3 sentences).
 - The post MUST follow a strict 2:1 rhythm: [Hook] → [One-Liner] → [One-Liner] → [Mini-Para] → [One-Liner] → [One-Liner] → [Mini-Para] → ...
-- Count the characters in EVERY paragraph after the hook. Label each as One-Liner (80–120) or Mini-Para (250–350). If any paragraph falls outside BOTH ranges, or two Mini-Paragraphs are adjacent, or three+ One-Liners are adjacent: this is a MANDATORY rewrite trigger regardless of cringe score.
-- When rewriting for scannability: split long paragraphs into shorter ones, merge short fragments, and reorder to restore the 2:1 pattern. Preserve all facts and meaning.
+- BULLET SECTION EXCEPTION: For explainer and myth-busting posts, a group of 3-4 lines starting with bullet characters (•, →, ▸) counts as ONE Mini-Paragraph slot. Do NOT rewrite bullets into prose or merge them into paragraphs. Preserve the bullet format exactly as written. Each bullet line may be shorter than 80 chars — this is expected.
+- Count the characters in EVERY paragraph after the hook. Label each as One-Liner (80–120), Mini-Para (250–350), or Bullet-Section. If any paragraph falls outside ALL three categories, or two Mini-Paragraphs are adjacent, or three+ One-Liners are adjacent: this is a MANDATORY rewrite trigger regardless of cringe score.
+- When rewriting for scannability: split long paragraphs into shorter ones, merge short fragments, and reorder to restore the 2:1 pattern. Preserve all facts, meaning, AND bullet formatting.
 - A post with ANY structural violation MUST have revisedContent provided — never return null if structure is broken.
 - Bump the cringe score by at least 2 for any structural violation.
 

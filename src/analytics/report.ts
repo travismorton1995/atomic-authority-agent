@@ -46,7 +46,7 @@ export interface ReportData {
   photoEntries: Array<{ label: string; emoji: string; stats: GroupStats }>;
   wordCountBuckets: Record<string, { stats: GroupStats; significant: boolean }> | null;
   outliers: Array<{ snippet: string; score: number; sigma: number }>;
-  bestPost: { snippet: string; postType: string; score: number; impressions: number } | null;
+  bestPost: { snippet: string; postType: string; score: number; impressions: number; badges?: string } | null;
   attribution: AttributionSummary | null;
   organicAttribution: ReturnType<typeof getOrganicAttributionSummary>;
   // Recent period comparison
@@ -183,11 +183,16 @@ export function generateReportData(): ReportData {
   if (recent14.length > 0) {
     const recentScores = recent14.map(p => p.compositeScore);
     const bestIdx = recentScores.indexOf(Math.max(...recentScores));
+    const bp = recent14[bestIdx];
+    const badges: string[] = [];
+    if (bp.authorityBadge) badges.push('A');
+    if (bp.discussionBadge) badges.push('D');
     bestPost = {
-      snippet: recent14[bestIdx].postSnippet,
-      postType: recent14[bestIdx].postType,
-      score: recent14[bestIdx].compositeScore,
-      impressions: recent14[bestIdx].impressions,
+      snippet: bp.postSnippet,
+      postType: bp.postType,
+      score: bp.compositeScore,
+      impressions: bp.impressions,
+      badges: badges.length > 0 ? badges.join('') : undefined,
     };
   }
 
@@ -381,7 +386,7 @@ Since ${d.firstPostDate} · ${d.postCount} posts
 <code> Impressions  ${d.totalImpressions.toLocaleString().padStart(6)} (${d.avgImpressions.toLocaleString()}/post)
  Eng rate     ${d.overallEngRate.padStart(5)}%
  Reactions    ${String(d.totalReactions).padStart(6)}
- Comments     ${String(d.totalComments).padStart(6)}
+ Ext Comments ${String(d.totalComments).padStart(6)}
  Reposts      ${String(d.totalReposts).padStart(6)}
  Saves        ${String(d.totalSaves).padStart(6)}</code>
 ${followerSection}${attributionSection}${organicSection}
@@ -412,5 +417,5 @@ ${rankBlock(d.windowRanking, 14)}
 ${photoLine}${wcSection}${outlierLines ? `\n\n<b>Outliers:</b>\n${outlierLines}` : ''}
 
 <b>Best (last 14d):</b>${d.bestPost ? ` [${d.bestPost.postType}] ${d.bestPost.snippet?.slice(0, 35)}…
-Score ${fmt(d.bestPost.score)}${d.bestPost.impressions ? ` · ${d.bestPost.impressions.toLocaleString()} impr` : ''}` : ' <i>(no recent posts)</i>'}`;
+Score ${fmt(d.bestPost.score)}${d.bestPost.badges ? ` ${d.bestPost.badges}` : ''}${d.bestPost.impressions ? ` · ${d.bestPost.impressions.toLocaleString()} impr` : ''}` : ' <i>(no recent posts)</i>'}`;
 }

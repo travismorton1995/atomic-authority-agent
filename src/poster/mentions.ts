@@ -142,6 +142,12 @@ export const MENTIONS: Record<string, MentionEntry> = {
   'Westinghouse':                              { searchTerm: 'Westinghouse Electric Company', verified: true },
   'X-energy':                                  { searchTerm: 'X-energy',                   verified: true },
   'YouTube':                                   { searchTerm: 'YouTube',                    verified: true },
+  'Chalk River Laboratories':                  { searchTerm: 'Chalk River Laboratories',   verified: false },
+  'Department of National Defence':            { searchTerm: 'Department of National Defence', verified: false },
+  'Moltex Energy':                             { searchTerm: 'Moltex Energy',              verified: false },
+  'NB Power':                                  { searchTerm: 'NB Power',                   verified: false },
+  'PJM':                                       { searchTerm: 'PJM',                        verified: false },
+  'TRIGA':                                     { searchTerm: 'TRIGA',                      verified: false },
 };
 
 // Returns only verified entries — used during posting

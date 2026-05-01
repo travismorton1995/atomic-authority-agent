@@ -29,10 +29,11 @@ SCORE_WEIGHTS = {
     'comments': 8, 'reposts': 5, 'reactions': 1,
 }
 
-def composite_score(m, indirect=0):
+def composite_score(m, indirect=0, external_comments=None):
     if not m: return 0
     followers = (m.get('newFollowers', 0) or 0) + indirect
-    return followers * 20 + (m.get('saves', 0) or 0) * 15 + (m.get('sends', 0) or 0) * 10 + (m.get('comments', 0) or 0) * 8 + (m.get('reposts', 0) or 0) * 5 + (m.get('reactions', 0) or 0) * 1
+    comments = external_comments if external_comments is not None else (m.get('comments', 0) or 0)
+    return followers * 20 + (m.get('saves', 0) or 0) * 15 + (m.get('sends', 0) or 0) * 10 + comments * 8 + (m.get('reposts', 0) or 0) * 5 + (m.get('reactions', 0) or 0) * 1
 
 def load_indirect_map():
     """Load indirect followers per post from organic attribution."""
@@ -72,7 +73,14 @@ def main():
         window = get_time_window(dt_et.hour, dt_et.minute)
         if day in DAYS and window in WINDOWS:
             indirect = indirect_map.get(post.get('id', ''), 0)
-            score = composite_score(post['metrics'], indirect)
+            # Prefer scraped author comment count over estimate
+            author_comments = post.get('authorCommentCount')
+            if author_comments is None:
+                author_comments = 1 if post.get('draft', {}).get('firstComment') else 0
+                if post.get('loopbackStatus') == 'posted': author_comments += 1
+            total_comments = (post['metrics'].get('comments', 0) or 0)
+            ext_comments = max(0, total_comments - author_comments)
+            score = composite_score(post['metrics'], indirect, ext_comments)
             grid[(day, window)].append(score)
 
     # Build matrix: avg score per cell, NaN for empty

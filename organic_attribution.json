@@ -1,5 +1,5 @@
 {
-  "lastComputed": "2026-04-29T04:18:26.026Z",
+  "lastComputed": "2026-04-30T04:02:53.194Z",
   "dailyAttributions": [
     {
       "date": "2026-03-18",
@@ -22117,6 +22117,244 @@
           "label": "Comment on Woodley B. Preucil, CFA"
         }
       ]
+    },
+    {
+      "date": "2026-04-29",
+      "followerDelta": -1,
+      "unattributed": 0,
+      "items": [
+        {
+          "type": "post",
+          "id": "post_1773936340698",
+          "date": "2026-03-19",
+          "impressions": 1,
+          "ageInDays": 41,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "NRC issues construction permit for first Natrium plant"
+        },
+        {
+          "type": "post",
+          "id": "post_1773967203024",
+          "date": "2026-03-20",
+          "impressions": 1,
+          "ageInDays": 40,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "U.K. releases new plans to speed nuclear deployment"
+        },
+        {
+          "type": "post",
+          "id": "post_1774024104693",
+          "date": "2026-03-23",
+          "impressions": 1,
+          "ageInDays": 37,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "X-energy forms partnership with Talen Energy to assess Xe-10"
+        },
+        {
+          "type": "post",
+          "id": "post_1774278044012",
+          "date": "2026-03-24",
+          "impressions": 1,
+          "ageInDays": 36,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "60 Years of U: Perspectives on resources, demand, and the ev"
+        },
+        {
+          "type": "post",
+          "id": "post_1774394112730",
+          "date": "2026-03-25",
+          "impressions": 1,
+          "ageInDays": 35,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "CNL demonstrates its cyber security incident response capabi"
+        },
+        {
+          "type": "post",
+          "id": "post_1774481713385",
+          "date": "2026-03-26",
+          "impressions": 1,
+          "ageInDays": 34,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "State news: Microreactors, legislation, executive orders, an"
+        },
+        {
+          "type": "post",
+          "id": "post_1774911665147",
+          "date": "2026-03-31",
+          "impressions": 1,
+          "ageInDays": 29,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "OpenAI in Talks with Helion to Secure Fusion Energy"
+        },
+        {
+          "type": "post",
+          "id": "post_1774998669141",
+          "date": "2026-04-01",
+          "impressions": 4,
+          "ageInDays": 28,
+          "rawWeight": 20,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Bruce Power cobalt-60 harvest builds on innovation and partn"
+        },
+        {
+          "type": "post",
+          "id": "post_1775084468570",
+          "date": "2026-04-02",
+          "impressions": 8,
+          "ageInDays": 27,
+          "rawWeight": 40,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Exclusive: Texas Opens $350M Advanced Nuclear Grant Programs"
+        },
+        {
+          "type": "post",
+          "id": "post_1775516545301",
+          "date": "2026-04-07",
+          "impressions": 1,
+          "ageInDays": 22,
+          "rawWeight": 5,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "NRC proposed rule for licensing reactors authorized by DOE, "
+        },
+        {
+          "type": "post",
+          "id": "post_1775604886288",
+          "date": "2026-04-08",
+          "impressions": 2,
+          "ageInDays": 21,
+          "rawWeight": 10,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Scaling Advanced Nuclear Power: Picking Winners Now"
+        },
+        {
+          "type": "post",
+          "id": "post_1775691516815",
+          "date": "2026-04-09",
+          "impressions": 2,
+          "ageInDays": 20,
+          "rawWeight": 10,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "3D printing possibilities: Additive manufacturing impact lim"
+        },
+        {
+          "type": "post",
+          "id": "post_1775838020958",
+          "date": "2026-04-10",
+          "impressions": 3,
+          "ageInDays": 19,
+          "rawWeight": 15,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776121268198",
+          "date": "2026-04-14",
+          "impressions": 2,
+          "ageInDays": 15,
+          "rawWeight": 10,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "First-of-a-kind microreactor test bed open for business"
+        },
+        {
+          "type": "post",
+          "id": "post_1776294080154",
+          "date": "2026-04-16",
+          "impressions": 22,
+          "ageInDays": 13,
+          "rawWeight": 110,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Bruce Power and SaskPower sign memorandum of understanding t"
+        },
+        {
+          "type": "post",
+          "id": "post_1776460115780",
+          "date": "2026-04-19",
+          "impressions": 9,
+          "ageInDays": 10,
+          "rawWeight": 45,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1776729000812",
+          "date": "2026-04-21",
+          "impressions": 5,
+          "ageInDays": 8,
+          "rawWeight": 25,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "MISO expects load to jump 35% by 2035 on data center growth"
+        },
+        {
+          "type": "post",
+          "id": "post_1776806980971",
+          "date": "2026-04-22",
+          "impressions": 146,
+          "ageInDays": 7,
+          "rawWeight": 730,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Canadian Strategic Missions Corporation takes one small step"
+        },
+        {
+          "type": "post",
+          "id": "post_1776902096033",
+          "date": "2026-04-23",
+          "impressions": 83,
+          "ageInDays": 6,
+          "rawWeight": 415,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "OECD NEA project gets ahead of AI use in nuclear industry"
+        },
+        {
+          "type": "post",
+          "id": "post_1777075411026",
+          "date": "2026-04-27",
+          "impressions": 35,
+          "ageInDays": 2,
+          "rawWeight": 175,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "Weekly insider observations from NPX"
+        },
+        {
+          "type": "post",
+          "id": "post_1777332169209",
+          "date": "2026-04-28",
+          "impressions": 84,
+          "ageInDays": 1,
+          "rawWeight": 420,
+          "normalizedWeight": 0,
+          "attributedFollows": 0,
+          "label": "NRC introduces microreactor regulatory framework"
+        }
+      ]
     }
   ],
   "postRollup": [
@@ -22244,6 +22482,12 @@
       "id": "post_1777075411026",
       "label": "Weekly insider observations from NPX",
       "totalAttributed": 0.09,
+      "linkedInAttributed": 0
+    },
+    {
+      "id": "post_1777332169209",
+      "label": "NRC introduces microreactor regulatory framework",
+      "totalAttributed": 0,
       "linkedInAttributed": 0
     }
   ],

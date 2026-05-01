@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { FeedItem } from './rss.js';
-import { PostType, SYSTEM_PROMPT, POST_TYPE_INSTRUCTIONS, WORD_COUNT_TARGETS } from './persona.js';
+import { PostType, SYSTEM_PROMPT, POST_TYPE_INSTRUCTIONS, WORD_COUNT_TARGETS, WORD_COUNT_HARD_LIMITS } from './persona.js';
 import { verifiedMentions } from '../poster/mentions.js';
 
 const client = new Anthropic();
@@ -481,7 +481,7 @@ ${articleContent}
 
 POST TYPE: ${postType}
 INSTRUCTION: ${POST_TYPE_INSTRUCTIONS[postType]}
-WORD COUNT: Target ${WORD_COUNT_TARGETS[postType].reviseMin}–${WORD_COUNT_TARGETS[postType].reviseMax} words. Hard limits: min ${WORD_COUNT_TARGETS[postType].min}, max ${WORD_COUNT_TARGETS[postType].max}.
+WORD COUNT: Target ${WORD_COUNT_TARGETS[postType].target}. Hard limits: min ${WORD_COUNT_HARD_LIMITS.min}, max ${WORD_COUNT_HARD_LIMITS.max}.
 ${ageRule ? `TEMPORAL RULE: ${ageRule}\n` : ''}${hookConstraint}${hashtagGuidance}${corrGuidance}
 Write the LinkedIn post now. You have the full article text above — use specific facts, figures, quotes, or details from it where they strengthen the post. Output only the post text — no preamble, no "here is your post," no quotation marks wrapping the whole thing.`;
 
@@ -499,20 +499,22 @@ Write the LinkedIn post now. You have the full article text above — use specif
     .replace(/\bA ([AEIOUaeiou])/g, 'An $1')
     .replace(/\ban ([^AEIOUaeiouAEIOUaeiou\s])/g, 'a $1');
 
-  // Word count enforcement: revise if outside per-type range
-  const targets = WORD_COUNT_TARGETS[postType];
+  // Word count enforcement: revise only if outside global hard limits
   const wordCount = rawContent.split(/\s+/).filter(Boolean).length;
-  if (wordCount < targets.min || wordCount > targets.max) {
-    console.log(`Word count ${wordCount} outside ${targets.min}-${targets.max} for ${postType} — revising...`);
+  const targetRange = WORD_COUNT_TARGETS[postType].target;
+  if (wordCount < WORD_COUNT_HARD_LIMITS.min || wordCount > WORD_COUNT_HARD_LIMITS.max) {
+    console.log(`Word count ${wordCount} outside hard limits ${WORD_COUNT_HARD_LIMITS.min}-${WORD_COUNT_HARD_LIMITS.max} — revising...`);
     const reviseMsg = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 600,
       messages: [{
         role: 'user',
-        content: `This LinkedIn post is ${wordCount} words, which is ${wordCount < targets.min ? `too short (minimum ${targets.min})` : `too long (maximum ${targets.max})`}. Revise it to be between ${targets.reviseMin}–${targets.reviseMax} words. Preserve the opening line, the key insight, and all hashtags. Output only the revised post — no preamble.\n\n${rawContent}`,
+        content: `This LinkedIn post is ${wordCount} words, which is ${wordCount < WORD_COUNT_HARD_LIMITS.min ? `too short (minimum ${WORD_COUNT_HARD_LIMITS.min})` : `too long (maximum ${WORD_COUNT_HARD_LIMITS.max})`}. Revise it to be within ${targetRange}. Preserve the opening line, the key insight, all hashtags, and any bullet-point formatting. Output only the revised post — no preamble.\n\n${rawContent}`,
       }],
     });
     rawContent = reviseMsg.content[0].type === 'text' ? reviseMsg.content[0].text.trim() : rawContent;
+  } else {
+    console.log(`Word count ${wordCount} (target: ${targetRange}).`);
   }
 
   const content = injectMentionMarkers(rawContent);
@@ -566,7 +568,7 @@ RULES:
 
     const loopbackMessage = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 300,
+      max_tokens: 200,
       messages: [{
         role: 'user',
         content: `You wrote this LinkedIn post yesterday:
@@ -593,28 +595,63 @@ Pick ONE of these structures:
 3. FUTURE-PROOFING QUESTION: [Industry Trend] + [Technical Counter-point] + [Scenario Question]
 
 RULES:
-- Minimum 25 words
+- Between 25 and 60 words. Keep it tight. A loopback comment is a single focused thought, not a second post.
 - Must use facts extracted from the source article above
 - Do NOT restate the post's main argument — add a NEW angle
 - No em dashes. Use commas or periods instead.
 - No AI-isms: "transformative," "revolutionary," "game-changer," "landscape," "navigate," "leverage," etc.
 - No contrasting reframe patterns: "It's not X, it's Y" / "Not just X, Y"
 - Sound like a real person adding a genuine afterthought the next morning
+- If the comment ends with a question, separate the question from the rest of the comment with two line breaks
 - Output ONLY the comment text — no preamble, no labels, no quotes`,
       }],
     });
 
-    const rawLoopback = loopbackMessage.content[0].type === 'text' ? loopbackMessage.content[0].text.trim() : '';
+    let rawLoopback = loopbackMessage.content[0].type === 'text' ? loopbackMessage.content[0].text.trim() : '';
 
-    if (rawLoopback && rawLoopback.split(/\s+/).length >= 25) {
-      // Screen for AI-isms
+    if (rawLoopback) {
+      // 1. Fact-check against article
+      const verificationSource = item.fullText ?? item.summary;
+      if (verificationSource) {
+        const { verifyPost } = await import('./verify.js');
+        console.log('Verifying loopback comment claims...');
+        const verification = await verifyPost(rawLoopback, verificationSource);
+        if (verification.changed) {
+          console.log(`Loopback verifier corrected ${verification.flaggedClaims.length} claim(s)`);
+          rawLoopback = verification.correctedContent;
+        } else {
+          console.log('Loopback verification passed.');
+        }
+      }
+
+      // 2. Screen for AI-isms
       const { screenReply } = await import('./reply.js');
-      loopbackComment = await screenReply(rawLoopback);
-      // Hard clean: em dashes
-      loopbackComment = loopbackComment.replace(/\s*[—–]\s*/g, ', ').replace(/,\s*,/g, ',').trim();
-      console.log(`Loopback comment generated (${loopbackComment.split(/\s+/).length} words)`);
-    } else {
-      console.warn(`Loopback comment too short or empty (${rawLoopback.split(/\s+/).length} words) — skipping.`);
+      rawLoopback = await screenReply(rawLoopback);
+
+      // 3. Hard clean: em dashes
+      rawLoopback = rawLoopback.replace(/\s*[—–]\s*/g, ', ').replace(/,\s*,/g, ',').trim();
+
+      // 4. Word count enforcement — revise if outside range
+      let wc = rawLoopback.split(/\s+/).length;
+      if (wc < 25 || wc > 75) {
+        console.log(`Loopback word count ${wc} outside 25-75 — revising...`);
+        const reviseMsg = await client.messages.create({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 150,
+          messages: [{
+            role: 'user',
+            content: `This LinkedIn comment is ${wc} words, which is ${wc < 25 ? 'too short (minimum 25)' : 'too long (maximum 60)'}. Revise it to be between 25-60 words. Preserve the key fact and the question. No em dashes. Output only the revised comment.\n\n${rawLoopback}`,
+          }],
+        });
+        const revised = reviseMsg.content[0].type === 'text' ? reviseMsg.content[0].text.trim() : '';
+        if (revised) {
+          rawLoopback = revised.replace(/\s*[—–]\s*/g, ', ').replace(/,\s*,/g, ',').trim();
+          wc = rawLoopback.split(/\s+/).length;
+        }
+      }
+
+      loopbackComment = rawLoopback;
+      console.log(`Loopback comment ready (${wc} words)`);
     }
   } catch (err) {
     console.warn(`Loopback comment generation failed: ${(err as Error).message}`);

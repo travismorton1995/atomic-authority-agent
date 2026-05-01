@@ -385,8 +385,12 @@ cron.schedule('*/5 * * * 1-5', async () => {
   // Outbound reply monitor — runs on same frequency as comment poll
   if (ranCommentPoll) {
     try {
-      const { runOutboundReplyMonitor } = await import('../outbound/monitor-replies.js');
-      await runOutboundReplyMonitor();
+      if (!isPublishing) {
+        const { runOutboundReplyMonitor } = await import('../outbound/monitor-replies.js');
+        await runOutboundReplyMonitor();
+      } else {
+        console.log('[outbound-monitor] Skipped — post publish in progress.');
+      }
     } catch (err) {
       console.error(`[outbound-monitor] Error: ${(err as Error).message}`);
     }

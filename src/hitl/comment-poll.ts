@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { scrapeComments } from '../poster/comments.js';
 import { generateReplies } from '../content/reply.js';
 import {
@@ -90,7 +90,24 @@ export async function runCommentPoll(targetUrl?: string, opts: CommentPollOption
 
     totalComments += comments.length;
     totalNew += newComments.length;
-    console.log(`  ${post.draft?.postType} — ${comments.length} comment(s), ${newComments.length} new`);
+
+    // Count and persist author comments so external comment calculation is accurate
+    const authorCommentCount = myName
+      ? comments.filter(c => c.author.toLowerCase().includes(myName)).length
+      : 0;
+    if (authorCommentCount > 0 && post.id) {
+      try {
+        const histFile = 'posted_history.json';
+        const hist = JSON.parse(readFileSync(histFile, 'utf-8'));
+        const entry = hist.find((p: any) => p.id === post.id);
+        if (entry && entry.authorCommentCount !== authorCommentCount) {
+          entry.authorCommentCount = authorCommentCount;
+          writeFileSync(histFile, JSON.stringify(hist, null, 2));
+        }
+      } catch { /* non-fatal */ }
+    }
+
+    console.log(`  ${post.draft?.postType} — ${comments.length} comment(s), ${newComments.length} new, ${authorCommentCount} by author`);
 
     for (const comment of newComments) {
       // Mark seen immediately so a crash mid-loop doesn't re-notify
