@@ -15,14 +15,14 @@
     "lastSeen": "2026-04-28"
   },
   "#ai": {
-    "count": 10,
+    "count": 12,
     "profiles": {
       "Andrew Thurlow": 4,
       "Pratheeksha MC": 4,
-      "Idaho National Laboratory": 1,
+      "Idaho National Laboratory": 3,
       "Calgary.tech": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#careerstrategy": {
     "count": 2,
@@ -61,15 +61,15 @@
     "lastSeen": "2026-04-29"
   },
   "#nuclear": {
-    "count": 9,
+    "count": 11,
     "profiles": {
       "Osama Baig": 2,
       "Joe Williams": 1,
-      "Idaho National Laboratory": 4,
+      "Idaho National Laboratory": 6,
       "Joshua Guzman Bell, PE, MBA": 1,
       "Mash'al Qureshi": 1
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-05-03"
   },
   "#nuclearengineering": {
     "count": 2,
@@ -79,17 +79,17 @@
     "lastSeen": "2026-04-28"
   },
   "#nuclearenergy": {
-    "count": 12,
+    "count": 15,
     "profiles": {
       "Osama Baig": 2,
-      "Nuclearn": 2,
+      "Nuclearn": 4,
       "Idaho National Laboratory": 3,
       "Ethan LI, CFA": 1,
-      "Vitalii Pronin": 1,
+      "Vitalii Pronin": 2,
       "Joshua Guzman Bell, PE, MBA": 1,
       "Mash'al Qureshi": 2
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#climatechange": {
     "count": 2,
@@ -248,12 +248,12 @@
     "lastSeen": "2026-04-28"
   },
   "#energy": {
-    "count": 2,
+    "count": 3,
     "profiles": {
       "Joe Williams": 1,
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-05-01"
   },
   "#powergeneration": {
     "count": 1,
@@ -270,12 +270,12 @@
     "lastSeen": "2026-04-29"
   },
   "#epc": {
-    "count": 2,
+    "count": 3,
     "profiles": {
       "Joe Williams": 1,
-      "Vitalii Pronin": 1
+      "Vitalii Pronin": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-05-03"
   },
   "#cleanenergy": {
     "count": 3,
@@ -307,11 +307,12 @@
     "lastSeen": "2026-04-28"
   },
   "#responsibleai": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Vector Institute": 1
+      "Vector Institute": 1,
+      "SYED MUKEETH UR RAHIMAN": 1
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-05-01"
   },
   "#nuclearai": {
     "count": 1,
@@ -343,11 +344,11 @@
     "lastSeen": "2026-04-28"
   },
   "#nuclearreactors": {
-    "count": 3,
+    "count": 4,
     "profiles": {
-      "Idaho National Laboratory": 3
+      "Idaho National Laboratory": 4
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-05-01"
   },
   "#advancednuclear": {
     "count": 2,
@@ -372,33 +373,34 @@
     "lastSeen": "2026-04-28"
   },
   "#research": {
-    "count": 3,
+    "count": 4,
     "profiles": {
-      "Idaho National Laboratory": 3
+      "Idaho National Laboratory": 4
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-05-03"
   },
   "#cybersecurity": {
-    "count": 2,
+    "count": 5,
     "profiles": {
-      "Idaho National Laboratory": 1,
-      "Andrew Thurlow": 1
+      "Idaho National Laboratory": 3,
+      "Andrew Thurlow": 1,
+      "SYED MUKEETH UR RAHIMAN": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-01"
   },
   "#criticalmaterials": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-05-03"
   },
   "#stem": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-05-03"
   },
   "#philippines": {
     "count": 1,
@@ -461,19 +463,19 @@
     "lastSeen": "2026-04-28"
   },
   "#procurement": {
-    "count": 2,
+    "count": 3,
     "profiles": {
-      "Vitalii Pronin": 1,
+      "Vitalii Pronin": 2,
       "Idaho National Laboratory": 1
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-05-03"
   },
   "#supplychain": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Vitalii Pronin": 1
+      "Vitalii Pronin": 2
     },
-    "lastSeen": "2026-04-28"
+    "lastSeen": "2026-05-03"
   },
   "#icv": {
     "count": 1,
@@ -583,12 +585,13 @@
     "lastSeen": "2026-04-28"
   },
   "#machinelearning": {
-    "count": 3,
+    "count": 4,
     "profiles": {
       "Mash'al Qureshi": 2,
-      "Andrew Thurlow": 1
+      "Andrew Thurlow": 1,
+      "SYED MUKEETH UR RAHIMAN": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-01"
   },
   "#smallmodularreactors": {
     "count": 2,
@@ -640,12 +643,14 @@
     "lastSeen": "2026-04-29"
   },
   "#cna2026": {
-    "count": 9,
+    "count": 12,
     "profiles": {
       "Bruce Power": 7,
-      "Canadian Nuclear Association": 2
+      "Canadian Nuclear Association": 2,
+      "Stephen Lecce": 2,
+      "Ontario Power Generation": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#poweringthefuture": {
     "count": 5,
@@ -718,11 +723,11 @@
     "lastSeen": "2026-04-29"
   },
   "#nationalsecurity": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 3
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-05-01"
   },
   "#drones": {
     "count": 1,
@@ -739,11 +744,11 @@
     "lastSeen": "2026-04-29"
   },
   "#criticalinfrastructure": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 3
     },
-    "lastSeen": "2026-04-29"
+    "lastSeen": "2026-05-01"
   },
   "#hashtag": {
     "count": 1,
@@ -781,11 +786,12 @@
     "lastSeen": "2026-04-29"
   },
   "#aisecurity": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Andrew Thurlow": 1
+      "Andrew Thurlow": 1,
+      "SYED MUKEETH UR RAHIMAN": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-01"
   },
   "#multiagentsystems": {
     "count": 1,
@@ -802,11 +808,12 @@
     "lastSeen": "2026-04-30"
   },
   "#futureofai": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Andrew Thurlow": 1
+      "Andrew Thurlow": 1,
+      "SYED MUKEETH UR RAHIMAN": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-01"
   },
   "#calgarytech": {
     "count": 3,
@@ -963,11 +970,11 @@
     "lastSeen": "2026-04-30"
   },
   "#community": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Idaho National Laboratory": 1
+      "Idaho National Laboratory": 2
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#simplot": {
     "count": 1,
@@ -977,18 +984,18 @@
     "lastSeen": "2026-04-30"
   },
   "#nuclearn": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Nuclearn": 1
+      "Nuclearn": 3
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-01"
   },
   "#aiinnuclear": {
-    "count": 1,
+    "count": 3,
     "profiles": {
-      "Nuclearn": 1
+      "Nuclearn": 3
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-01"
   },
   "#infosecurity": {
     "count": 1,
@@ -998,45 +1005,254 @@
     "lastSeen": "2026-04-30"
   },
   "#leadership": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1,
+      "Mega-Project Governance Network": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#projectmanagement": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1,
+      "Mega-Project Governance Network": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#datadriven": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1,
+      "Mega-Project Governance Network": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#execution": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1,
+      "Mega-Project Governance Network": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#capitalplanning": {
-    "count": 1,
+    "count": 2,
     "profiles": {
-      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1,
+      "Mega-Project Governance Network": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-03"
   },
   "#pmo": {
+    "count": 2,
+    "profiles": {
+      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1,
+      "Mega-Project Governance Network": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#firstrespondersday": {
     "count": 1,
     "profiles": {
-      "Diego Abras Rodrigues, PMP, LLM, MSSc": 1
+      "Bruce Power": 1
     },
-    "lastSeen": "2026-04-30"
+    "lastSeen": "2026-05-01"
+  },
+  "#communitystrong": {
+    "count": 1,
+    "profiles": {
+      "Bruce Power": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#neiworkshop": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#nuclearindustry": {
+    "count": 2,
+    "profiles": {
+      "Nuclearn": 2
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#workforcedevelopment": {
+    "count": 1,
+    "profiles": {
+      "Nuclearn": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#agenticai": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#generativeai": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#aiengineering": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#aiarchitecture": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#llms": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#aiproducts": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#aiinnovation": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#techleadership": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#datascience": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#aidesign": {
+    "count": 1,
+    "profiles": {
+      "SYED MUKEETH UR RAHIMAN": 1
+    },
+    "lastSeen": "2026-05-01"
+  },
+  "#ontariosnuclearadvantage": {
+    "count": 1,
+    "profiles": {
+      "Stephen Lecce": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#ontimeonbudget": {
+    "count": 1,
+    "profiles": {
+      "Stephen Lecce": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#madeincanada": {
+    "count": 1,
+    "profiles": {
+      "Stephen Lecce": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#time100companiesindustryleader": {
+    "count": 1,
+    "profiles": {
+      "terrapower": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#time100": {
+    "count": 1,
+    "profiles": {
+      "terrapower": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#logistics": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#eldabaa": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#nuclearrenaissance": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#capex": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#megaprojects": {
+    "count": 1,
+    "profiles": {
+      "Vitalii Pronin": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#unitedway": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#liveunited": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#nonprofits": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-05-03"
+  },
+  "#communityoutreach": {
+    "count": 1,
+    "profiles": {
+      "Idaho National Laboratory": 1
+    },
+    "lastSeen": "2026-05-03"
   }
 }

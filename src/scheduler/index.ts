@@ -61,6 +61,7 @@ import { runMidnightSnapshot } from '../analytics/midnight-snapshot.js';
 import { runCommentPoll, type CommentPollOptions, type CommentPollStats } from '../hitl/comment-poll.js';
 import { getLastPollAt } from '../hitl/comment-queue.js';
 import { runOutboundPoll } from '../hitl/outbound-poll.js';
+import { isPaused } from './pause.js';
 
 const GENERATE_RETRY_DELAY_MS = 10 * 60 * 1000; // 10 minutes
 const GENERATE_NETWORK_RETRY_DELAY_MS = 60 * 1000; // 1 minute
@@ -112,67 +113,48 @@ async function runGenerate(articleUrl?: string): Promise<'started' | 'already_ru
 let isPublishing = false;
 
 async function publishDuePosts() {
-  if (isPublishing || alreadyPostedToday()) {
-    return;
-  }
+  if (isPublishing) return;
 
   const due = getPostsDueForPublishing();
   if (due.length === 0) return;
 
   isPublishing = true;
   try {
-  for (const post of due) {
-    console.log(`Publishing post ${post.id} — "${post.draft.sourceTitle}"`);
-    try {
-      // Resolve which image to use based on approval choice
-      const imageOpts: Record<string, string | undefined> = {};
-      if ((post.imageChoice === 'ai' || post.imageChoice === 'custom') && post.draft.generatedImagePath) {
-        imageOpts.generatedImagePath = post.draft.generatedImagePath;
-      } else if (post.imageChoice === 'stock' && post.draft.stockImageUrl) {
-        imageOpts.imageUrl = post.draft.stockImageUrl;
-        // Track Unsplash download and mark as used for deduplication
-        import('../content/stock-image.js').then(m => {
-          if (post.draft.stockImageDownloadUrl) m.trackUnsplashDownload(post.draft.stockImageDownloadUrl);
-          m.markImageUsed(post.draft.stockImageUrl!);
-        }).catch(() => {});
-      } else if (post.imageChoice === 'og' && post.draft.imageUrl) {
-        imageOpts.imageUrl = post.draft.imageUrl;
-      } else if (!post.imageChoice && post.draft.imageUrl) {
-        // Legacy fallback: no imageChoice set, use og:image (backward compat)
-        imageOpts.imageUrl = post.draft.imageUrl;
-      }
-      // imageChoice === 'none' → no image properties set
+    for (const post of due) {
+      console.log(`[reminder] Sending publish reminder for post ${post.id} — "${post.draft.sourceTitle}"`);
+      try {
+        const { sendPublishReminder } = await import('../hitl/telegram.js');
+        await sendPublishReminder(post);
 
-      const linkedInPostUrl = await postToLinkedIn(post.finalContent, {
-        firstComment: post.draft.firstComment,
-        ...imageOpts,
-      });
-      markPublished(post.id, linkedInPostUrl);
-      if (post.draft.postType === 'insider') {
-        const { clearNotes } = await import('../hitl/daily-notes.js');
-        clearNotes();
-      }
-      console.log(`Post ${post.id} marked as published.`);
-      const urlLine = linkedInPostUrl ? `\n${linkedInPostUrl}` : '';
-      await sendMessage(`✅ *Published* | ${post.draft.postType}\n_${post.draft.sourceTitle}_${urlLine}`).catch(() => {});
-      const { updateDraftStatus } = await import('../hitl/telegram.js');
-      await updateDraftStatus(post.id, `✅ Published${urlLine}`).catch(() => {});
-    } catch (err) {
-      if (err instanceof LinkedInSessionExpiredError) {
-        console.error(err.message);
-        break;
-      }
-      console.error(`Failed to publish post ${post.id}:`, err);
-      const failures = incrementPublishFailures(post.id);
-      if (failures >= 3) {
-        await sendAlert(
-          `Post "${post.draft.sourceTitle}" has failed to publish ${failures} times in a row.\n\n` +
-          `Error: ${(err as any)?.message ?? String(err)}\n\n` +
-          `Run \`npm run post-now\` to retry manually.`
-        );
+        // Track Unsplash download / mark stock image as used
+        if (post.imageChoice === 'stock' && post.draft.stockImageUrl) {
+          import('../content/stock-image.js').then(m => {
+            if (post.draft.stockImageDownloadUrl) m.trackUnsplashDownload(post.draft.stockImageDownloadUrl);
+            m.markImageUsed(post.draft.stockImageUrl!);
+          }).catch(() => {});
+        }
+
+        // Mark as "published" with publishedAt = now. We don't have a real
+        // LinkedIn URL since the user posts manually, so leave it null.
+        // The loopback reminder cron uses publishedAt timing, not the URL.
+        markPublished(post.id, null);
+        if (post.draft.postType === 'insider') {
+          const { clearNotes } = await import('../hitl/daily-notes.js');
+          clearNotes();
+        }
+        const { updateDraftStatus } = await import('../hitl/telegram.js');
+        await updateDraftStatus(post.id, '📤 Reminder sent — post manually on LinkedIn').catch(() => {});
+      } catch (err) {
+        console.error(`[reminder] Failed to send for post ${post.id}:`, err);
+        const failures = incrementPublishFailures(post.id);
+        if (failures >= 3) {
+          await sendAlert(
+            `Could not send publish reminder for "${post.draft.sourceTitle}" after ${failures} attempts.\n\n` +
+            `Error: ${(err as any)?.message ?? String(err)}`
+          );
+        }
       }
     }
-  }
   } finally {
     isPublishing = false;
   }
@@ -184,6 +166,7 @@ rehydrateBurstTimer();
 setOnRejectHandler(runGenerate);
 setOnGenerateHandler(runGenerate);
 setOnPollHandler(async () => {
+  if (isPaused()) throw new Error('Scheduler is paused. Use /resume to re-enable comment scraping.');
   await runCommentPollGuarded();
   try {
     const { runOutboundReplyMonitor } = await import('../outbound/monitor-replies.js');
@@ -193,6 +176,7 @@ setOnPollHandler(async () => {
   }
 });
 setOnOutboundHandler(async () => {
+  if (isPaused()) throw new Error('Scheduler is paused. Use /resume to re-enable outbound scraping.');
   if (outboundPollRunning) throw new Error('Outbound poll already running — try again shortly.');
   outboundPollRunning = true;
   try {
@@ -221,9 +205,19 @@ setOnRewriteHandler(async (postId: string) => {
   console.log(`[rewrite] Rewrite complete.`);
 });
 
-// Generate a draft at 7pm Mon/Tue/Wed ET — approve that evening, posts next morning (Tue/Wed/Thu)
+// Start V2 pipeline at 7:30pm Mon/Tue/Wed ET — interactive article selection via Telegram
 cron.schedule('0 19 * * 1,2,3', async () => {
-  await runGenerate();
+  try {
+    const { fetchAndRankArticles, setCachedCandidates } = await import('../content/pipeline-v2.js');
+    const { startPipelineV2 } = await import('../hitl/pipeline-telegram.js');
+    const candidates = await fetchAndRankArticles();
+    setCachedCandidates(candidates);
+    await startPipelineV2(candidates, (text, opts) => sendMessage(text, 'HTML'));
+    console.log('[cron] V2 pipeline started — awaiting article selection via Telegram.');
+  } catch (err) {
+    console.error(`[cron] V2 pipeline failed: ${(err as Error).message}`);
+    await sendMessage(`Pipeline auto-start failed: ${(err as Error).message}`).catch(() => {});
+  }
 }, { timezone: 'America/Toronto' });
 
 // Daily notes prompt at 4:45pm ET Mon–Fri. Friday sends the weekly insider check-in.
@@ -240,16 +234,10 @@ cron.schedule('45 16 * * 1,2,3,4,5', async () => {
   }
 }, { timezone: 'America/Toronto' });
 
-// Poll every minute for posts due to be published + loopback comments
+// Poll every minute for posts due — sends a copy/paste reminder to Telegram.
+// User publishes manually on LinkedIn (no Playwright posting).
 cron.schedule('* * * * *', async () => {
   await publishDuePosts();
-  // Post any loopback comments whose scheduled time has arrived
-  try {
-    const { postDueLoopbacks } = await import('./loopback.js');
-    await postDueLoopbacks();
-  } catch (err) {
-    console.error(`[loopback] Post error: ${(err as Error).message}`);
-  }
 }, { timezone: 'America/Toronto' });
 
 // Loopback eligibility check at 9am ET — checks if yesterday's post needs a loopback comment
@@ -316,6 +304,11 @@ cron.schedule('0 0 * * *', async () => {
     await unpinReport();
   } catch {}
 
+  if (isPaused()) {
+    console.log('[midnight] Skipped — scheduler is paused.');
+    return;
+  }
+
   try {
     await runMidnightSnapshot();
   } catch (err) {
@@ -361,6 +354,7 @@ async function runCommentPollGuarded(opts?: CommentPollOptions): Promise<Comment
 // Quiet period: full sweep every 3 hours.
 // Also triggers 90-min early score snapshot when a post hits the window.
 cron.schedule('*/5 * * * 1-5', async () => {
+  if (isPaused()) return;
   const ageMs = getMostRecentPostAge();
   const withinFirstHour = ageMs !== null && ageMs < 1 * 60 * 60 * 1000;
   const withinActiveWindow = ageMs !== null && ageMs < 2 * 60 * 60 * 1000;
@@ -415,6 +409,7 @@ cron.schedule('*/5 * * * 1-5', async () => {
 
 // Weekends: 8am and 8pm ET only — full sweep
 cron.schedule('0 8,20 * * 6,0', async () => {
+  if (isPaused()) return;
   await runCommentPollGuarded();
   try {
     const { runOutboundReplyMonitor } = await import('../outbound/monitor-replies.js');
@@ -432,6 +427,7 @@ let outboundPollRunning = false;
 // Weekdays: 8am, 11am, 2pm, 5pm ET
 // Weekends: 9am, 5pm ET
 cron.schedule('0 8,11,14,17 * * 1-5', async () => {
+  if (isPaused()) return;
   if (outboundPollRunning) return;
   outboundPollRunning = true;
   try {
@@ -444,6 +440,7 @@ cron.schedule('0 8,11,14,17 * * 1-5', async () => {
 }, { timezone: 'America/Toronto' });
 
 cron.schedule('0 9,17 * * 0,6', async () => {
+  if (isPaused()) return;
   if (outboundPollRunning) return;
   outboundPollRunning = true;
   try {

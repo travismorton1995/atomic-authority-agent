@@ -20,7 +20,7 @@ let pipelineRunning = false;
 export function isPipelineRunning(): boolean { return pipelineRunning; }
 
 // Strip [[MENTION:X]] markers from text, returning cleaned text and the marker positions.
-function stripMentionMarkers(text: string): { clean: string; markers: Array<{ name: string; plainName: string }> } {
+export function stripMentionMarkers(text: string): { clean: string; markers: Array<{ name: string; plainName: string }> } {
   const markers: Array<{ name: string; plainName: string }> = [];
   const clean = text.replace(/\[\[MENTION:([^\]]+)\]\]/g, (_, name) => {
     markers.push({ name, plainName: name });
@@ -33,7 +33,7 @@ function stripMentionMarkers(text: string): { clean: string; markers: Array<{ na
 // and never inside a hashtag. Longest names matched first to avoid partials.
 // Re-inject [[MENTION:X]] markers into revised text — first occurrence only,
 // never inside a hashtag, and never in the hook (first paragraph).
-function reInjectMentionMarkers(revised: string, markers: Array<{ name: string; plainName: string }>): string {
+export function reInjectMentionMarkers(revised: string, markers: Array<{ name: string; plainName: string }>): string {
   if (markers.length === 0) return revised;
 
   // Split into hook (first paragraph) and body — only inject in body
@@ -106,7 +106,7 @@ function selectPostType(
   return bestType;
 }
 
-interface ScoredCandidate {
+export interface ScoredCandidate {
   item: FeedItem;
   postType: PostType;
   articleScore: number;
@@ -116,6 +116,8 @@ interface ScoredCandidate {
   postContentFeedback: number;
   combinedScore: number;
   reasoning: string;
+  synopsis: string;
+  typeFit: TypeFitScores;
 }
 
 interface CandidateStore {
@@ -139,7 +141,7 @@ export function clearCandidateStore(): void {
   if (existsSync(CANDIDATES_FILE)) unlinkSync(CANDIDATES_FILE);
 }
 
-function getRecentTitles(limit = 10): string[] {
+export function getRecentTitles(limit = 10): string[] {
   if (!existsSync('posted_history.json')) return [];
   try {
     const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
@@ -149,7 +151,7 @@ function getRecentTitles(limit = 10): string[] {
   }
 }
 
-function getLastPostType(): PostType | undefined {
+export function getLastPostType(): PostType | undefined {
   if (!existsSync('posted_history.json')) return undefined;
   try {
     const history = JSON.parse(readFileSync('posted_history.json', 'utf-8'));
@@ -164,7 +166,7 @@ function getLastPostType(): PostType | undefined {
 // it is relative to its target weight across recent posts.
 // Types used less than their target share score above 1.0 (boosted).
 // Types used more than their target share score below 1.0 (suppressed).
-function getTypeBalanceMultipliers(lookback = 14): Partial<Record<PostType, number>> {
+export function getTypeBalanceMultipliers(lookback = 14): Partial<Record<PostType, number>> {
   const weights = POST_TYPE_WEIGHTS;
   const totalWeight = Object.values(weights).filter((w): w is number => w != null).reduce((a, b) => a + b, 0);
 
@@ -336,7 +338,7 @@ async function finalize(item: FeedItem, postType: PostType, combinedScore?: numb
 }
 
 // Fetch article text for a candidate (shared by interactive and non-interactive paths).
-async function fetchArticleForCandidate(candidate: ScoredCandidate): Promise<void> {
+export async function fetchArticleForCandidate(candidate: ScoredCandidate): Promise<void> {
   console.log(`Selected: "${candidate.item.title}" (${candidate.item.source})`);
   const bd = candidate.scoreBreakdown;
   console.log(`Score: ${candidate.articleScore}/10 (I:${bd.intersection} N:${bd.novelty} G:${bd.geography} NPX:${bd.npx}) — ${candidate.reasoning}`);
@@ -361,7 +363,7 @@ async function fetchArticleForCandidate(candidate: ScoredCandidate): Promise<voi
 }
 
 // Generate a 1-2 sentence article summary for the hook selection message.
-async function generateArticleSummary(item: FeedItem): Promise<string> {
+export async function generateArticleSummary(item: FeedItem): Promise<string> {
   try {
     const snippet = item.fullText
       ? item.fullText.split(/\s+/).slice(0, 200).join(' ')
@@ -809,7 +811,7 @@ async function _runPipeline(options: PipelineOptions = {}): Promise<PendingPost 
         :                    0.4;  // 14+ days
 
       const combinedScore = r.score * balanceMultiplier * recencyMultiplier * postContentFeedback;
-      return { item: r.item, postType, articleScore: r.score, scoreBreakdown: r.breakdown, combinedScore, balanceMultiplier, recencyMultiplier, postContentFeedback, reasoning: r.reasoning };
+      return { item: r.item, postType, articleScore: r.score, scoreBreakdown: r.breakdown, combinedScore, balanceMultiplier, recencyMultiplier, postContentFeedback, reasoning: r.reasoning, synopsis: r.synopsis, typeFit: r.typeFit };
     });
 
   scored.sort((a, b) => b.combinedScore - a.combinedScore);

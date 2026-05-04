@@ -201,6 +201,7 @@ Source: ${item.source}
 Content snippet: ${articleSnippet}
 Post type: ${postType}
 ${ageRule ? `\nTEMPORAL RULE: ${ageRule}` : ''}
+${postType === 'bridge' ? `\nBRIDGE POST RULE: This post will connect the news event to an AI application. At least 2 of the 5 hooks should hint at or signal the AI connection so the reader knows the bridge is coming. The AI angle should be framed as an opportunity or accelerator, NOT as a problem or gap. Do NOT imply the industry is neglecting AI or making a mistake. Example: "Ottawa's $40M microreactor bet could be the first real test case for autonomous reactor monitoring."` : ''}
 
 HARD CONSTRAINT: Each hook must be under 140 characters. Score 0 if over 140 chars.
 
@@ -401,7 +402,7 @@ export function injectMentionMarkers(text: string): string {
 import { getConfidenceWeightedHashtagPerformance, getCorrelationInsights } from '../analytics/feedback.js';
 import { robustAverage } from '../analytics/stats.js';
 
-export async function synthesizePost(item: FeedItem, postType: PostType, selectedHook?: string): Promise<DraftPost> {
+export async function synthesizePost(item: FeedItem, postType: PostType, selectedHook?: string, options?: { skipComments?: boolean }): Promise<DraftPost> {
   const articleContent = item.fullText
     ? `Summary: ${item.summary}\n\nFull article text:\n${item.fullText}`
     : `Summary: ${item.summary}`;
@@ -520,6 +521,34 @@ Write the LinkedIn post now. You have the full article text above — use specif
   const content = injectMentionMarkers(rawContent);
 
   // Generate first comment text only — URL is appended in code to avoid truncation
+  // Skip comment + loopback generation when called from V2 pipeline (generated separately in Step 5)
+  if (options?.skipComments) {
+    const finalWordCount = content.split(/\s+/).filter(Boolean).length;
+    let title = '';
+    try {
+      const titleMessage = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 30,
+        messages: [{ role: 'user', content: `Give this LinkedIn post a short internal title (3-5 words, no quotes, no punctuation).\n\n${content.split('\n')[0]}` }],
+      });
+      title = (titleMessage.content[0].type === 'text' ? titleMessage.content[0].text : '').trim();
+    } catch { /* non-fatal */ }
+
+    return {
+      content,
+      firstComment: '',
+      title,
+      postType,
+      sourceTitle: item.title,
+      sourceUrl: item.link,
+      sourceDate: item.pubDate,
+      sourceFeed: item.source,
+      generatedAt: new Date().toISOString(),
+      imageUrl: item.imageUrl,
+      wordCount: finalWordCount,
+    };
+  }
+
   const commentMessage = await client.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 80,

@@ -20,7 +20,7 @@ interface HistoryPost {
     postType?: string;
     sourceTitle?: string;
   };
-  loopbackStatus?: 'pending' | 'scheduled' | 'posted' | 'skipped';
+  loopbackStatus?: 'pending' | 'scheduled' | 'posted' | 'skipped' | 'reminder_sent';
   loopbackScheduledFor?: string;
 }
 
@@ -67,7 +67,7 @@ function pickLoopbackTime(dateET: string): string {
   const offsetMatch = offsetPart.match(/GMT([+-]\d+)/);
   const offsetHours = offsetMatch ? parseInt(offsetMatch[1]) : -4;
 
-  const utcDate = new Date(`${etStr}:00Z`);
+  const utcDate = new Date(`${etStr}Z`);
   utcDate.setHours(utcDate.getHours() - offsetHours);
   return utcDate.toISOString();
 }
@@ -78,10 +78,11 @@ function pickLoopbackTime(dateET: string): string {
  * schedule it for 9:30am-12pm ET.
  */
 export async function checkLoopbackEligibility(): Promise<void> {
+  // Manual-posting flow: no longer scrapes comments. Sends a Telegram
+  // reminder for any post published yesterday that has a loopback comment.
+  // User checks LinkedIn for external comments and decides whether to paste.
   const history = loadHistory();
-  const myName = (process.env.LINKEDIN_DISPLAY_NAME ?? '').toLowerCase();
 
-  // Find posts published yesterday that have loopback comments pending
   const now = new Date();
   const yesterdayStart = new Date(now);
   yesterdayStart.setDate(yesterdayStart.getDate() - 1);
@@ -92,7 +93,6 @@ export async function checkLoopbackEligibility(): Promise<void> {
   const candidates = history.filter(p =>
     p.status === 'published' &&
     p.publishedAt &&
-    p.linkedInPostUrl &&
     p.draft?.loopbackComment &&
     (!p.loopbackStatus || p.loopbackStatus === 'pending') &&
     new Date(p.publishedAt) >= yesterdayStart &&
@@ -105,45 +105,34 @@ export async function checkLoopbackEligibility(): Promise<void> {
   }
 
   for (const post of candidates) {
-    console.log(`[loopback] Checking ${post.draft.postType} post "${post.draft.sourceTitle?.slice(0, 40)}..." for external comments...`);
-
     try {
-      const comments = await scrapeComments(post.linkedInPostUrl!);
-
-      // Check for external comments (not from us)
-      const externalComments = comments.filter(c =>
-        !myName || !c.author.toLowerCase().includes(myName)
-      );
-
-      if (externalComments.length > 0) {
-        console.log(`[loopback] Post has ${externalComments.length} external comment(s) — skipping loopback.`);
-        updatePost(post.id, { loopbackStatus: 'skipped' });
-        continue;
-      }
-
-      // No external comments — schedule the loopback
-      const todayET = now.toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
-      const scheduledFor = pickLoopbackTime(todayET);
-      const timeStr = new Date(scheduledFor).toLocaleString('en-US', {
-        timeZone: 'America/Toronto',
-        hour: 'numeric',
-        minute: '2-digit',
-      });
-
-      updatePost(post.id, { loopbackStatus: 'scheduled', loopbackScheduledFor: scheduledFor });
-      console.log(`[loopback] No external comments — loopback scheduled for ${timeStr} ET.`);
-      await sendMessage(`🔄 Loopback comment scheduled for ${timeStr} ET\n\n_"${post.draft.loopbackComment?.slice(0, 100)}..."_`).catch(() => {});
+      const { sendLoopbackReminder } = await import('../hitl/telegram.js');
+      await sendLoopbackReminder(post);
+      updatePost(post.id, { loopbackStatus: 'reminder_sent' });
+      console.log(`[loopback] Reminder sent for "${post.draft.sourceTitle?.slice(0, 40)}..."`);
     } catch (err) {
-      console.error(`[loopback] Failed to check comments: ${(err as Error).message}`);
+      console.error(`[loopback] Failed to send reminder: ${(err as Error).message}`);
     }
   }
 }
+
+let loopbackPosting = false;
 
 /**
  * Post any loopback comments whose scheduled time has arrived.
  * Called on each cron tick.
  */
 export async function postDueLoopbacks(): Promise<void> {
+  if (loopbackPosting) return; // prevent double-post if previous tick is still running
+  loopbackPosting = true;
+  try {
+    await _postDueLoopbacks();
+  } finally {
+    loopbackPosting = false;
+  }
+}
+
+async function _postDueLoopbacks(): Promise<void> {
   const history = loadHistory();
   const now = new Date().toISOString();
 
@@ -158,11 +147,12 @@ export async function postDueLoopbacks(): Promise<void> {
   if (due.length === 0) return;
 
   for (const post of due) {
+    // Mark as posting immediately to prevent duplicate from next cron tick
+    updatePost(post.id, { loopbackStatus: 'posted' });
     console.log(`[loopback] Posting loopback comment for "${post.draft.sourceTitle?.slice(0, 40)}..."...`);
 
     try {
       await postOutboundComment(post.linkedInPostUrl!, post.draft.loopbackComment!);
-      updatePost(post.id, { loopbackStatus: 'posted' });
       console.log('[loopback] Loopback comment posted.');
       await sendMessage(
         `🔄 *Loopback comment posted*\n\n_"${post.draft.loopbackComment?.slice(0, 120)}..."_\n\n${post.linkedInPostUrl}`,

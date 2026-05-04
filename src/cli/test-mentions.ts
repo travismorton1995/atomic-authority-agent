@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { chromium } from 'playwright';
-import { MENTIONS, removeMentionEntry } from '../poster/mentions.js';
+import { getUnverifiedMentions, verifyMention, removeMentionEntry } from '../poster/mentions.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
 const LINKEDIN_FEED = 'https://www.linkedin.com/feed/';
@@ -64,43 +64,13 @@ async function testEntry(page: import('playwright').Page, searchTerm: string): P
   await page.waitForTimeout(3000);
 }
 
-async function markVerified(name: string): Promise<void> {
-  if (MENTIONS[name]) {
-    MENTIONS[name].verified = true;
-    const { readFileSync, writeFileSync } = await import('fs');
-    const { resolve } = await import('path');
-    const MENTIONS_FILE = resolve(process.cwd(), 'src/poster/mentions.ts');
-    let src = readFileSync(MENTIONS_FILE, 'utf8').replace(/\r\n/g, '\n');
-    const startMarker = 'export const MENTIONS: Record<string, MentionEntry> = {';
-    const startIdx = src.indexOf(startMarker);
-    const endIdx = src.indexOf('\n};\n', startIdx);
-    if (startIdx === -1 || endIdx === -1) { console.warn('Could not rewrite mentions file.'); return; }
-
-    const entries = Object.entries(MENTIONS);
-    const verified = entries.filter(([, v]) => v.verified).sort(([a], [b]) => a.localeCompare(b));
-    const unverified = entries.filter(([, v]) => !v.verified).sort(([a], [b]) => a.localeCompare(b));
-    const sorted = [...verified, ...unverified];
-
-    let block = '';
-    for (const [n, entry] of sorted) {
-      const safe = n.replace(/'/g, "\\'");
-      const searchSafe = entry.searchTerm.replace(/'/g, "\\'");
-      const pad = Math.max(1, 42 - safe.length);
-      const searchPad = Math.max(1, 27 - searchSafe.length);
-      block += `  '${safe}':${' '.repeat(pad)}{ searchTerm: '${searchSafe}',${' '.repeat(searchPad)}verified: ${entry.verified} },\n`;
-    }
-
-    src = src.slice(0, startIdx + startMarker.length + 1) + block + src.slice(endIdx + 1);
-    writeFileSync(MENTIONS_FILE, src, 'utf8');
-    console.log(`  Marked "${name}" as verified.`);
-  } else {
-    console.warn(`  Could not find entry for "${name}".`);
-  }
+async function markVerified(name: string, searchTerm: string): Promise<void> {
+  verifyMention(name, searchTerm);
+  console.log(`  Marked "${name}" as verified.`);
 }
 
 (async () => {
-  const entries = Object.entries(MENTIONS);
-  const unverified = entries.filter(([, e]) => !e.verified);
+  const unverified = getUnverifiedMentions();
 
   if (unverified.length === 0) {
     console.log('All entries are already verified. Nothing to test.');
@@ -155,14 +125,14 @@ async function markVerified(name: string): Promise<void> {
   try {
     await openComposer(page);
 
-    for (const [name, entry] of unverified) {
-      console.log(`\nTesting: "${name}"  →  @${entry.searchTerm}`);
+    for (const entry of unverified) {
+      console.log(`\nTesting: "${entry.name}"  →  @${entry.searchTerm}`);
       await testEntry(page, entry.searchTerm);
 
       const answer = await prompt('  Correct company in dropdown? (y/n/r/q): ');
       if (answer === 'q') break;
-      if (answer === 'y') await markVerified(name);
-      if (answer === 'r') removeMentionEntry(name);
+      if (answer === 'y') await markVerified(entry.name, entry.searchTerm);
+      if (answer === 'r') removeMentionEntry(entry.name);
     }
   } finally {
     await context.close();

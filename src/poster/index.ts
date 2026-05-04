@@ -2,7 +2,7 @@ import { chromium, type Page } from 'playwright';
 import path from 'path';
 import { tmpdir } from 'os';
 import { writeFileSync, unlinkSync, readFileSync } from 'fs';
-import { MENTIONS } from './mentions.js';
+import { allMentions } from './mentions.js';
 import { acquireBrowserLock } from './browser-lock.js';
 
 const USER_DATA_DIR = path.resolve('user_data');
@@ -369,7 +369,7 @@ async function typeContentWithMentions(page: Page, content: string): Promise<voi
     }
 
     const name = match[1];
-    const entry = MENTIONS[name];
+    const entry = allMentions()[name];
 
     if (entry?.verified) {
       const inserted = await insertMention(page, entry.searchTerm, name);
@@ -451,11 +451,12 @@ async function postFirstComment(page: Page, comment: string): Promise<string | n
     await firstPost.hover();
     await page.waitForTimeout(1500);
 
-    // LinkedIn reaction buttons use <span class="artdeco-button__text">Comment</span>
-    // Use :has() to target the button containing that span, filtered by text content
+    // Open the comment composer via the action-bar Comment button.
+    // Match by text alone — works for both old (artdeco) and new (TipTap)
+    // UI since they both render the visible text "Comment" on this button.
     const commentBtn = firstPost
-      .locator('button:has(span.artdeco-button__text)')
-      .filter({ hasText: 'Comment' })
+      .locator('button')
+      .filter({ hasText: /^Comment$/ })
       .first();
 
     await commentBtn.waitFor({ state: 'visible', timeout: 10000 });
@@ -475,34 +476,41 @@ async function postFirstComment(page: Page, comment: string): Promise<string | n
     // Brief pause before submitting to let LinkedIn process the typed text.
     await page.waitForTimeout(1000);
 
-    // The submit "Comment" button is inside the comment composer box, NOT the reaction bar.
-    // Scope the search to comment-box containers to avoid clicking reaction bar buttons on other posts.
-    const clicked = await page.evaluate(() => {
-      const composerContainerSelectors = [
-        'div.comments-comment-box',
-        'div.comments-reply-box',
-        'div[class*="comment-box"]',
-        'div[class*="comment-form"]',
-      ];
+    // Find the submit "Comment" button by walking up from the editor.
+    // LinkedIn migrated from Quill to TipTap/ProseMirror in May 2026 and
+    // the old container classes / artdeco-button spans no longer exist.
+    // The active editor is the most recently rendered contenteditable.
+    const clickResult = await page.evaluate(() => {
+      const editors = Array.from(document.querySelectorAll(
+        '[aria-label="Text editor for creating comment"], ' +
+        '.tiptap.ProseMirror[contenteditable="true"], ' +
+        '.ql-editor'
+      ));
+      if (editors.length === 0) return { ok: false, reason: 'no editor found' };
+      const editor = editors[editors.length - 1] as Element;
 
-      for (const sel of composerContainerSelectors) {
-        const composer = document.querySelector(sel);
-        if (!composer) continue;
-        const spans = Array.from(composer.querySelectorAll('span.artdeco-button__text'));
-        const submitSpan = spans.find(s => s.textContent?.trim() === 'Comment');
-        if (submitSpan) {
-          (submitSpan.closest('button') as HTMLButtonElement)?.click();
-          return sel; // return which selector worked
+      let ancestor: Element | null = editor.parentElement;
+      while (ancestor) {
+        const btn = Array.from(ancestor.querySelectorAll('button')).find(b => {
+          if ((b as HTMLElement).offsetParent === null) return false;
+          if ((b as HTMLButtonElement).disabled) return false;
+          const txt = (b.textContent ?? '').trim();
+          return /^(Comment|Post)$/i.test(txt);
+        });
+        if (btn) {
+          (btn as HTMLButtonElement).click();
+          return { ok: true, reason: `clicked: text="${(btn.textContent ?? '').trim()}"` };
         }
+        ancestor = ancestor.parentElement;
       }
-      return null;
+      return { ok: false, reason: 'no submit button found in any ancestor' };
     });
 
-    if (!clicked) {
-      throw new Error('Could not find Comment submit button inside composer container');
+    if (!clickResult.ok) {
+      throw new Error(`Could not find Comment submit button: ${clickResult.reason}`);
     }
 
-    console.log(`Comment submitted (found via: ${clicked}).`);
+    console.log(`Comment submitted (${clickResult.reason}).`);
     await page.waitForTimeout(20000); // wait to observe result before browser closes
     console.log('First comment posted.');
     return linkedInPostUrl;

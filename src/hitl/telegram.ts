@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import path from 'path';
-import { approvePost, rejectPost, cancelPost, clearPostImage, setImageChoice, setGeneratedImagePath, getPendingPosts } from './queue.js';
+import { approvePost, rejectPost, cancelPost, clearPostImage, setImageChoice, setGeneratedImagePath, getPendingPosts, markPublished } from './queue.js';
 import { pickScheduledTime, pickInsiderScheduledTime } from '../scheduler/windows.js';
 import type { PendingPost } from './queue.js';
 import { getPendingReply, updateReplyStatus, getApprovedReplies, type PendingReply } from './comment-queue.js';
@@ -138,6 +138,11 @@ function schedulePrePostBurst(scheduledFor: string): void {
     prePostBurstTimer = null;
     prePostBurstScheduledFor = null;
     try {
+      const { isPaused } = await import('../scheduler/pause.js');
+      if (isPaused()) {
+        console.log('[pre-post burst] Skipped — scheduler is paused.');
+        return;
+      }
       const { runPrePostBurst } = await import('./outbound-poll.js');
       await runPrePostBurst();
     } catch (err) {
@@ -177,6 +182,12 @@ export async function flushApprovedReplies(): Promise<void> {
   const approved = getApprovedReplies();
   if (approved.length === 0) return;
 
+  const { isPaused } = await import('../scheduler/pause.js');
+  if (isPaused()) {
+    console.log(`[flush-replies] Skipped — scheduler is paused (${approved.length} reply(ies) waiting).`);
+    return;
+  }
+
   console.log(`[flush-replies] Posting ${approved.length} approved reply(ies)...`);
 
   for (const reply of approved) {
@@ -205,6 +216,12 @@ export async function flushApprovedReplies(): Promise<void> {
 export async function flushApprovedOutboundComments(): Promise<void> {
   const approved = getApprovedComments();
   if (approved.length === 0) return;
+
+  const { isPaused } = await import('../scheduler/pause.js');
+  if (isPaused()) {
+    console.log(`[flush-outbound] Skipped — scheduler is paused (${approved.length} comment(s) waiting).`);
+    return;
+  }
 
   console.log(`[flush-outbound] Posting ${approved.length} approved comment(s)...`);
 
@@ -274,11 +291,14 @@ export function startBot(): void {
   bot.telegram.setMyCommands([
     { command: 'generate', description: 'Generate a new post draft' },
     { command: 'outbound', description: 'Run outbound comment poll' },
+    { command: 'flush_outbound', description: 'Post approved outbound comments now' },
     { command: 'metrics', description: 'Send performance report' },
     { command: 'poll', description: 'Check for new comments on posts' },
     { command: 'insider', description: 'Generate insider post from notes' },
     { command: 'notes', description: 'Add a daily work note' },
     { command: 'schedule', description: 'Show upcoming posts, bursts & loopbacks' },
+    { command: 'pause', description: 'Pause comment/metrics scraping (keeps posting)' },
+    { command: 'resume', description: 'Resume all scheduled scraping' },
     { command: 'login', description: 'Renew LinkedIn session' },
     { command: 'help', description: 'Show all commands' },
   ]).catch(err => console.warn('Failed to set bot commands:', err.message));
@@ -290,11 +310,14 @@ export function startBot(): void {
       '/insider — Generate an insider post from your notes (min 1 note)\n' +
       '/poll — Run a comment reply poll (checks for new comments on your posts)\n' +
       '/outbound — Run the outbound engagement poll (finds posts to comment on)\n' +
+      '/flush_outbound — Post any approved outbound comments now\n' +
       '/metrics — Fetch engagement metrics for all published posts\n' +
       '/types — Show post type distribution vs targets\n' +
       '/notes — Add a daily note (assembled into an insider post weekly)\n' +
       '/login — Open a browser to renew your LinkedIn session\n' +
       '/schedule — Show upcoming posts, burst comments, and loopback comments\n' +
+      '/pause [days] — Pause all scraping; posting continues. Optional auto-resume.\n' +
+      '/resume — Re-enable scheduled scraping immediately\n' +
       '/help — Show this message\n\n' +
       '*Other actions:*\n' +
       '• Send a LinkedIn profile URL to add it to the outbound tracking list\n' +
@@ -316,7 +339,16 @@ export function startBot(): void {
       hour: 'numeric', minute: '2-digit',
     });
 
+    // Pause state at the top (visible status)
+    const { getPauseStatus, isPaused } = await import('../scheduler/pause.js');
+    const pauseStatus = getPauseStatus();
     const lines: string[] = [];
+    if (isPaused()) {
+      lines.push('⏸ <b>Scheduler PAUSED</b> — comment/metrics scraping is off.');
+      if (pauseStatus.resumeAt) lines.push(`Auto-resume: ${fmt(pauseStatus.resumeAt)}`);
+      lines.push('Use /resume to re-enable.');
+      lines.push('');
+    }
     const buttons: Array<{ text: string; callback_data: string }> = [];
 
     // Scheduled posts
@@ -413,33 +445,46 @@ export function startBot(): void {
   });
 
   bot.command('generate', async (ctx) => {
-    if (!onGenerateHandler) { await ctx.reply('Generator not available.'); return; }
-
     // Parse optional URL: /generate https://example.com/article
     const args = ctx.message.text.split(/\s+/).slice(1);
     const articleUrl = args.find(a => a.startsWith('http'));
 
     if (articleUrl) {
+      // Direct URL path — use old pipeline
+      if (!onGenerateHandler) { await ctx.reply('Generator not available.'); return; }
       console.log(`Telegram /generate command received with URL: ${articleUrl}`);
-      await ctx.reply(`Running content pipeline for:\n${articleUrl}`).catch(err => console.error('[/generate] Failed to send reply:', err));
-    } else {
-      console.log('Telegram /generate command received');
-      await ctx.reply('Running content pipeline...').catch(err => console.error('[/generate] Failed to send reply:', err));
+      await ctx.reply(`Running content pipeline for:\n${articleUrl}`).catch(() => {});
+      const stopTyping = startTypingIndicator();
+      onGenerateHandler(articleUrl)
+        .then(() => stopTyping())
+        .catch(err => { stopTyping(); ctx.reply(`Pipeline failed: ${err.message}`).catch(() => {}); });
+      return;
     }
 
-    const stopTyping = startTypingIndicator();
-    onGenerateHandler(articleUrl)
-      .then((status: any) => {
+    // V2 interactive pipeline
+    console.log('Telegram /generate command received — starting V2 pipeline');
+
+    try {
+      const { fetchAndRankArticles, getCachedCandidates, setCachedCandidates } = await import('../content/pipeline-v2.js');
+      const { startPipelineV2 } = await import('./pipeline-telegram.js');
+
+      let candidates = getCachedCandidates();
+      if (candidates) {
+        console.log(`[/generate] Using cached candidates (${candidates.length} articles)`);
+        await ctx.reply('Using cached article rankings...').catch(() => {});
+      } else {
+        await ctx.reply('Fetching and ranking articles...').catch(() => {});
+        const stopTyping = startTypingIndicator();
+        candidates = await fetchAndRankArticles();
+        setCachedCandidates(candidates);
         stopTyping();
-        if (status === 'already_running') {
-          ctx.reply('Pipeline is already running — try again shortly.').catch(() => {});
-        }
-      })
-      .catch(err => {
-        stopTyping();
-        console.error('[/generate] Unexpected error:', err);
-        ctx.reply(`Pipeline failed: ${err.message}`).catch(() => {});
-      });
+      }
+
+      await startPipelineV2(candidates, (text, opts) => ctx.reply(text, opts));
+    } catch (err: any) {
+      console.error('[/generate] V2 pipeline error:', err);
+      await ctx.reply(`Pipeline failed: ${err.message}`).catch(() => {});
+    }
   });
 
   bot.command('insider', async (ctx) => {
@@ -523,6 +568,34 @@ export function startBot(): void {
       });
   });
 
+  bot.command('flush_outbound', async (ctx) => {
+    console.log('Telegram /flush_outbound command received');
+    const { isPaused: isP } = await import('../scheduler/pause.js');
+    if (isP()) {
+      await ctx.reply('Scheduler is paused. Outbound comment posting uses the browser and is disabled while paused. Use /resume to re-enable.').catch(() => {});
+      return;
+    }
+    const approved = getApprovedComments();
+    if (approved.length === 0) {
+      await ctx.reply('No approved outbound comments waiting to post.').catch(() => {});
+      return;
+    }
+    await ctx.reply(`Flushing ${approved.length} approved outbound comment(s)...`).catch(() => {});
+    const stopTyping = startTypingIndicator();
+    flushApprovedOutboundComments()
+      .then(() => { stopTyping(); ctx.reply('Flush complete.').catch(() => {}); })
+      .catch(err => {
+        stopTyping();
+        const msg = err?.message ?? String(err);
+        const isLockTimeout = msg.includes('Browser lock not acquired');
+        console.error('[/flush_outbound] error:', msg);
+        ctx.reply(isLockTimeout
+          ? 'Browser is busy with another operation. Try again in a minute.'
+          : `Flush failed: ${msg}`
+        ).catch(() => {});
+      });
+  });
+
   bot.command('metrics', async (ctx) => {
     if (!onMetricsHandler) { await ctx.reply('Metrics fetch not available.'); return; }
     console.log('Telegram /metrics command received');
@@ -561,8 +634,61 @@ export function startBot(): void {
     }
   });
 
+  bot.command('pause', async (ctx) => {
+    const { pauseScheduler, getPauseStatus } = await import('../scheduler/pause.js');
+    const args = (ctx.message as any).text?.replace(/^\/pause\s*/, '').trim() ?? '';
+    const daysMatch = args.match(/^(\d+)\s*d?$/i);
+    const days = daysMatch ? parseInt(daysMatch[1], 10) : undefined;
+    const reason = daysMatch ? '' : args;
+    pauseScheduler(days, reason || undefined);
+    const status = getPauseStatus();
+    const lines = [
+      '⏸ <b>Scheduler paused.</b>',
+      '',
+      'Disabled while paused:',
+      '• Comment poll (replies on your posts)',
+      '• Outbound monitor (replies to your comments)',
+      '• Outbound poll (finding new candidates)',
+      '• Pre-post burst',
+      '• Midnight metrics snapshot',
+      '',
+      'Still running:',
+      '• Post generation (/generate, scheduled cron)',
+      '• Post publishing at scheduled times',
+      '• First comments and loopback comments',
+      '• Daily notes prompts',
+    ];
+    if (status.resumeAt) {
+      const resume = new Date(status.resumeAt).toLocaleString('en-US', {
+        timeZone: 'America/Toronto', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+      });
+      lines.push('', `Auto-resume: <b>${resume}</b>`);
+    } else {
+      lines.push('', 'Use /resume to re-enable.');
+    }
+    await ctx.reply(lines.join('\n'), { parse_mode: 'HTML' }).catch(() => {});
+    console.log(`[/pause] Scheduler paused${days ? ` for ${days}d` : ''}${reason ? ` (${reason})` : ''}.`);
+  });
+
+  bot.command('resume', async (ctx) => {
+    const { resumeScheduler, getPauseStatus } = await import('../scheduler/pause.js');
+    const before = getPauseStatus();
+    if (!before.paused) {
+      await ctx.reply('Scheduler is already running.').catch(() => {});
+      return;
+    }
+    resumeScheduler();
+    await ctx.reply('▶ <b>Scheduler resumed.</b> Comment monitoring and metrics scraping are back online.', { parse_mode: 'HTML' }).catch(() => {});
+    console.log('[/resume] Scheduler resumed.');
+  });
+
   bot.command('login', async (ctx) => {
     console.log('Telegram /login command received');
+    const { isPaused: isP } = await import('../scheduler/pause.js');
+    if (isP()) {
+      await ctx.reply('Scheduler is paused. /login opens a Playwright browser and is disabled while paused. Use /resume to re-enable.').catch(() => {});
+      return;
+    }
     await ctx.reply('Opening browser for LinkedIn login — check your screen...').catch(err => console.error('[/login] Failed to send reply:', err));
     try {
       const success = await renewSession();
@@ -588,6 +714,18 @@ export function startBot(): void {
     const data = (ctx.callbackQuery as any).data as string;
     if (!data) return;
 
+    // Delegate pv2_ callbacks to Pipeline V2 handler
+    if (data.startsWith('pv2_')) {
+      try {
+        const { handlePipelineV2Callback } = await import('./pipeline-telegram.js');
+        await handlePipelineV2Callback(ctx, data);
+      } catch (err) {
+        console.error(`[pipeline-v2] Callback error: ${(err as Error).message}`);
+        await ctx.answerCbQuery('Error occurred').catch(() => {});
+      }
+      return;
+    }
+
     const firstColon = data.indexOf(':');
     const action = firstColon === -1 ? data : data.slice(0, firstColon);
     let payload = firstColon === -1 ? '' : data.slice(firstColon + 1);
@@ -603,101 +741,7 @@ export function startBot(): void {
         }
         await ctx.answerCbQuery('Text approved — generating image options...');
         await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-        await updateDraftStatus(payload, '✅ Text approved — selecting image...');
-
-        // Generate images in the background, then send Step 2 message
-        (async () => {
-          const sender = new Telegraf(token!);
-
-          // Generate AI image (non-fatal)
-          let generatedImagePath: string | null = null;
-          try {
-            const { generateImage } = await import('../content/generate-image.js');
-            const postType = (post.draft.postType ?? 'bridge') as any;
-            const cleanContent = post.finalContent.replace(/\[\[MENTION:[^\]]+\]\]/g, (m: string) => m.replace(/\[\[MENTION:|\]\]/g, ''));
-            generatedImagePath = await generateImage(cleanContent, postType);
-            if (generatedImagePath) {
-              setGeneratedImagePath(payload, generatedImagePath);
-            }
-          } catch (err: any) {
-            console.warn('Image generation failed (non-fatal):', err?.message ?? err);
-          }
-
-          // Send og:image preview if available and reachable
-          let hasOgImage = false;
-          if (post.draft.imageUrl) {
-            try {
-              const headRes = await fetch(post.draft.imageUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
-              const contentType = headRes.headers.get('content-type') ?? '';
-              if (headRes.ok && contentType.startsWith('image/')) {
-                await sender.telegram.sendPhoto(chatId!, post.draft.imageUrl, { caption: 'Article image (og:image)' });
-                hasOgImage = true;
-              } else {
-                console.log(`[og:image] Skipped — HEAD returned ${headRes.status}, content-type: ${contentType}`);
-              }
-            } catch (err: any) {
-              console.log(`[og:image] Skipped — not reachable: ${err?.message ?? err}`);
-            }
-          }
-
-          // Send AI image preview if generated
-          const hasAiImage = !!generatedImagePath;
-          if (hasAiImage) {
-            try {
-              const { createReadStream } = await import('fs');
-              await sender.telegram.sendPhoto(chatId!, { source: createReadStream(generatedImagePath!) }, { caption: '🤖 AI-generated image' });
-            } catch (err: any) {
-              console.warn('Failed to send AI image to Telegram (non-fatal):', err?.message ?? err);
-            }
-          }
-
-          // Search for stock photos — up to 3 options (non-fatal)
-          let stockCount = 0;
-          try {
-            const { searchStockImages } = await import('../content/stock-image.js');
-            const cleanContent = post.finalContent.replace(/\[\[MENTION:[^\]]+\]\]/g, (m: string) => m.replace(/\[\[MENTION:|\]\]/g, ''));
-            const stockResults = await searchStockImages(cleanContent, 3);
-
-            if (stockResults.length > 0) {
-              const { setStockImage } = await import('./queue.js');
-              const allOptions = stockResults.map(s => ({ url: s.url, photographer: s.photographer, downloadUrl: s.downloadUrl, description: s.description }));
-              // Store first as primary, plus all options for callback selection
-              setStockImage(payload, stockResults[0].url, stockResults[0].photographer, stockResults[0].downloadUrl, allOptions);
-
-              for (let i = 0; i < stockResults.length; i++) {
-                try {
-                  await sender.telegram.sendPhoto(chatId!, stockResults[i].url, {
-                    caption: `📸 Stock ${i + 1} — "${stockResults[i].description.slice(0, 80)}" by ${stockResults[i].photographer} (Unsplash)`,
-                  });
-                  stockCount++;
-                } catch (err: any) {
-                  console.warn(`Failed to send stock image ${i + 1} to Telegram (non-fatal):`, err?.message ?? err);
-                }
-              }
-            }
-          } catch (err: any) {
-            console.warn('Stock image search failed (non-fatal):', err?.message ?? err);
-          }
-
-          // Build Step 2 keyboard
-          const stockButtons = [];
-          for (let i = 0; i < stockCount; i++) {
-            stockButtons.push([{ text: `📸 Stock photo ${i + 1}`, callback_data: `img_stock:${post.id}:${i}` }]);
-          }
-
-          const imgKeyboard = [
-            ...(hasOgImage ? [[{ text: '🖼 Use article image', callback_data: `img_og:${post.id}` }]] : []),
-            ...(hasAiImage ? [[{ text: '🤖 Use AI image', callback_data: `img_ai:${post.id}` }]] : []),
-            ...stockButtons,
-            [{ text: '📷 Upload your own', callback_data: `img_upload:${post.id}` }],
-            [{ text: '🚫 No image', callback_data: `img_none:${post.id}` }],
-            [{ text: '🗑 Cancel', callback_data: `cancel:${post.id}` }],
-          ];
-
-          await sender.telegram.sendMessage(chatId!, 'Text approved. Choose an image option:', {
-            reply_markup: { inline_keyboard: imgKeyboard },
-          });
-        })().catch(err => {
+        startImageSelection(payload).catch(err => {
           console.error('[Step 2 image selection] Error:', err);
           ctx.reply('Failed to generate image options. Use `npm run approve` to approve manually.').catch(() => {});
         });
@@ -754,9 +798,20 @@ export function startBot(): void {
           });
           await ctx.answerCbQuery(`Approved (${label})!`);
           await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-          await ctx.reply(`Insider post approved (${label}). Scheduled for ${scheduledStr}.`);
-          await updateDraftStatus(payload, `📅 Scheduled for ${scheduledStr} | Image: ${label}`);
-          schedulePrePostBurst(scheduledFor);
+          await ctx.reply(
+            `Insider post approved (${label}).\n\n` +
+            `📅 <b>Schedule on LinkedIn for: ${scheduledStr}</b>\n\n` +
+            `Use LinkedIn's native scheduler. Copy/paste content below.`,
+            { parse_mode: 'HTML' },
+          );
+          await updateDraftStatus(payload, `📅 Schedule for ${scheduledStr} | Image: ${label}`);
+
+          // Manual-posting flow: send copy/paste reminder now
+          const fullInsiderPost = getPendingPosts().find(p => p.id === payload) ?? post;
+          await sendPublishReminder(fullInsiderPost as any).catch(err =>
+            console.error('[approve insider] Failed to send publish reminder:', err)
+          );
+          markPublished(payload, null, scheduledFor);
         } else {
           const scheduledFor = pickScheduledTime();
           const post = approvePost(payload, scheduledFor);
@@ -775,9 +830,23 @@ export function startBot(): void {
           });
           await ctx.answerCbQuery(`Approved (${label})!`);
           await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
-          await ctx.reply(`Post approved (${label}). Scheduled for ${scheduledStr}.`);
-          await updateDraftStatus(payload, `📅 Scheduled for ${scheduledStr} | Image: ${label}`);
-          schedulePrePostBurst(scheduledFor);
+          await ctx.reply(
+            `Post approved (${label}).\n\n` +
+            `📅 <b>Schedule on LinkedIn for: ${scheduledStr}</b>\n\n` +
+            `Use LinkedIn's native scheduler. Copy/paste content below.`,
+            { parse_mode: 'HTML' },
+          );
+          await updateDraftStatus(payload, `📅 Schedule for ${scheduledStr} | Image: ${label}`);
+
+          // Manual-posting flow: send the copy/paste reminder NOW (not at
+          // scheduledFor time), and mark the post as "published" with
+          // publishedAt = scheduledFor so the loopback reminder fires on
+          // the correct day.
+          const fullPost = getPendingPosts().find(p => p.id === payload) ?? post;
+          await sendPublishReminder(fullPost as any).catch(err =>
+            console.error('[approve] Failed to send publish reminder:', err)
+          );
+          markPublished(payload, null, scheduledFor);
         }
 
         pendingResolutions.get(payload)?.('approved');
@@ -1260,6 +1329,65 @@ export function startBot(): void {
     const text = (ctx.message as any).text as string | undefined;
     if (!text) return;
 
+    // Check for Pipeline V2 editing sessions
+    if (!text.startsWith('/')) {
+      try {
+        const { getSession: getV2Session } = await import('../content/pipeline-v2.js');
+        // Find any session in editing mode (brute force — sessions are few)
+        const { getAllSessions } = await import('../content/pipeline-v2.js');
+        const sessions = getAllSessions();
+        for (const session of sessions) {
+          if ((session.step as string) === 'post_editing') {
+            const { injectMentionMarkers } = await import('../content/synthesize.js');
+            const { saveSession: saveV2Session } = await import('../content/pipeline-v2.js');
+            session.generatedContent = injectMentionMarkers(text);
+            session.step = 'post';
+            saveV2Session(session);
+            const cleanDisplay = session.generatedContent.replace(/\[\[MENTION:([^\]]+)\]\]/g, '<b>$1</b>');
+            await ctx.reply(
+              `📝 <b>Step 4: Review Post (edited)</b>\n\n` + cleanDisplay,
+              {
+                parse_mode: 'HTML',
+                reply_markup: {
+                  inline_keyboard: [
+                    [{ text: '✅ Approve text', callback_data: `pv2_post_approve:${session.id}` }, { text: '✏ Edit', callback_data: `pv2_post_edit:${session.id}` }],
+                    [{ text: '🔄 Rewrite', callback_data: `pv2_post_rewrite:${session.id}` }, { text: '❌ Reject', callback_data: `pv2_post_reject:${session.id}` }, { text: '✖ Cancel', callback_data: `pv2_exit:${session.id}` }],
+                  ],
+                },
+              },
+            );
+            return;
+          }
+          if ((session.step as string) === 'comments_editing') {
+            const { saveSession: saveV2Session } = await import('../content/pipeline-v2.js');
+            const parts = text.split(/\n*---\n*/);
+            const firstComment = parts[0]?.trim() ?? '';
+            const loopbackComment = parts[1]?.trim() ?? '';
+            session.firstComment = firstComment;
+            session.loopbackComment = loopbackComment;
+            session.step = 'comments';
+            saveV2Session(session);
+            await ctx.reply(
+              `💬 <b>Step 5: Review Comments (edited)</b>\n\n` +
+              `<b>First comment:</b>\n${esc(firstComment)}\n\n---\n\n` +
+              `<b>Loopback comment:</b>\n${esc(loopbackComment)}`,
+              {
+                parse_mode: 'HTML',
+                reply_markup: {
+                  inline_keyboard: [
+                    [{ text: '✅ Accept', callback_data: `pv2_comm_approve:${session.id}` }, { text: '✏ Edit', callback_data: `pv2_comm_edit:${session.id}` }],
+                    [{ text: '🔄 Rewrite 1st', callback_data: `pv2_comm_regen_first:${session.id}` }, { text: '🔄 Rewrite loop', callback_data: `pv2_comm_regen_loop:${session.id}` }],
+                    [{ text: '✖ Exit', callback_data: `pv2_exit:${session.id}` }],
+                  ],
+                },
+              },
+            );
+            return;
+          }
+        }
+      } catch { /* no active V2 sessions */ }
+    }
+
     // Check for pending edit — user replied with corrected post text
     const chatIdStr = String(ctx.chat?.id);
     const editPostId = pendingEdits.get(chatIdStr);
@@ -1445,6 +1573,215 @@ export async function sendPhotoBuffer(photo: Buffer, caption?: string): Promise<
   }
   const sender = new Telegraf(token);
   await sender.telegram.sendPhoto(chatId, { source: photo }, caption ? { caption } : {});
+}
+
+/**
+ * Start the image selection flow for a pending post: generates an AI image,
+ * fetches og:image and stock photo options, sends previews to Telegram, and
+ * presents an inline keyboard for the user to pick. Used by both the
+ * `approve` callback and the V2 pipeline's step 6→7 handoff.
+ */
+export async function startImageSelection(postId: string): Promise<void> {
+  const post = getPendingPosts().find(p => p.id === postId);
+  if (!post || !token || !chatId) return;
+  await updateDraftStatus(postId, '✅ Text approved — selecting image...');
+
+  const sender = new Telegraf(token);
+
+  // Generate AI image (non-fatal)
+  let generatedImagePath: string | null = null;
+  try {
+    const { generateImage } = await import('../content/generate-image.js');
+    const postType = (post.draft.postType ?? 'bridge') as any;
+    const cleanContent = post.finalContent.replace(/\[\[MENTION:[^\]]+\]\]/g, (m: string) => m.replace(/\[\[MENTION:|\]\]/g, ''));
+    generatedImagePath = await generateImage(cleanContent, postType);
+    if (generatedImagePath) setGeneratedImagePath(postId, generatedImagePath);
+  } catch (err: any) {
+    console.warn('Image generation failed (non-fatal):', err?.message ?? err);
+  }
+
+  // Send og:image preview if available and reachable
+  let hasOgImage = false;
+  if (post.draft.imageUrl) {
+    try {
+      const headRes = await fetch(post.draft.imageUrl, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
+      const contentType = headRes.headers.get('content-type') ?? '';
+      if (headRes.ok && contentType.startsWith('image/')) {
+        await sender.telegram.sendPhoto(chatId, post.draft.imageUrl, { caption: 'Article image (og:image)' });
+        hasOgImage = true;
+      } else {
+        console.log(`[og:image] Skipped — HEAD returned ${headRes.status}, content-type: ${contentType}`);
+      }
+    } catch (err: any) {
+      console.log(`[og:image] Skipped — not reachable: ${err?.message ?? err}`);
+    }
+  }
+
+  // Send AI image preview if generated
+  const hasAiImage = !!generatedImagePath;
+  if (hasAiImage) {
+    try {
+      const { createReadStream } = await import('fs');
+      await sender.telegram.sendPhoto(chatId, { source: createReadStream(generatedImagePath!) }, { caption: '🤖 AI-generated image' });
+    } catch (err: any) {
+      console.warn('Failed to send AI image to Telegram (non-fatal):', err?.message ?? err);
+    }
+  }
+
+  // Search for stock photos — up to 3 options (non-fatal)
+  let stockCount = 0;
+  try {
+    const { searchStockImages } = await import('../content/stock-image.js');
+    const cleanContent = post.finalContent.replace(/\[\[MENTION:[^\]]+\]\]/g, (m: string) => m.replace(/\[\[MENTION:|\]\]/g, ''));
+    const stockResults = await searchStockImages(cleanContent, 3);
+    if (stockResults.length > 0) {
+      const { setStockImage } = await import('./queue.js');
+      const allOptions = stockResults.map(s => ({ url: s.url, photographer: s.photographer, downloadUrl: s.downloadUrl, description: s.description }));
+      setStockImage(postId, stockResults[0].url, stockResults[0].photographer, stockResults[0].downloadUrl, allOptions);
+      for (let i = 0; i < stockResults.length; i++) {
+        try {
+          await sender.telegram.sendPhoto(chatId, stockResults[i].url, {
+            caption: `📸 Stock ${i + 1} — "${stockResults[i].description.slice(0, 80)}" by ${stockResults[i].photographer} (Unsplash)`,
+          });
+          stockCount++;
+        } catch (err: any) {
+          console.warn(`Failed to send stock image ${i + 1} to Telegram (non-fatal):`, err?.message ?? err);
+        }
+      }
+    }
+  } catch (err: any) {
+    console.warn('Stock image search failed (non-fatal):', err?.message ?? err);
+  }
+
+  // Build keyboard
+  const stockButtons: Array<Array<{ text: string; callback_data: string }>> = [];
+  for (let i = 0; i < stockCount; i++) {
+    stockButtons.push([{ text: `📸 Stock photo ${i + 1}`, callback_data: `img_stock:${postId}:${i}` }]);
+  }
+  const imgKeyboard = [
+    ...(hasOgImage ? [[{ text: '🖼 Use article image', callback_data: `img_og:${postId}` }]] : []),
+    ...(hasAiImage ? [[{ text: '🤖 Use AI image', callback_data: `img_ai:${postId}` }]] : []),
+    ...stockButtons,
+    [{ text: '📷 Upload your own', callback_data: `img_upload:${postId}` }],
+    [{ text: '🚫 No image', callback_data: `img_none:${postId}` }],
+    [{ text: '🗑 Cancel', callback_data: `cancel:${postId}` }],
+  ];
+
+  await sender.telegram.sendMessage(chatId, 'Text approved. Choose an image option:', {
+    reply_markup: { inline_keyboard: imgKeyboard },
+  });
+}
+
+/**
+ * Send a copy-paste-ready publish reminder for a post. Sends:
+ *   1) the chosen image (if any) with a brief caption
+ *   2) a separate message with post text, first comment, and loopback in
+ *      <pre> code blocks (Telegram shows a copy button on these)
+ * Used by the per-minute publish cron in place of automated posting.
+ */
+export async function sendPublishReminder(post: {
+  id: string;
+  draft: { sourceTitle?: string; postType?: string; firstComment?: string; loopbackComment?: string;
+           generatedImagePath?: string; stockImageUrl?: string; imageUrl?: string };
+  finalContent: string;
+  imageChoice?: string;
+}): Promise<void> {
+  if (!token || !chatId) {
+    console.log(`[REMINDER] Publish ${post.id}: ${post.finalContent.slice(0, 80)}...`);
+    return;
+  }
+  const sender = new Telegraf(token);
+
+  // 1) Send the chosen image (if any)
+  try {
+    if ((post.imageChoice === 'ai' || post.imageChoice === 'custom') && post.draft.generatedImagePath) {
+      const fs = await import('fs');
+      if (fs.existsSync(post.draft.generatedImagePath)) {
+        await sender.telegram.sendPhoto(chatId, { source: post.draft.generatedImagePath }, {
+          caption: `📤 Time to publish on LinkedIn — ${post.draft.postType ?? 'post'}`,
+        });
+      }
+    } else if (post.imageChoice === 'stock' && post.draft.stockImageUrl) {
+      await sender.telegram.sendPhoto(chatId, post.draft.stockImageUrl, {
+        caption: `📤 Time to publish on LinkedIn — ${post.draft.postType ?? 'post'}`,
+      });
+    } else if (post.imageChoice === 'og' && post.draft.imageUrl) {
+      await sender.telegram.sendPhoto(chatId, post.draft.imageUrl, {
+        caption: `📤 Time to publish on LinkedIn — ${post.draft.postType ?? 'post'}`,
+      });
+    }
+  } catch (err) {
+    console.warn(`[reminder] Failed to send image: ${(err as Error).message}`);
+  }
+
+  // 2) Build the copy-paste message body. Use <pre> for monospace code
+  // blocks — Telegram shows a copy button on these. Strip [[MENTION:X]]
+  // markers since LinkedIn won't auto-link them; user types @ manually.
+  const stripMentions = (s: string) => s.replace(/\[\[MENTION:([^\]]+)\]\]/g, '@$1');
+  const post_body = stripMentions(post.finalContent ?? '');
+  const first_comment = stripMentions(post.draft.firstComment ?? '');
+  const loopback = stripMentions(post.draft.loopbackComment ?? '');
+
+  const lines: string[] = [];
+  if (!post.imageChoice || post.imageChoice === 'none') {
+    lines.push(`📤 <b>Time to publish on LinkedIn — ${esc(post.draft.postType ?? 'post')}</b>`);
+    lines.push('');
+  }
+  lines.push('<b>POST TEXT:</b>');
+  lines.push(`<pre>${esc(post_body)}</pre>`);
+  if (first_comment) {
+    lines.push('');
+    lines.push('<b>FIRST COMMENT</b> (paste as a reply once your post is live):');
+    lines.push(`<pre>${esc(first_comment)}</pre>`);
+  }
+  if (loopback) {
+    lines.push('');
+    lines.push('<b>LOOPBACK COMMENT</b> (save for tomorrow):');
+    lines.push(`<pre>${esc(loopback)}</pre>`);
+  }
+
+  const body = lines.join('\n');
+  // Telegram message limit is 4096 chars. If we exceed, split.
+  if (body.length <= 4000) {
+    await sender.telegram.sendMessage(chatId, body, { parse_mode: 'HTML' });
+  } else {
+    // Split: post text first, then comments
+    const head = lines.slice(0, lines.findIndex(l => l.includes('FIRST COMMENT'))).join('\n');
+    const tail = lines.slice(lines.findIndex(l => l.includes('FIRST COMMENT'))).join('\n');
+    await sender.telegram.sendMessage(chatId, head, { parse_mode: 'HTML' });
+    await sender.telegram.sendMessage(chatId, tail, { parse_mode: 'HTML' });
+  }
+}
+
+/**
+ * Send a copy-paste-ready loopback reminder for a post published yesterday.
+ * No comment scraping — user manually checks for external comments and
+ * decides whether to paste the loopback or skip.
+ */
+export async function sendLoopbackReminder(post: {
+  id: string;
+  draft: { sourceTitle?: string; postType?: string; loopbackComment?: string };
+  linkedInPostUrl?: string;
+}): Promise<void> {
+  if (!token || !chatId || !post.draft.loopbackComment) return;
+  const sender = new Telegraf(token);
+
+  const loopback = post.draft.loopbackComment.replace(/\[\[MENTION:([^\]]+)\]\]/g, '@$1');
+  const title = post.draft.sourceTitle ?? 'Yesterday\'s post';
+  const lines: string[] = [
+    '🔁 <b>Loopback reminder</b>',
+    '',
+    `Check yesterday's <i>${esc(title.slice(0, 60))}</i>${title.length > 60 ? '…' : ''} on LinkedIn.`,
+    'If <b>no external comments</b>, paste this as a reply:',
+    '',
+    `<pre>${esc(loopback)}</pre>`,
+    '',
+    '<i>If there are already external comments, skip — the loopback isn\'t needed.</i>',
+  ];
+  if (post.linkedInPostUrl) {
+    lines.push('', post.linkedInPostUrl);
+  }
+  await sender.telegram.sendMessage(chatId, lines.join('\n'), { parse_mode: 'HTML' });
 }
 
 export async function unpinReport(): Promise<void> {

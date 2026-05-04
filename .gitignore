@@ -11,3 +11,16 @@ comment_state.json
 outbound_state.json
 daily_notes.json
 generated_images/
+debug_screenshots/
+voyager_samples/
+candidates_v2.json
+pipeline_sessions.json
+pause_state.json
+generated_reports/
+image-test-preview.html
+run-generate.ts
+run-midnight.ts
+test-parse.ts
+test-report.ts
+test-report.pdf
+.claude/

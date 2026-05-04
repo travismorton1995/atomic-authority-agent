@@ -22,7 +22,7 @@ export interface PendingPost {
   imageChoice?: 'ai' | 'og' | 'none' | 'custom' | 'stock'; // which image to use when posting
   wordCount?: number;        // word count of final post content
   // Loopback comment — posted next morning if no external comments
-  loopbackStatus?: 'pending' | 'scheduled' | 'posted' | 'skipped';
+  loopbackStatus?: 'pending' | 'scheduled' | 'posted' | 'skipped' | 'reminder_sent';
   loopbackScheduledFor?: string; // ISO timestamp with jitter (9:30am-12pm ET)
 }
 
@@ -164,8 +164,8 @@ export function getPostsDueForPublishing(): PendingPost[] {
   );
 }
 
-export function markPublished(id: string, linkedInPostUrl?: string | null): PendingPost | null {
-  const publishedAt = new Date().toISOString();
+export function markPublished(id: string, linkedInPostUrl?: string | null, publishedAtOverride?: string): PendingPost | null {
+  const publishedAt = publishedAtOverride ?? new Date().toISOString();
 
   const posts = readFile<PendingPost[]>(PENDING_FILE, []);
   const post = posts.find(p => p.id === id);

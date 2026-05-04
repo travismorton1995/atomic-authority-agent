@@ -18,6 +18,7 @@ export interface RankedItem {
   score: number;        // computed: intersection + novelty + geography + npx
   breakdown: ScoreBreakdown;
   reasoning: string;
+  synopsis: string;     // 1-2 sentence plain-language summary of what the article is about
   suggestedPostType: string; // kept for backward compat — best type from typeFit × weight
   typeFit: TypeFitScores;    // how well this article fits each post type (0–10)
   suggestedTags: ContentTag[];
@@ -71,6 +72,7 @@ Respond ONLY with a valid JSON array — no markdown, no extra text before or af
     "geography": <0-2>,
     "npx": <0-1>,
     "reasoning": "<one sentence explaining the intersection score>",
+    "synopsis": "<1-2 sentence plain-language summary of what the article is about — what happened, who is involved, and why it matters>",
     "typeFit": { "bridge": <0-10>, "contrarian": <0-10>, "change-management": <0-10>, "explainer": <0-10>, "myth-busting": <0-10>, "prediction": <0-10>, "hot-take": <0-10> },
     "suggestedTags": ["<tag1>", "<tag2>"]
   }
@@ -138,6 +140,7 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
       geography: number;
       npx: number;
       reasoning: string;
+      synopsis?: string;
       typeFit?: Record<string, number>;
       suggestedPostType?: string; // legacy fallback
       suggestedTags?: string[];
@@ -172,6 +175,7 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
         score: s ? score : 1,
         breakdown,
         reasoning: s?.reasoning ?? 'No reasoning provided',
+        synopsis: s?.synopsis ?? item.summary?.slice(0, 200) ?? '',
         suggestedPostType,
         typeFit,
         suggestedTags: (s?.suggestedTags ?? []).filter((t): t is ContentTag => (CONTENT_TAGS as readonly string[]).includes(t)),
@@ -187,6 +191,7 @@ export async function rankItems(items: FeedItem[], context: RankContext): Promis
       score: 1,
       breakdown: { intersection: 0, novelty: 0, geography: 0, npx: 0 },
       reasoning: 'Ranker error — fallback score',
+      synopsis: item.summary?.slice(0, 200) ?? '',
       suggestedPostType: 'bridge',
       typeFit: defaultTypeFit,
       suggestedTags: [],

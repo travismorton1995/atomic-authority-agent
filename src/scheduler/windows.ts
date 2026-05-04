@@ -12,13 +12,11 @@ interface TimeWindow {
   endMinute: number;
 }
 
-// The 5 experimental time windows (Eastern time)
+// Manual posting flow: posts go live 3–5pm ET on Tue/Wed/Thu.
+// Single window — the bot recommends a time within it for the user to set
+// on LinkedIn's native scheduler.
 export const TIME_WINDOWS: TimeWindow[] = [
-  { label: '9-11am',  startHour: 9,  startMinute: 0, endHour: 11, endMinute: 0 },
-  { label: '11am-1pm', startHour: 11, startMinute: 0, endHour: 13, endMinute: 0 },
-  { label: '1-3pm',   startHour: 13, startMinute: 0, endHour: 15, endMinute: 0 },
   { label: '3-5pm',   startHour: 15, startMinute: 0, endHour: 17, endMinute: 0 },
-  { label: '5-7pm',   startHour: 17, startMinute: 0, endHour: 19, endMinute: 0 },
 ];
 
 // Days we post on (Tue/Wed/Thu)
