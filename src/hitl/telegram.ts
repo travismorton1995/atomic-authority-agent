@@ -1026,26 +1026,26 @@ export function startBot(): void {
       // --- Outbound comment flow ---
 
       if (action === 'oc_select') {
+        // Manual-posting flow: user has already pasted the comment into
+        // LinkedIn. Tapping "Used N" just records which option for cooldown
+        // tracking and analytics. No browser activity.
         const lastColon = payload.lastIndexOf(':');
         const commentId = payload.slice(0, lastColon);
         const optionIdx = parseInt(payload.slice(lastColon + 1)) as 1 | 2;
         const comment = getPendingComment(commentId);
         if (!comment) { await ctx.answerCbQuery('Comment not found.'); return; }
-        const selectedText = comment.commentOptions[optionIdx - 1];
+        if (comment.status === 'posted') { await ctx.answerCbQuery('Already marked posted.'); return; }
+        updateCommentStatus(commentId, {
+          status: 'posted',
+          selectedOption: optionIdx,
+          postedAt: new Date().toISOString(),
+        });
+        incrementDailyCount();
+        await ctx.answerCbQuery(`Logged as posted (option ${optionIdx})`);
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
         const selectedLabel = comment.commentLabels[optionIdx - 1] ?? `option ${optionIdx}`;
-        await ctx.answerCbQuery();
-        await ctx.editMessageText(
-          `📤 <b>Outbound preview</b> | <i>${esc(selectedLabel)}</i>\n\n"${esc(selectedText)}"`,
-          {
-            parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard: [[
-                { text: '✅ Post', callback_data: `oc_confirm:${commentId}:${optionIdx}` },
-                { text: '↩ Back', callback_data: `oc_back:${commentId}` },
-              ]],
-            },
-          },
-        );
+        await ctx.reply(`✅ Outbound comment logged for ${esc(comment.profileName)} (<i>${esc(selectedLabel)}</i>)`, { parse_mode: 'HTML' });
+        console.log(`[oc_select] Marked posted (manual paste) — ${comment.profileName} | option ${optionIdx}`);
       }
 
       if (action === 'oc_confirm') {
@@ -2127,10 +2127,9 @@ ${reasoningSection}
 function buildOutboundKeyboard(comment: PendingComment) {
   return {
     inline_keyboard: [[
-      { text: '1️⃣', callback_data: `oc_select:${comment.id}:1` },
-      { text: '2️⃣', callback_data: `oc_select:${comment.id}:2` },
-      { text: '⏭ Skip', callback_data: `oc_skip:${comment.id}` },
-      { text: '✖ Exit', callback_data: `oc_exit:${comment.id}` },
+      { text: '✅ Used 1', callback_data: `oc_select:${comment.id}:1` },
+      { text: '✅ Used 2', callback_data: `oc_select:${comment.id}:2` },
+      { text: '✖ Skipped', callback_data: `oc_skip:${comment.id}` },
     ]],
   };
 }
@@ -2138,19 +2137,35 @@ function buildOutboundKeyboard(comment: PendingComment) {
 function formatOutboundMessage(comment: PendingComment): string {
   const ageLabel = comment.postAgeHours !== null && comment.postAgeHours !== undefined
     ? `${comment.postAgeHours.toFixed(1)}h ago`
-    : 'unknown age';
+    : '';
   const goldenWindow = comment.postAgeHours !== null && comment.postAgeHours !== undefined && comment.postAgeHours < 2;
-  const summarySection = comment.postSummary ? `\n<b>Post:</b> <i>${esc(comment.postSummary)}</i>\n` : '';
-  const whySection = comment.reasoning ? `\n<b>Why:</b> <i>${esc(comment.reasoning)}</i>\n` : '';
+  // Strip [[MENTION:X]] markers — user pastes plain text directly
+  const stripMentions = (s: string) => (s ?? '').replace(/\[\[MENTION:([^\]]+)\]\]/g, '@$1');
+  const opt1 = stripMentions(comment.commentOptions[0]);
+  const opt2 = stripMentions(comment.commentOptions[1]);
 
-  return `📤 <b>Outbound comment</b> | ${esc(comment.profileName)} | <i>${ageLabel}${goldenWindow ? ' ⚡' : ''}</i>
-${comment.postUrl}
-<i>"${esc(comment.postSnippet)}…"</i>
-${summarySection}${whySection}
-<b>Comment options:</b>
-1. ⭐ <i>${esc(comment.commentLabels[0])}:</i> ${esc(comment.commentOptions[0])}${comment.recommendationReason ? `\n   <i>↳ ${esc(comment.recommendationReason)}</i>` : ''}
-
-2. <i>${esc(comment.commentLabels[1])}:</i> ${esc(comment.commentOptions[1])}`;
+  const lines: string[] = [];
+  lines.push(`📤 <b>Outbound comment</b> | ${esc(comment.profileName)}${ageLabel ? ` | <i>${ageLabel}${goldenWindow ? ' ⚡' : ''}</i>` : ''}`);
+  lines.push(comment.postUrl);
+  lines.push('');
+  lines.push(`<i>"${esc(comment.postSnippet)}…"</i>`);
+  if (comment.postSummary) {
+    lines.push('');
+    lines.push(`<b>Post:</b> <i>${esc(comment.postSummary)}</i>`);
+  }
+  if (comment.reasoning) {
+    lines.push(`<b>Why:</b> <i>${esc(comment.reasoning)}</i>`);
+  }
+  lines.push('');
+  lines.push(`<b>⭐ Option 1</b> — <i>${esc(comment.commentLabels[0])}</i>`);
+  lines.push(`<pre>${esc(opt1)}</pre>`);
+  if (comment.recommendationReason) {
+    lines.push(`<i>↳ ${esc(comment.recommendationReason)}</i>`);
+  }
+  lines.push('');
+  lines.push(`<b>Option 2</b> — <i>${esc(comment.commentLabels[1])}</i>`);
+  lines.push(`<pre>${esc(opt2)}</pre>`);
+  return lines.join('\n');
 }
 
 export async function notifyOutboundComment(comment: PendingComment): Promise<void> {
