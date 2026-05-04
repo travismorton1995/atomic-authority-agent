@@ -78,29 +78,27 @@ function pickLoopbackTime(dateET: string): string {
  * schedule it for 9:30am-12pm ET.
  */
 export async function checkLoopbackEligibility(): Promise<void> {
-  // Manual-posting flow: no longer scrapes comments. Sends a Telegram
-  // reminder for any post published yesterday that has a loopback comment.
-  // User checks LinkedIn for external comments and decides whether to paste.
+  // Manual-posting flow: no comment scraping. Sends a Telegram reminder
+  // for any post that's at least 18 hours old, at most 7 days old, has a
+  // loopback comment, and hasn't been reminded yet. The wide window lets
+  // missed 9am cron ticks be caught up when the scheduler comes back online.
   const history = loadHistory();
 
-  const now = new Date();
-  const yesterdayStart = new Date(now);
-  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-  yesterdayStart.setHours(0, 0, 0, 0);
-  const yesterdayEnd = new Date(yesterdayStart);
-  yesterdayEnd.setDate(yesterdayEnd.getDate() + 1);
+  const now = Date.now();
+  const MIN_AGE_MS = 18 * 60 * 60 * 1000;     // at least 18h since publish
+  const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // at most 7 days — older is stale
 
-  const candidates = history.filter(p =>
-    p.status === 'published' &&
-    p.publishedAt &&
-    p.draft?.loopbackComment &&
-    (!p.loopbackStatus || p.loopbackStatus === 'pending') &&
-    new Date(p.publishedAt) >= yesterdayStart &&
-    new Date(p.publishedAt) < yesterdayEnd
-  );
+  const candidates = history.filter(p => {
+    if (p.status !== 'published') return false;
+    if (!p.publishedAt) return false;
+    if (!p.draft?.loopbackComment) return false;
+    if (p.loopbackStatus && p.loopbackStatus !== 'pending') return false;
+    const ageMs = now - new Date(p.publishedAt).getTime();
+    return ageMs >= MIN_AGE_MS && ageMs <= MAX_AGE_MS;
+  });
 
   if (candidates.length === 0) {
-    console.log('[loopback] No eligible posts from yesterday.');
+    console.log('[loopback] No eligible posts (no published-yesterday-or-recent posts pending loopback reminder).');
     return;
   }
 

@@ -163,6 +163,20 @@ async function publishDuePosts() {
 console.log('Atomic Authority scheduler starting...');
 startBot();
 rehydrateBurstTimer();
+
+// Startup catch-up: if the scheduler was offline through a 9am loopback
+// tick, fire any pending loopback reminders now. The first-comment cron's
+// 24h window naturally catches up missed first-comment reminders on the
+// next per-minute tick. Delayed 5s so the bot is fully initialized.
+setTimeout(async () => {
+  try {
+    const { checkLoopbackEligibility } = await import('./loopback.js');
+    await checkLoopbackEligibility();
+    console.log('[startup] Loopback catch-up complete.');
+  } catch (err) {
+    console.error(`[startup] Loopback catch-up failed: ${(err as Error).message}`);
+  }
+}, 5_000);
 setOnRejectHandler(runGenerate);
 setOnGenerateHandler(runGenerate);
 setOnPollHandler(async () => {
@@ -256,10 +270,12 @@ cron.schedule('* * * * *', async () => {
       if (!post.draft?.firstComment) continue;
       if (!post.publishedAt) continue;
       const publishedMs = new Date(post.publishedAt).getTime();
-      // Fire if publishedAt was ≥ 1 min ago AND ≤ 10 min ago — protects
-      // against firing for old posts that pre-date this feature.
+      // Fire 1 min after the scheduled publish time. Wide upper bound (24h)
+      // catches up any missed reminders if the scheduler was offline.
+      // Older posts are filtered by the firstCommentReminderSent flag and
+      // by the 24h ceiling.
       const ageMs = now - publishedMs;
-      if (ageMs < 60_000 || ageMs > 10 * 60_000) continue;
+      if (ageMs < 60_000 || ageMs > 24 * 60 * 60 * 1000) continue;
 
       const { sendFirstCommentReminder } = await import('../hitl/telegram.js');
       await sendFirstCommentReminder(post).catch(err =>
