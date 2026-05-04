@@ -234,11 +234,11 @@ cron.schedule('45 16 * * 1,2,3,4,5', async () => {
   }
 }, { timezone: 'America/Toronto' });
 
-// Poll every minute for posts due — sends a copy/paste reminder to Telegram.
-// User publishes manually on LinkedIn (no Playwright posting).
-cron.schedule('* * * * *', async () => {
-  await publishDuePosts();
-}, { timezone: 'America/Toronto' });
+// publishDuePosts cron disabled. The copy/paste publish reminder is now
+// sent immediately when the user finishes the V2 pipeline (in the image-
+// selection callback), and the user confirms by tapping "Scheduled" on
+// that message. There's nothing left for a per-minute cron to do.
+// publishDuePosts() function retained for the /post-now CLI fallback.
 
 // Loopback eligibility check at 9am ET — checks if yesterday's post needs a loopback comment
 cron.schedule('0 9 * * *', async () => {

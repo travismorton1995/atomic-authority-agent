@@ -806,12 +806,15 @@ export function startBot(): void {
           );
           await updateDraftStatus(payload, `📅 Schedule for ${scheduledStr} | Image: ${label}`);
 
-          // Manual-posting flow: send copy/paste reminder now
+          // Manual-posting flow: send copy/paste reminder with confirm/skip
+          // buttons. The post stays in 'approved' state until the user
+          // confirms it was actually scheduled on LinkedIn — only then
+          // is it logged as 'published' (and counted toward post-type
+          // distribution stats).
           const fullInsiderPost = getPendingPosts().find(p => p.id === payload) ?? post;
           await sendPublishReminder(fullInsiderPost as any).catch(err =>
             console.error('[approve insider] Failed to send publish reminder:', err)
           );
-          markPublished(payload, null, scheduledFor);
         } else {
           const scheduledFor = pickScheduledTime();
           const post = approvePost(payload, scheduledFor);
@@ -838,15 +841,14 @@ export function startBot(): void {
           );
           await updateDraftStatus(payload, `📅 Schedule for ${scheduledStr} | Image: ${label}`);
 
-          // Manual-posting flow: send the copy/paste reminder NOW (not at
-          // scheduledFor time), and mark the post as "published" with
-          // publishedAt = scheduledFor so the loopback reminder fires on
-          // the correct day.
+          // Manual-posting flow: send copy/paste reminder with confirm/skip
+          // buttons. The post stays in 'approved' state until the user
+          // confirms — only then is it logged as 'published' and counted
+          // toward post-type distribution.
           const fullPost = getPendingPosts().find(p => p.id === payload) ?? post;
           await sendPublishReminder(fullPost as any).catch(err =>
             console.error('[approve] Failed to send publish reminder:', err)
           );
-          markPublished(payload, null, scheduledFor);
         }
 
         pendingResolutions.get(payload)?.('approved');
@@ -919,6 +921,44 @@ export function startBot(): void {
         await ctx.reply('Post cancelled and removed.');
         pendingResolutions.get(payload)?.('cancelled');
         pendingResolutions.delete(payload);
+      }
+
+      // --- Manual-posting confirmation: user reports back whether they
+      // actually scheduled the post on LinkedIn. Only on confirmation
+      // does the post move to 'published' and count toward post-type
+      // distribution stats. ---
+
+      if (action === 'pub_confirm') {
+        // Find post in pending (it should be 'approved' status with scheduledFor set)
+        const allPending = JSON.parse(readFileSync('pending_posts.json', 'utf-8'));
+        const post = allPending.find((p: any) => p.id === payload);
+        if (!post) {
+          await ctx.answerCbQuery('Post not found — already confirmed?');
+          await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+          return;
+        }
+        if (!post.scheduledFor) {
+          await ctx.answerCbQuery('Post has no scheduled time — cannot confirm.');
+          return;
+        }
+        markPublished(payload, null, post.scheduledFor);
+        await ctx.answerCbQuery('Logged as published.');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        const scheduledStr = new Date(post.scheduledFor).toLocaleString('en-US', {
+          timeZone: 'America/Toronto',
+          weekday: 'short', month: 'short', day: 'numeric',
+          hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+        });
+        await ctx.reply(`✅ Logged as published for ${scheduledStr}. Loopback reminder will fire the morning after.`);
+        console.log(`[pub_confirm] Post ${payload} logged as published (scheduled for ${scheduledStr}).`);
+      }
+
+      if (action === 'pub_skip') {
+        const post = cancelPost(payload);
+        await ctx.answerCbQuery('Skipped.');
+        await ctx.editMessageReplyMarkup({ inline_keyboard: [] }).catch(() => {});
+        await ctx.reply('Skipped — post not logged. Post-type distribution stats unaffected.');
+        console.log(`[pub_skip] Post ${payload} skipped (cancelled, not counted).`);
       }
 
       // --- Comment reply flow ---
@@ -1745,12 +1785,27 @@ export async function sendPublishReminder(post: {
   if (body.length <= 4000) {
     await sender.telegram.sendMessage(chatId, body, { parse_mode: 'HTML' });
   } else {
-    // Split: post text first, then comments
     const head = lines.slice(0, lines.findIndex(l => l.includes('FIRST COMMENT'))).join('\n');
     const tail = lines.slice(lines.findIndex(l => l.includes('FIRST COMMENT'))).join('\n');
     await sender.telegram.sendMessage(chatId, head, { parse_mode: 'HTML' });
     await sender.telegram.sendMessage(chatId, tail, { parse_mode: 'HTML' });
   }
+
+  // Confirmation prompt — user taps Scheduled to log the post as published
+  // (and count it toward post-type distribution stats), or Skipped to drop
+  // it. The post stays in 'approved' state until one of these is tapped.
+  await sender.telegram.sendMessage(
+    chatId,
+    'Once you\'ve scheduled this on LinkedIn, confirm below:',
+    {
+      reply_markup: {
+        inline_keyboard: [[
+          { text: '✅ Scheduled', callback_data: `pub_confirm:${post.id}` },
+          { text: '❌ Skipped', callback_data: `pub_skip:${post.id}` },
+        ]],
+      },
+    },
+  );
 }
 
 /**
