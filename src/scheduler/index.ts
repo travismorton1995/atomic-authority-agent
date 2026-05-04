@@ -240,6 +240,41 @@ cron.schedule('45 16 * * 1,2,3,4,5', async () => {
 // that message. There's nothing left for a per-minute cron to do.
 // publishDuePosts() function retained for the /post-now CLI fallback.
 
+// First-comment reminder: ~1 minute after a post's scheduled publish time,
+// nudge the user to paste the first comment as a reply on their just-live
+// LinkedIn post. Fires once per post.
+cron.schedule('* * * * *', async () => {
+  try {
+    const HISTORY_FILE = 'posted_history.json';
+    if (!existsSync(HISTORY_FILE)) return;
+    const history: any[] = JSON.parse(readFileSync(HISTORY_FILE, 'utf-8'));
+    const now = Date.now();
+    let changed = false;
+    for (const post of history) {
+      if (post.status !== 'published') continue;
+      if (post.firstCommentReminderSent) continue;
+      if (!post.draft?.firstComment) continue;
+      if (!post.publishedAt) continue;
+      const publishedMs = new Date(post.publishedAt).getTime();
+      // Fire if publishedAt was ≥ 1 min ago AND ≤ 10 min ago — protects
+      // against firing for old posts that pre-date this feature.
+      const ageMs = now - publishedMs;
+      if (ageMs < 60_000 || ageMs > 10 * 60_000) continue;
+
+      const { sendFirstCommentReminder } = await import('../hitl/telegram.js');
+      await sendFirstCommentReminder(post).catch(err =>
+        console.error(`[first-comment] Failed to send for ${post.id}: ${(err as Error).message}`)
+      );
+      post.firstCommentReminderSent = true;
+      changed = true;
+      console.log(`[first-comment] Reminder sent for post ${post.id}`);
+    }
+    if (changed) writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2));
+  } catch (err) {
+    console.error(`[first-comment] Cron error: ${(err as Error).message}`);
+  }
+}, { timezone: 'America/Toronto' });
+
 // Loopback eligibility check at 9am ET — checks if yesterday's post needs a loopback comment
 cron.schedule('0 9 * * *', async () => {
   try {

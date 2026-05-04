@@ -1813,6 +1813,31 @@ export async function sendPublishReminder(post: {
  * No comment scraping — user manually checks for external comments and
  * decides whether to paste the loopback or skip.
  */
+/**
+ * Send a copy-paste-ready first-comment reminder, fired ~1 min after the
+ * post's scheduled publish time. The user pastes the first comment as a
+ * reply on their just-published LinkedIn post.
+ */
+export async function sendFirstCommentReminder(post: {
+  id: string;
+  draft: { sourceTitle?: string; postType?: string; firstComment?: string };
+}): Promise<void> {
+  if (!token || !chatId || !post.draft.firstComment) return;
+  const sender = new Telegraf(token);
+
+  const firstComment = post.draft.firstComment.replace(/\[\[MENTION:([^\]]+)\]\]/g, '@$1');
+  const title = post.draft.sourceTitle ?? 'Your post';
+  const lines: string[] = [
+    '💬 <b>First comment reminder</b>',
+    '',
+    `Your <i>${esc(title.slice(0, 60))}</i>${title.length > 60 ? '…' : ''} should be live on LinkedIn now.`,
+    'Paste this as the first reply:',
+    '',
+    `<pre>${esc(firstComment)}</pre>`,
+  ];
+  await sender.telegram.sendMessage(chatId, lines.join('\n'), { parse_mode: 'HTML' });
+}
+
 export async function sendLoopbackReminder(post: {
   id: string;
   draft: { sourceTitle?: string; postType?: string; loopbackComment?: string };

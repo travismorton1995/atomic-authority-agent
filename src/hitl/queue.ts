@@ -24,6 +24,7 @@ export interface PendingPost {
   // Loopback comment — posted next morning if no external comments
   loopbackStatus?: 'pending' | 'scheduled' | 'posted' | 'skipped' | 'reminder_sent';
   loopbackScheduledFor?: string; // ISO timestamp with jitter (9:30am-12pm ET)
+  firstCommentReminderSent?: boolean; // true once the ~1-min-after-publish reminder has fired
 }
 
 function readFile<T>(path: string, fallback: T): T {
