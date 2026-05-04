@@ -230,7 +230,21 @@ export async function generateTypeOptions(
     typeScores.push({ postType: type, fit, combinedScore: score });
   }
   typeScores.sort((a, b) => b.combinedScore - a.combinedScore);
-  const top3 = typeScores.slice(0, 3);
+
+  // Step 2's recommended type must match the suggestion shown in Step 1.
+  // The candidate already has a postType assigned by the ranker — put that
+  // first as the recommendation, and add the next 2 highest-scoring
+  // alternatives.
+  const candidateType = candidate.postType;
+  const candidateScore = typeScores.find(t => t.postType === candidateType);
+  let top3: typeof typeScores;
+  if (candidateScore) {
+    const others = typeScores.filter(t => t.postType !== candidateType).slice(0, 2);
+    top3 = [candidateScore, ...others];
+  } else {
+    // Candidate's type missing from POST_TYPE_WEIGHTS — fall back to top 3
+    top3 = typeScores.slice(0, 3);
+  }
 
   // Generate angle descriptions for the top 3 using LLM
   const Anthropic = (await import('@anthropic-ai/sdk')).default;
@@ -474,14 +488,18 @@ export async function generatePost(session: PipelineSession): Promise<string> {
     content = reInjectMentionMarkers(screening.revisedContent, markers);
   }
 
-  // Lock hook
+  // Lock hook. Always replace the first line with session.selectedHook
+  // (stripped of any wrapping quotes the LLM may have added) so the user's
+  // selected hook lands in the post verbatim.
   if (session.selectedHook) {
     const firstBreak = content.indexOf('\n\n');
     if (firstBreak > 0) {
-      const currentHook = content.slice(0, firstBreak);
-      if (currentHook !== session.selectedHook) {
-        content = session.selectedHook + content.slice(firstBreak);
-      }
+      // Strip leading/trailing straight, curly, or single quotes
+      const cleanHook = session.selectedHook
+        .trim()
+        .replace(/^["'“”‘’]+|["'“”‘’]+$/g, '')
+        .trim();
+      content = cleanHook + content.slice(firstBreak);
     }
   }
 
