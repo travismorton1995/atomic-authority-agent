@@ -1340,8 +1340,16 @@ export function startBot(): void {
           weekday: 'short', month: 'short', day: 'numeric',
           hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
         });
-        await ctx.reply(`📷 Photo saved. Insider post approved (custom image). Scheduled for ${scheduledStr}.`);
-        schedulePrePostBurst(scheduledFor);
+        await ctx.reply(
+          `📷 Photo saved. Insider post approved (custom image).\n\n` +
+          `📅 <b>Schedule on LinkedIn for: ${scheduledStr}</b>\n\n` +
+          `Use LinkedIn's native scheduler. Copy/paste content below.`,
+          { parse_mode: 'HTML' },
+        );
+        const fullInsiderPost = getPendingPosts().find(p => p.id === postId) ?? approved;
+        await sendPublishReminder(fullInsiderPost as any).catch(err =>
+          console.error('[img_upload insider] Failed to send publish reminder:', err)
+        );
       } else {
         const scheduledFor = pickScheduledTime();
         const approved = approvePost(postId, scheduledFor);
@@ -1351,8 +1359,16 @@ export function startBot(): void {
           weekday: 'short', month: 'short', day: 'numeric',
           hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
         });
-        await ctx.reply(`📷 Photo saved. Post approved (custom image). Scheduled for ${scheduledStr}.`);
-        schedulePrePostBurst(scheduledFor);
+        await ctx.reply(
+          `📷 Photo saved. Post approved (custom image).\n\n` +
+          `📅 <b>Schedule on LinkedIn for: ${scheduledStr}</b>\n\n` +
+          `Use LinkedIn's native scheduler. Copy/paste content below.`,
+          { parse_mode: 'HTML' },
+        );
+        const fullPost = getPendingPosts().find(p => p.id === postId) ?? approved;
+        await sendPublishReminder(fullPost as any).catch(err =>
+          console.error('[img_upload] Failed to send publish reminder:', err)
+        );
       }
 
       pendingResolutions.get(postId)?.('approved');
