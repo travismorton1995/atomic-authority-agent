@@ -1628,5 +1628,191 @@
       "newFollowers": 0
     },
     "loopbackScheduledFor": "2026-05-01T14:35:00.000Z"
+  },
+  {
+    "id": "post_1777907992226",
+    "draft": {
+      "content": "\"Mobile nuclear reactors and AI data centers, the combination nobody asked for is about to change energy infrastructure.\"\n\nA Chinese team just unveiled a 10-MW truck-mountable reactor prototype.\n\nThat's enough to power a medium-sized AI data center from a single truck bed.\n\nHere is my prediction: no Western regulator, not the NRC, not the CNSC, licenses a vehicle-mounted reactor at this scale before 2032. China will have one operational first, probably by 2029.\n\nThe licensing basis for mobile nuclear simply does not exist yet in North America.\n\nDeterministic safety analysis (the method regulators use to prove a reactor stays safe under worst-case scenarios) would need to be rebuilt from scratch for a unit that physically moves between sites.\n\nIf I'm wrong and a Western regulator clears one before 2032, licensing reform moved faster than anyone expected.\n\nIf I'm right, China sets the global standard for mobile nuclear, and the West spends the next decade catching up.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyPolicy",
+      "firstComment": "By 2030, will a Western country have a mobile reactor licensed? Drop your year prediction.",
+      "title": "AI Data Centers Nuclear Power",
+      "postType": "prediction",
+      "sourceTitle": "10-MW nuclear reactor on truck bed: Power bank for AI data centres",
+      "sourceUrl": "https://gulfnews.com/business/energy/10-mw-nuclear-reactor-on-truck-bed-power-bank-for-ai-data-centres-1.500526646",
+      "sourceDate": "2026-05-04T06:13:47.000Z",
+      "sourceFeed": "NewsData: Gulf News",
+      "generatedAt": "2026-05-04T15:14:23.928Z",
+      "imageUrl": "https://gumlet-images.assettype.com/gulfnews%2F2026-05-04%2Fe0uofm2l%2FTech-radar.jpg?w=1200&ar=40%3A21&auto=format%2Ccompress&ogImage=true&mode=crop&enlarge=true&overlay=false&overlay_position=bottom&overlay_width=100",
+      "wordCount": 162,
+      "screening": {
+        "cringeScore": 5,
+        "reasoning": "The hook is 91 chars, decent. But the second line uses the '[Entity] just [did thing]' pattern (bump +1). The contrasting reframe-adjacent structure in the if/then closing is fine since it's genuinely conditional, not a stylistic 'It's not X, it's Y' device. The scannability structure has problems: the long paragraph (starting 'Here is my prediction...') is well over 350 chars, which is a mandatory rewrite trigger (bump +2). The first comment is empty, which needs fixing. The phrase 'nobody asked for' feels slightly clickbaity but not egregiously so. Overall the content is substantive with a real prediction and a clear nuclear angle.",
+        "revisedContent": "Mobile nuclear reactors and AI data centers. The pairing nobody expected is about to reshape energy infrastructure.\n\nA Chinese team just unveiled a 10-MW truck-mountable reactor prototype.\n\nThat's enough to power a medium-sized AI data center from a single truck bed.\n\nHere is my prediction: no Western regulator, not the NRC, not the CNSC, licenses a vehicle-mounted reactor at this scale before 2032. China will have one operational first, probably by 2029.\n\nThe licensing basis for mobile nuclear simply does not exist yet in North America.\n\nDeterministic safety analysis (the method regulators use to prove a reactor stays safe under worst-case scenarios) would need to be rebuilt from scratch for a unit that physically moves between sites.\n\nIf I'm wrong and a Western regulator clears one before 2032, licensing reform moved faster than anyone expected.\n\nIf I'm right, China sets the global standard for mobile nuclear, and the West spends the next decade catching up.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyPolicy",
+        "revisedFirstComment": "By 2030, will a Western country have a mobile reactor licensed? Drop your year prediction."
+      },
+      "loopbackComment": "One detail worth flagging: Wu Yican's group is targeting maritime and space propulsion too, not just data centers. This moves the technology closer to a dual-use platform than a grid backup unit. Transport and nuclear safety regulations were largely not written with a running fission core in mind.\n\nHow does safeguards continuity work when the reactor crosses a border?",
+      "stockImageUrl": "https://images.unsplash.com/photo-1680992046626-418f7e910589?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBzZXJ2ZXIlMjByb29tJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzc3OTA3OTk0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Tyler",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/OnI_TNcIv9U/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBzZXJ2ZXIlMjByb29tJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzc3OTA3OTk0fDA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1680992046626-418f7e910589?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBzZXJ2ZXIlMjByb29tJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzc3OTA3OTk0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Tyler",
+          "downloadUrl": "https://api.unsplash.com/photos/OnI_TNcIv9U/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBzZXJ2ZXIlMjByb29tJTIwaW50ZXJpb3J8ZW58MXx8fHwxNzc3OTA3OTk0fDA",
+          "description": "a rack of electronic equipment in a dark room"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1632862378069-4ad0348cea4f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxUZWFtJTIwZW5naW5lZXJzJTIwcmV2aWV3aW5nJTIwYmx1ZXByaW50cyUyMHRvZ2V0aGVyfGVufDF8fHx8MTc3NzkwNzk5NXww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Nate Johnston",
+          "downloadUrl": "https://api.unsplash.com/photos/DowtEyavqsY/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxUZWFtJTIwZW5naW5lZXJzJTIwcmV2aWV3aW5nJTIwYmx1ZXByaW50cyUyMHRvZ2V0aGVyfGVufDF8fHx8MTc3NzkwNzk5NXww",
+          "description": "a group of men standing around a white sheet of paper"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1717117915754-02f161b861e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxUcnVjayUyMGRyaXZpbmclMjBlbXB0eSUyMGhpZ2h3YXklMjByb2FkfGVufDF8fHx8MTc3NzkwNzk5Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Alex Kolundzija",
+          "downloadUrl": "https://api.unsplash.com/photos/gtP2E_dkxUc/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxUcnVjayUyMGRyaXZpbmclMjBlbXB0eSUyMGhpZ2h3YXklMjByb2FkfGVufDF8fHx8MTc3NzkwNzk5Nnww",
+          "description": "a semi truck driving down a highway in the desert"
+        }
+      ]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook is 91 chars, decent. But the second line uses the '[Entity] just [did thing]' pattern (bump +1). The contrasting reframe-adjacent structure in the if/then closing is fine since it's genuinely conditional, not a stylistic 'It's not X, it's Y' device. The scannability structure has problems: the long paragraph (starting 'Here is my prediction...') is well over 350 chars, which is a mandatory rewrite trigger (bump +2). The first comment is empty, which needs fixing. The phrase 'nobody asked for' feels slightly clickbaity but not egregiously so. Overall the content is substantive with a real prediction and a clear nuclear angle.",
+      "revisedContent": "Mobile nuclear reactors and AI data centers. The pairing nobody expected is about to reshape energy infrastructure.\n\nA Chinese team just unveiled a 10-MW truck-mountable reactor prototype.\n\nThat's enough to power a medium-sized AI data center from a single truck bed.\n\nHere is my prediction: no Western regulator, not the NRC, not the CNSC, licenses a vehicle-mounted reactor at this scale before 2032. China will have one operational first, probably by 2029.\n\nThe licensing basis for mobile nuclear simply does not exist yet in North America.\n\nDeterministic safety analysis (the method regulators use to prove a reactor stays safe under worst-case scenarios) would need to be rebuilt from scratch for a unit that physically moves between sites.\n\nIf I'm wrong and a Western regulator clears one before 2032, licensing reform moved faster than anyone expected.\n\nIf I'm right, China sets the global standard for mobile nuclear, and the West spends the next decade catching up.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyPolicy",
+      "revisedFirstComment": "By 2030, will a Western country have a mobile reactor licensed? Drop your year prediction."
+    },
+    "finalContent": "\"Mobile nuclear reactors and AI data centers, the combination nobody asked for is about to change energy infrastructure.\"\n\nA Chinese team just unveiled a 10-MW truck-mountable reactor prototype.\n\nThat's enough to power a medium-sized AI data center from a single truck bed.\n\nHere is my prediction: no Western regulator, not the NRC, not the CNSC, licenses a vehicle-mounted reactor at this scale before 2032. China will have one operational first, probably by 2029.\n\nThe licensing basis for mobile nuclear simply does not exist yet in North America.\n\nDeterministic safety analysis (the method regulators use to prove a reactor stays safe under worst-case scenarios) would need to be rebuilt from scratch for a unit that physically moves between sites.\n\nIf I'm wrong and a Western regulator clears one before 2032, licensing reform moved faster than anyone expected.\n\nIf I'm right, China sets the global standard for mobile nuclear, and the West spends the next decade catching up.\n\n#NuclearEnergy #SMR #AIinEnergy #EnergyPolicy",
+    "status": "published",
+    "createdAt": "2026-05-04T15:19:52.226Z",
+    "wordCount": 159,
+    "imageChoice": "og",
+    "actedAt": "2026-05-04T15:20:14.456Z",
+    "scheduledFor": "2026-05-04T19:45:00.000Z",
+    "publishedAt": "2026-05-04T19:45:00.000Z",
+    "loopbackStatus": "reminder_sent",
+    "firstCommentReminderSent": true
+  },
+  {
+    "id": "post_1777937235878",
+    "draft": {
+      "content": "AI didn't replace the chemists at PNNL, it freed them to solve Hanford's waste problem. 56 million gallons at a time.\n\n56 million gallons of radioactive waste. Wildly variable chemistry.\n\nMachine learning models now optimize glass formulation recipes for vitrifying (converting into stable glass) that waste. Finding formulas that meet regulatory standards used to mean melting and testing hundreds of samples by hand.\n\nPNNL's ML models predict critical glass properties across chemical compositions, then use active learning to guide which experiments actually need to happen.\n\nResults: higher waste loading per container, shorter mission duration, lower operational risk.\n\nThe models, validated in the April 2025 Journal of Non-Crystalline Solids, reduced failure rates while increasing waste packed per vitrified container. As glass scientist Albert Kruger put it, AI should \"allow for the further expansion of flexibility to address the waste variability\" beyond traditional methods.\n\nThis earns trust in nuclear: auditable, experimentally validated, human-directed.\n\nResearchers built models, published validation data, and gave operators better tools. Proving AI in non-safety-critical optimization before expanding scope is exactly how AI earns its place in regulated environments.\n\nEven modest gains in waste loading compound over millions of gallons.\n\n#NuclearEnergy #AIinEnergy #MachineLearning #NuclearAI",
+      "firstComment": "What's the gnarliest chemistry problem you've seen someone brute-force when a smarter approach existed?",
+      "title": "AI Enhances Chemical Problem Solving",
+      "postType": "bridge",
+      "sourceTitle": "PNNL optimizes waste vitrification formulas with the help of AI",
+      "sourceUrl": "https://www.ans.org/news/2026-05-04/article-8001/pnnl-optimizes-waste-vitrification-formulas-with-the-help-of-ai/",
+      "sourceDate": "2026-05-04T20:27:28.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-05-04T23:20:48.762Z",
+      "imageUrl": "https://www.ans.org/file/24202/l/EED_4174_WEB_EM-GlassNews_GlassLab_GFCs_hero.jpg",
+      "wordCount": 198,
+      "screening": {
+        "cringeScore": 4,
+        "reasoning": "Strong hook under 140 chars with genuine tension. Good domain specificity (Hanford, vitrification, PNNL). However, there are structural violations: the 2:1 rhythm is broken with adjacent mini-paragraphs, and em dashes appear twice. The contrasting reframe 'The old approach was brute-force... The new models...' skirts close but doesn't use the flagged pattern. Some paragraphs fall outside the character bands.",
+        "revisedContent": "AI didn't replace the chemists at PNNL. It freed them to solve Hanford's waste problem.\n\n56 million gallons of radioactive waste. Wildly variable chemistry.\n\nMachine learning models now optimize glass formulation recipes for vitrifying (converting into stable glass) that waste. Finding formulas that meet regulatory standards used to mean melting and testing hundreds of samples by hand.\n\nPNNL's ML models predict critical glass properties across chemical compositions, then use active learning to guide which experiments actually need to happen.\n\nResults: higher waste loading per container, shorter mission duration, lower operational risk.\n\nThe models, validated in the April 2025 Journal of Non-Crystalline Solids, reduced failure rates while increasing waste packed per vitrified container. As glass scientist Albert Kruger put it, AI should \"allow for the further expansion of flexibility to address the waste variability\" beyond traditional methods.\n\nThis earns trust in nuclear: auditable, experimentally validated, human-directed.\n\nResearchers built models, published validation data, and gave operators better tools. Proving AI in non-safety-critical optimization before expanding scope is exactly how AI earns its place in regulated environments.\n\nEven modest gains in waste loading compound over millions of gallons.\n\n#NuclearEnergy #AIinEnergy #MachineLearning #NuclearAI",
+        "revisedFirstComment": "What's the gnarliest chemistry problem you've seen someone brute-force when a smarter approach existed?"
+      },
+      "loopbackComment": "The April 2025 paper specifically credits active learning for guiding experiments in high-dimensional, nonlinear LAW glass design. That phrase carries real weight.\n\nWhich waste streams are giving the WTP process control models the most trouble right now?",
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\custom_1777937458767.jpg",
+      "stockImageUrl": "https://images.unsplash.com/photo-1758685734180-7a2f63f0e41d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwZGVza3xlbnwxfHx8fDE3Nzc5Mzc0MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Vitaly Gariev",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/4mNmAl5PYj4/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwZGVza3xlbnwxfHx8fDE3Nzc5Mzc0MDR8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1758685734180-7a2f63f0e41d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwZGVza3xlbnwxfHx8fDE3Nzc5Mzc0MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Vitaly Gariev",
+          "downloadUrl": "https://api.unsplash.com/photos/4mNmAl5PYj4/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwZGVza3xlbnwxfHx8fDE3Nzc5Mzc0MDR8MA",
+          "description": "Scientist in lab coat working at desk with formulas."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1576670262660-05cf76d53da3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxTY2llbnRpc3RzJTIwY29sbGFib3JhdGluZyUyMGFyb3VuZCUyMG1pY3Jvc2NvcGV8ZW58MXx8fHwxNzc3OTM3NDA1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "National Cancer Institute",
+          "downloadUrl": "https://api.unsplash.com/photos/QuULxQOc1EI/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxTY2llbnRpc3RzJTIwY29sbGFib3JhdGluZyUyMGFyb3VuZCUyMG1pY3Jvc2NvcGV8ZW58MXx8fHwxNzc3OTM3NDA1fDA",
+          "description": "man using microscope"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1628292540844-611e95180096?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw2fHxNb2x0ZW4lMjBnbGFzcyUyMHBvdXJpbmclMjBsaWdodHxlbnwxfHx8fDE3Nzc5Mzc0MDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Hendrik T Tan",
+          "downloadUrl": "https://api.unsplash.com/photos/m2a__WaBvmc/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw2fHxNb2x0ZW4lMjBnbGFzcyUyMHBvdXJpbmclMjBsaWdodHxlbnwxfHx8fDE3Nzc5Mzc0MDd8MA",
+          "description": "3 green orange and blue glass bottles"
+        }
+      ]
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "Strong hook under 140 chars with genuine tension. Good domain specificity (Hanford, vitrification, PNNL). However, there are structural violations: the 2:1 rhythm is broken with adjacent mini-paragraphs, and em dashes appear twice. The contrasting reframe 'The old approach was brute-force... The new models...' skirts close but doesn't use the flagged pattern. Some paragraphs fall outside the character bands.",
+      "revisedContent": "AI didn't replace the chemists at PNNL. It freed them to solve Hanford's waste problem.\n\n56 million gallons of radioactive waste. Wildly variable chemistry.\n\nMachine learning models now optimize glass formulation recipes for vitrifying (converting into stable glass) that waste. Finding formulas that meet regulatory standards used to mean melting and testing hundreds of samples by hand.\n\nPNNL's ML models predict critical glass properties across chemical compositions, then use active learning to guide which experiments actually need to happen.\n\nResults: higher waste loading per container, shorter mission duration, lower operational risk.\n\nThe models, validated in the April 2025 Journal of Non-Crystalline Solids, reduced failure rates while increasing waste packed per vitrified container. As glass scientist Albert Kruger put it, AI should \"allow for the further expansion of flexibility to address the waste variability\" beyond traditional methods.\n\nThis earns trust in nuclear: auditable, experimentally validated, human-directed.\n\nResearchers built models, published validation data, and gave operators better tools. Proving AI in non-safety-critical optimization before expanding scope is exactly how AI earns its place in regulated environments.\n\nEven modest gains in waste loading compound over millions of gallons.\n\n#NuclearEnergy #AIinEnergy #MachineLearning #NuclearAI",
+      "revisedFirstComment": "What's the gnarliest chemistry problem you've seen someone brute-force when a smarter approach existed?"
+    },
+    "finalContent": "AI didn't replace the chemists at PNNL, it freed them to solve Hanford's waste problem. 56 million gallons at a time.\n\n56 million gallons of radioactive waste. Wildly variable chemistry.\n\nMachine learning models now optimize glass formulation recipes for vitrifying (converting into stable glass) that waste. Finding formulas that meet regulatory standards used to mean melting and testing hundreds of samples by hand.\n\nPNNL's ML models predict critical glass properties across chemical compositions, then use active learning to guide which experiments actually need to happen.\n\nResults: higher waste loading per container, shorter mission duration, lower operational risk.\n\nThe models, validated in the April 2025 Journal of Non-Crystalline Solids, reduced failure rates while increasing waste packed per vitrified container. As glass scientist Albert Kruger put it, AI should \"allow for the further expansion of flexibility to address the waste variability\" beyond traditional methods.\n\nThis earns trust in nuclear: auditable, experimentally validated, human-directed.\n\nResearchers built models, published validation data, and gave operators better tools. Proving AI in non-safety-critical optimization before expanding scope is exactly how AI earns its place in regulated environments.\n\nEven modest gains in waste loading compound over millions of gallons.\n\n#NuclearEnergy #AIinEnergy #MachineLearning #NuclearAI",
+    "status": "published",
+    "createdAt": "2026-05-04T23:27:15.878Z",
+    "wordCount": 189,
+    "imageChoice": "custom",
+    "actedAt": "2026-05-04T23:30:58.791Z",
+    "scheduledFor": "2026-05-05T19:01:00.000Z",
+    "publishedAt": "2026-05-05T19:01:00.000Z",
+    "loopbackStatus": "reminder_sent",
+    "firstCommentReminderSent": true
+  },
+  {
+    "id": "post_1778024876748",
+    "draft": {
+      "content": "GE Vernova + Blue Energy are building Texas's first gas-nuclear hybrid. Here's why AI data centers demanded it.\n\n[[MENTION:GE Vernova]] and Blue Energy are building it.\n\nGas turbines deliver roughly 1 GW by 2030 to energize the site early. Then Blue Energy's resequencing model kicks in: start nonnuclear construction while the BWRX-300 (a 300 MW small modular reactor from GE Hitachi) completes NRC licensing. When ready, the steam supply switches over, ramping to roughly 1.5 GW of nuclear power by 2032.\n\nAI data center load is growing faster than any single generation technology can serve alone.\n\n48 months to first power under Blue Energy's model.\n\nThat beats the conventional nuclear timeline by at least five years, according to Blue Energy. For an AI campus waiting on reliable baseload, that gap is the difference between operational and stranded.\n\nThe construction process itself is a complex coordination problem: off-site prefabrication of large reactor modules, parallel gas and nuclear build schedules on one site, simultaneous NRC licensing and turbine procurement. AI-driven project management tools already add value to exactly these kinds of logistics challenges.\n\nFinal investment decision is expected in 2027.\n\nNRC construction permit application targets the same year.\n\nTexas keeps stacking bets on nuclear. The execution risk is real, but the demand signal from AI infrastructure is not slowing down.\n\n#NuclearEnergy #SMR #AIinEnergy #NuclearAI",
+      "firstComment": "Would you bet on this hitting 2032, or does it slip to 2035+? Drop your prediction.",
+      "title": "Texas Nuclear Hybrid for AI",
+      "postType": "bridge",
+      "sourceTitle": "Blue Energy, GE Vernova plan “gas-plus-nuclear” power plant in Texas",
+      "sourceUrl": "https://www.ans.org/news/2026-05-05/article-8005/blue-energy-ge-vernova-plan-gasplusnuclear-power-plant-in-texas/",
+      "sourceDate": "2026-05-05T21:39:40.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-05-05T23:44:22.812Z",
+      "wordCount": 228,
+      "screening": {
+        "cringeScore": 5,
+        "reasoning": "Hook is decent but follows the '[Entity] + [Entity] are doing [thing]' pattern, which is close to the '[Entity] just...' formula. The contrasting reframe 'The real AI bridge isn't just the data center these reactors will feed. It's the construction itself.' is an automatic rewrite trigger. Several paragraphs violate the 2:1 scannability structure (adjacent mini-paragraphs, paragraphs outside allowed character ranges). 'BWRX-300' is used without explanation. The post is generally substantive and well-informed, but needs structural cleanup and the reframe elimination.",
+        "revisedContent": "Texas is getting a gas-nuclear hybrid, and AI load growth is the reason.\n\nGE Vernova and Blue Energy are building it.\n\nGas turbines deliver roughly 1 GW by 2030 to energize the site early. Then Blue Energy's resequencing model kicks in: start nonnuclear construction while the BWRX-300 (a 300 MW small modular reactor from GE Hitachi) completes NRC licensing. When ready, the steam supply switches over, ramping to roughly 1.5 GW of nuclear power by 2032.\n\nAI data center load is growing faster than any single generation technology can serve alone.\n\n48 months to first power under Blue Energy's model.\n\nThat beats the conventional nuclear timeline by at least five years, according to Blue Energy. For an AI campus waiting on reliable baseload, that gap is the difference between operational and stranded.\n\nThe construction process itself is a complex coordination problem: off-site prefabrication of large reactor modules, parallel gas and nuclear build schedules on one site, simultaneous NRC licensing and turbine procurement. AI-driven project management tools already add value to exactly these kinds of logistics challenges.\n\nFinal investment decision is expected in 2027.\n\nNRC construction permit application targets the same year.\n\nTexas keeps stacking bets on nuclear. The execution risk is real, but the demand signal from AI infrastructure is not slowing down.\n\n#NuclearEnergy #SMR #AIinEnergy #NuclearAI",
+        "revisedFirstComment": "Would you bet on this hitting 2032, or does it slip to 2035+? Drop your prediction."
+      },
+      "loopbackComment": "One detail worth flagging: the NRC already approved Blue Energy's licensing topical report on construction resequencing last December. That means the separation of safety-significant from non-safety-significant structures has regulatory precedent, not just a theory.\n\nDoes that topical report approval meaningfully de-risk the 2027 construction permit application, or does site-specific preliminary safety analysis work reset the clock anyway?",
+      "stockImageUrl": "https://images.unsplash.com/photo-1772376920691-3c454f7f80a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw4fHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwaW5kdXN0cmlhbCUyMGZhY2lsaXR5fGVufDF8fHx8MTc3ODAyNDg5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Energie-portal.sk",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/sasWu7mZ4ZA/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw4fHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwaW5kdXN0cmlhbCUyMGZhY2lsaXR5fGVufDF8fHx8MTc3ODAyNDg5M3ww",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1772376920691-3c454f7f80a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw4fHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwaW5kdXN0cmlhbCUyMGZhY2lsaXR5fGVufDF8fHx8MTc3ODAyNDg5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Energie-portal.sk",
+          "downloadUrl": "https://api.unsplash.com/photos/sasWu7mZ4ZA/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw4fHxNb2Rlcm4lMjBwb3dlciUyMHBsYW50JTIwaW5kdXN0cmlhbCUyMGZhY2lsaXR5fGVufDF8fHx8MTc3ODAyNDg5M3ww",
+          "description": "Industrial power plant with tall smokestack in distance"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1685720543547-cc4873188c75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxFbmdpbmVlcnMlMjBjb2xsYWJvcmF0aW5nJTIwYXQlMjBjb250cm9sJTIwcm9vbXxlbnwxfHx8fDE3NzgwMjQ4OTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Dmitrijs Safrans",
+          "downloadUrl": "https://api.unsplash.com/photos/2CakbXfm_gM/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxFbmdpbmVlcnMlMjBjb2xsYWJvcmF0aW5nJTIwYXQlMjBjb250cm9sJTIwcm9vbXxlbnwxfHx8fDE3NzgwMjQ4OTR8MA",
+          "description": "a control room filled with lots of electronic equipment"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1637094408647-0d81d08f81b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxIYW5kcyUyMGNvbm5lY3RpbmclMjBwdXp6bGUlMjBwaWVjZXMlMjB0b2dldGhlcnxlbnwxfHx8fDE3NzgwMjQ4OTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Vardan Papikyan",
+          "downloadUrl": "https://api.unsplash.com/photos/JzE1dHEaAew/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxIYW5kcyUyMGNvbm5lY3RpbmclMjBwdXp6bGUlMjBwaWVjZXMlMjB0b2dldGhlcnxlbnwxfHx8fDE3NzgwMjQ4OTR8MA",
+          "description": "a person holding two pieces of a puzzle"
+        }
+      ],
+      "generatedImagePath": "C:\\dev\\atomic-authority-agent\\generated_images\\custom_1778024919518.jpg"
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "Hook is decent but follows the '[Entity] + [Entity] are doing [thing]' pattern, which is close to the '[Entity] just...' formula. The contrasting reframe 'The real AI bridge isn't just the data center these reactors will feed. It's the construction itself.' is an automatic rewrite trigger. Several paragraphs violate the 2:1 scannability structure (adjacent mini-paragraphs, paragraphs outside allowed character ranges). 'BWRX-300' is used without explanation. The post is generally substantive and well-informed, but needs structural cleanup and the reframe elimination.",
+      "revisedContent": "Texas is getting a gas-nuclear hybrid, and AI load growth is the reason.\n\nGE Vernova and Blue Energy are building it.\n\nGas turbines deliver roughly 1 GW by 2030 to energize the site early. Then Blue Energy's resequencing model kicks in: start nonnuclear construction while the BWRX-300 (a 300 MW small modular reactor from GE Hitachi) completes NRC licensing. When ready, the steam supply switches over, ramping to roughly 1.5 GW of nuclear power by 2032.\n\nAI data center load is growing faster than any single generation technology can serve alone.\n\n48 months to first power under Blue Energy's model.\n\nThat beats the conventional nuclear timeline by at least five years, according to Blue Energy. For an AI campus waiting on reliable baseload, that gap is the difference between operational and stranded.\n\nThe construction process itself is a complex coordination problem: off-site prefabrication of large reactor modules, parallel gas and nuclear build schedules on one site, simultaneous NRC licensing and turbine procurement. AI-driven project management tools already add value to exactly these kinds of logistics challenges.\n\nFinal investment decision is expected in 2027.\n\nNRC construction permit application targets the same year.\n\nTexas keeps stacking bets on nuclear. The execution risk is real, but the demand signal from AI infrastructure is not slowing down.\n\n#NuclearEnergy #SMR #AIinEnergy #NuclearAI",
+      "revisedFirstComment": "Would you bet on this hitting 2032, or does it slip to 2035+? Drop your prediction."
+    },
+    "finalContent": "GE Vernova + Blue Energy are building Texas's first gas-nuclear hybrid. Here's why AI data centers demanded it.\n\n[[MENTION:GE Vernova]] and Blue Energy are building it.\n\nGas turbines deliver roughly 1 GW by 2030 to energize the site early. Then Blue Energy's resequencing model kicks in: start nonnuclear construction while the BWRX-300 (a 300 MW small modular reactor from GE Hitachi) completes NRC licensing. When ready, the steam supply switches over, ramping to roughly 1.5 GW of nuclear power by 2032.\n\nAI data center load is growing faster than any single generation technology can serve alone.\n\n48 months to first power under Blue Energy's model.\n\nThat beats the conventional nuclear timeline by at least five years, according to Blue Energy. For an AI campus waiting on reliable baseload, that gap is the difference between operational and stranded.\n\nThe construction process itself is a complex coordination problem: off-site prefabrication of large reactor modules, parallel gas and nuclear build schedules on one site, simultaneous NRC licensing and turbine procurement. AI-driven project management tools already add value to exactly these kinds of logistics challenges.\n\nFinal investment decision is expected in 2027.\n\nNRC construction permit application targets the same year.\n\nTexas keeps stacking bets on nuclear. The execution risk is real, but the demand signal from AI infrastructure is not slowing down.\n\n#NuclearEnergy #SMR #AIinEnergy #NuclearAI",
+    "status": "published",
+    "createdAt": "2026-05-05T23:47:56.748Z",
+    "wordCount": 217,
+    "imageChoice": "custom",
+    "actedAt": "2026-05-05T23:48:39.544Z",
+    "scheduledFor": "2026-05-06T19:42:00.000Z",
+    "publishedAt": "2026-05-06T19:42:00.000Z",
+    "loopbackStatus": "pending"
   }
 ]

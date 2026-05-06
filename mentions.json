@@ -451,12 +451,24 @@
     "searchTerm": "YouTube",
     "verified": true
   },
+  "Blue Energy": {
+    "searchTerm": "Blue Energy",
+    "verified": false
+  },
   "Chalk River Laboratories": {
     "searchTerm": "Chalk River Laboratories",
     "verified": false
   },
+  "GE Hitachi": {
+    "searchTerm": "GE Hitachi",
+    "verified": false
+  },
   "NORAD": {
     "searchTerm": "NORAD",
+    "verified": false
+  },
+  "PNNL": {
+    "searchTerm": "PNNL",
     "verified": false
   },
   "TRIGA": {
