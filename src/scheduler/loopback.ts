@@ -85,7 +85,10 @@ export async function checkLoopbackEligibility(): Promise<void> {
   const history = loadHistory();
 
   const now = Date.now();
-  const MIN_AGE_MS = 18 * 60 * 60 * 1000;     // at least 18h since publish
+  // Posts go live 3-5pm ET. Earliest = 3pm publish, 9am next-day check =
+  // 18h, but a 5pm publish + 9am check = only 16h. Use a 12h floor to
+  // safely catch the entire 3-5pm window on the morning-after cron.
+  const MIN_AGE_MS = 12 * 60 * 60 * 1000;
   const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // at most 7 days — older is stale
 
   const candidates = history.filter(p => {

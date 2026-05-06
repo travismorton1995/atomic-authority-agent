@@ -1857,17 +1857,28 @@ export async function sendFirstCommentReminder(post: {
 export async function sendLoopbackReminder(post: {
   id: string;
   draft: { sourceTitle?: string; postType?: string; loopbackComment?: string };
+  publishedAt?: string;
   linkedInPostUrl?: string;
 }): Promise<void> {
   if (!token || !chatId || !post.draft.loopbackComment) return;
   const sender = new Telegraf(token);
 
   const loopback = post.draft.loopbackComment.replace(/\[\[MENTION:([^\]]+)\]\]/g, '@$1');
-  const title = post.draft.sourceTitle ?? 'Yesterday\'s post';
+  const title = post.draft.sourceTitle ?? 'your post';
+  // Show the publish day explicitly — catch-up reminders may fire >24h
+  // after publish, in which case "yesterday's" would be misleading.
+  let dayLabel = 'your';
+  if (post.publishedAt) {
+    const ageMs = Date.now() - new Date(post.publishedAt).getTime();
+    const ageDays = ageMs / (24 * 60 * 60 * 1000);
+    if (ageDays < 1.5) dayLabel = 'yesterday\'s';
+    else if (ageDays < 2.5) dayLabel = '2 days ago\'s';
+    else dayLabel = `${Math.round(ageDays)} days ago's`;
+  }
   const lines: string[] = [
     '🔁 <b>Loopback reminder</b>',
     '',
-    `Check yesterday's <i>${esc(title.slice(0, 60))}</i>${title.length > 60 ? '…' : ''} on LinkedIn.`,
+    `Check ${dayLabel} <i>${esc(title.slice(0, 60))}</i>${title.length > 60 ? '…' : ''} on LinkedIn.`,
     'If <b>no external comments</b>, paste this as a reply:',
     '',
     `<pre>${esc(loopback)}</pre>`,
