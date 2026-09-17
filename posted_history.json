@@ -1813,6 +1813,132 @@
     "actedAt": "2026-05-05T23:48:39.544Z",
     "scheduledFor": "2026-05-06T19:42:00.000Z",
     "publishedAt": "2026-05-06T19:42:00.000Z",
-    "loopbackStatus": "pending"
+    "loopbackStatus": "reminder_sent",
+    "firstCommentReminderSent": true
+  },
+  {
+    "id": "post_1778165944096",
+    "draft": {
+      "content": "Ames National Laboratory's DuctGPT can screen thousands of material combinations in seconds. Fusion just got faster.\n\nHere's what makes this interesting for AI folks.\n\nFusion reactors need materials that survive extreme conditions. The dominant candidate for plasma-facing components is tungsten: great melting point, great strength, but brittle at low temperatures. That makes it hard to fabricate into complex reactor shapes.\n\nFinding better alloys used to require slow, expensive physical experiments. DuctGPT flips the search process.\n\nIt's built on top of AtomGPT from NIST, fine-tuned on materials science data.\n\n→ Predicts ductility across refractory high-entropy alloys (multi-element metals designed for extreme environments)\n→ Uses electronic and mechanical properties of candidate materials as screening inputs\n→ Validated against experimental data with \"high fidelity and low uncertainty\" per the Acta Materialia paper\n→ Can query specific composition spaces like tungsten-titanium-zirconium-hafnium for targeted screening\n\nThe AI pattern here transfers directly to fission.\n\nMaterial qualification is one of the longest lead-time activities in reactor licensing. Physics-constrained LLMs that narrow candidate materials before expensive irradiation testing could shave years off SMR fuel cladding and structural component development, the same way DuctGPT accelerates fusion wall design.\n\n#NuclearEnergy #AIinEnergy #NuclearAI #MachineLearning",
+      "firstComment": "What's the longest you've ever waited on a materials qualification cycle? Months? Years?",
+      "title": "AI Accelerates Fusion Material Research",
+      "postType": "explainer",
+      "sourceTitle": "New AI tool to identify materials for plasma-facing components",
+      "sourceUrl": "https://www.ans.org/news/2026-05-07/article-8011/new-ai-tool-to-identify-materials-for-plasmafacing-components/",
+      "sourceDate": "2026-05-07T14:08:20.000Z",
+      "sourceFeed": "ANS Newswire",
+      "generatedAt": "2026-05-07T14:56:23.464Z",
+      "imageUrl": "https://www.ans.org/file/24225/l/New_image_DuctGPT 2x1.jpg",
+      "wordCount": 212,
+      "screening": {
+        "cringeScore": 4,
+        "reasoning": "The post is technically solid and reads like someone who knows the field. The hook is strong and under 140 chars. However, there are structural violations: the mini-paragraph about tungsten (chars ~310) is followed by another section that functions as a mini-paragraph, and the bullet section plus surrounding one-liners don't maintain strict 2:1 rhythm. Several technical terms go unexplained (density of states at the Fermi level, elastic constants, valence electron concentration, refractory high-entropy alloys gets only a partial gloss). The closing paragraph uses a contrasting reframe-adjacent structure ('If X can narrow... before Y') which is fine, but 'compresses timelines' is vague. The first comment is empty, which needs fixing.",
+        "revisedContent": "Ames National Laboratory's DuctGPT can screen thousands of material combinations in seconds. Fusion just got faster.\n\nHere's what makes this interesting for AI folks.\n\nFusion reactors need materials that survive extreme conditions. The dominant candidate for plasma-facing components is tungsten: great melting point, great strength, but brittle at low temperatures. That makes it hard to fabricate into complex reactor shapes.\n\nFinding better alloys used to require slow, expensive physical experiments. DuctGPT flips the search process.\n\nIt's built on top of AtomGPT from NIST, fine-tuned on materials science data.\n\n→ Predicts ductility across refractory high-entropy alloys (multi-element metals designed for extreme environments)\n→ Uses electronic and mechanical properties of candidate materials as screening inputs\n→ Validated against experimental data with \"high fidelity and low uncertainty\" per the Acta Materialia paper\n→ Can query specific composition spaces like tungsten-titanium-zirconium-hafnium for targeted screening\n\nThe AI pattern here transfers directly to fission.\n\nMaterial qualification is one of the longest lead-time activities in reactor licensing. Physics-constrained LLMs that narrow candidate materials before expensive irradiation testing could shave years off SMR fuel cladding and structural component development, the same way DuctGPT accelerates fusion wall design.\n\n#NuclearEnergy #AIinEnergy #NuclearAI #MachineLearning",
+        "revisedFirstComment": "What's the longest you've ever waited on a materials qualification cycle? Months? Years?"
+      },
+      "loopbackComment": "DuctGPT pulls in density of states at the Fermi level and valence electron concentration as inputs, positioning it closer to a physics-informed surrogate model than a typical fine-tuned LLM. This distinction matters when extrapolating beyond your training set into unexplored RHEA compositional spaces.\n\nHow much does that physics grounding actually improve prediction fidelity compared to data-only approaches?",
+      "stockImageUrl": "https://images.unsplash.com/photo-1576669801838-1b1c52121e6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwd2l0aCUyMGNvbXB1dGVyc3xlbnwxfHx8fDE3NzgxNjU5NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "National Cancer Institute",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/NaqHdUS5mno/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwd2l0aCUyMGNvbXB1dGVyc3xlbnwxfHx8fDE3NzgxNjU5NjN8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1576669801838-1b1c52121e6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwd2l0aCUyMGNvbXB1dGVyc3xlbnwxfHx8fDE3NzgxNjU5NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "National Cancer Institute",
+          "downloadUrl": "https://api.unsplash.com/photos/NaqHdUS5mno/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxNb2Rlcm4lMjBsYWJvcmF0b3J5JTIwd29ya3NwYWNlJTIwd2l0aCUyMGNvbXB1dGVyc3xlbnwxfHx8fDE3NzgxNjU5NjN8MA",
+          "description": "desktop monitor beside computer tower on inside room"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1768550996767-da1461a0cc3d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw3fHxTY2llbnRpc3QlMjBleGFtaW5pbmclMjBtZXRhbCUyMHNhbXBsZXMlMjB1bmRlciUyMGxpZ2h0fGVufDF8fHx8MTc3ODE2NTk2NHww&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "EvoMao",
+          "downloadUrl": "https://api.unsplash.com/photos/3dNJTkUHiz0/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw3fHxTY2llbnRpc3QlMjBleGFtaW5pbmclMjBtZXRhbCUyMHNhbXBsZXMlMjB1bmRlciUyMGxpZ2h0fGVufDF8fHx8MTc3ODE2NTk2NHww",
+          "description": "Person examining a glowing blue object under light."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1639322537138-5e513100b36e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxNYXplJTIwb3IlMjBuZXR3b3JrJTIwb2YlMjBjb25uZWN0ZWQlMjBwYXRod2F5c3xlbnwxfHx8fDE3NzgxNjU5NjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Shubham Dhage",
+          "downloadUrl": "https://api.unsplash.com/photos/R2HtYWs5-QA/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw0fHxNYXplJTIwb3IlMjBuZXR3b3JrJTIwb2YlMjBjb25uZWN0ZWQlMjBwYXRod2F5c3xlbnwxfHx8fDE3NzgxNjU5NjV8MA",
+          "description": "a group of cubes that are connected to each other"
+        }
+      ],
+      "generatedImagePath": "C:\\Users\\Admin\\Documents\\Repos\\atomic-authority-agent\\generated_images\\custom_1778166074298.jpg"
+    },
+    "screening": {
+      "cringeScore": 4,
+      "reasoning": "The post is technically solid and reads like someone who knows the field. The hook is strong and under 140 chars. However, there are structural violations: the mini-paragraph about tungsten (chars ~310) is followed by another section that functions as a mini-paragraph, and the bullet section plus surrounding one-liners don't maintain strict 2:1 rhythm. Several technical terms go unexplained (density of states at the Fermi level, elastic constants, valence electron concentration, refractory high-entropy alloys gets only a partial gloss). The closing paragraph uses a contrasting reframe-adjacent structure ('If X can narrow... before Y') which is fine, but 'compresses timelines' is vague. The first comment is empty, which needs fixing.",
+      "revisedContent": "Ames National Laboratory's DuctGPT can screen thousands of material combinations in seconds. Fusion just got faster.\n\nHere's what makes this interesting for AI folks.\n\nFusion reactors need materials that survive extreme conditions. The dominant candidate for plasma-facing components is tungsten: great melting point, great strength, but brittle at low temperatures. That makes it hard to fabricate into complex reactor shapes.\n\nFinding better alloys used to require slow, expensive physical experiments. DuctGPT flips the search process.\n\nIt's built on top of AtomGPT from NIST, fine-tuned on materials science data.\n\n→ Predicts ductility across refractory high-entropy alloys (multi-element metals designed for extreme environments)\n→ Uses electronic and mechanical properties of candidate materials as screening inputs\n→ Validated against experimental data with \"high fidelity and low uncertainty\" per the Acta Materialia paper\n→ Can query specific composition spaces like tungsten-titanium-zirconium-hafnium for targeted screening\n\nThe AI pattern here transfers directly to fission.\n\nMaterial qualification is one of the longest lead-time activities in reactor licensing. Physics-constrained LLMs that narrow candidate materials before expensive irradiation testing could shave years off SMR fuel cladding and structural component development, the same way DuctGPT accelerates fusion wall design.\n\n#NuclearEnergy #AIinEnergy #NuclearAI #MachineLearning",
+      "revisedFirstComment": "What's the longest you've ever waited on a materials qualification cycle? Months? Years?"
+    },
+    "finalContent": "Ames National Laboratory's DuctGPT can screen thousands of material combinations in seconds. Fusion just got faster.\n\nHere's what makes this interesting for AI folks.\n\nFusion reactors need materials that survive extreme conditions. The dominant candidate for plasma-facing components is tungsten: great melting point, great strength, but brittle at low temperatures. That makes it hard to fabricate into complex reactor shapes.\n\nFinding better alloys used to require slow, expensive physical experiments. DuctGPT flips the search process.\n\nIt's built on top of AtomGPT from NIST, fine-tuned on materials science data.\n\n→ Predicts ductility across refractory high-entropy alloys (multi-element metals designed for extreme environments)\n→ Uses electronic and mechanical properties of candidate materials as screening inputs\n→ Validated against experimental data with \"high fidelity and low uncertainty\" per the Acta Materialia paper\n→ Can query specific composition spaces like tungsten-titanium-zirconium-hafnium for targeted screening\n\nThe AI pattern here transfers directly to fission.\n\nMaterial qualification is one of the longest lead-time activities in reactor licensing. Physics-constrained LLMs that narrow candidate materials before expensive irradiation testing could shave years off SMR fuel cladding and structural component development, the same way DuctGPT accelerates fusion wall design.\n\n#NuclearEnergy #AIinEnergy #NuclearAI #MachineLearning",
+    "status": "published",
+    "createdAt": "2026-05-07T14:59:04.096Z",
+    "wordCount": 193,
+    "imageChoice": "custom",
+    "actedAt": "2026-05-07T15:01:14.324Z",
+    "scheduledFor": "2026-05-12T19:07:00.000Z",
+    "publishedAt": "2026-05-12T19:07:00.000Z",
+    "loopbackStatus": "reminder_sent",
+    "firstCommentReminderSent": true
+  },
+  {
+    "id": "post_1778679158651",
+    "draft": {
+      "content": "Your cybersecurity team isn't ready for what the IAEA just outlined at this week's nuclear conference.\n\nThe concept nuclear pros need to understand here is \"attack surface.\"\n\nIn AI, that means every sensor, data pipeline, and model endpoint where a system accepts input is a potential entry point for an adversary. When you layer AI onto nuclear facility operations, you don't just inherit the existing cyber risk profile. You multiply the places someone can probe, manipulate, or inject bad data.\n\nDefense-in-depth already governs reactor safety design. The same layered logic applies to cyber architecture.\n\n→ The IAEA conference ran June 2–6, 2025, with 1,300+ participants from 110+ countries\n→ Director General Grossi called computer security \"a matter of national security\"\n→ The conference addressed AI as both a defensive tool and a new vulnerability vector\n→ This was the IAEA's largest-ever gathering on nuclear computer security\n\nAI systems in nuclear facilities need deterministic guardrails. Those guardrails constrain outputs within pre-validated safety envelopes, regardless of what data an attacker feeds the model.\n\nIf your cyber strategy doesn't account for AI-specific attack surfaces, it has a gap that adversaries will find first.\n\n#NuclearEnergy #AIinEnergy #NuclearSafety #CriticalInfrastructure",
+      "firstComment": "What's the weakest link in your facility's cyber architecture, the OT network or the people?",
+      "title": "Nuclear Security Readiness Gap",
+      "postType": "explainer",
+      "sourceTitle": "Cyber Threats, AI and Nuclear: IAEA Hosts Conference on Computer Security",
+      "sourceUrl": "http://www.iaea.org/newscenter/news/cyber-threats-ai-and-nuclear-iaea-hosts-conference-on-computer-security",
+      "sourceDate": "2026-05-11T12:30:00.000Z",
+      "sourceFeed": "IAEA",
+      "generatedAt": "2026-05-13T13:29:49.852Z",
+      "imageUrl": "http://www.iaea.org/sites/default/files/styles/width_555px_6_units_16_9/public/2026-05/55263272605_c9864ec352_o.jpg?itok=IMrzdwek",
+      "wordCount": 201,
+      "screening": {
+        "cringeScore": 5,
+        "reasoning": "The hook is strong — punchy, under 140 chars, creates tension. But the post has structural violations (multiple adjacent one-liners and paragraphs outside the allowed character ranges), and 'attack surface' is explained well but the post drifts into white-paper tone in places. The bullet section is good. The first comment is empty, which needs fixing. No contrasting reframes detected. Some AI-ish patterns: the final line ('you're defending yesterday's plant') is a bit LinkedIn-motivational.",
+        "revisedContent": "Your cybersecurity team isn't ready for what the IAEA just outlined at this week's nuclear conference.\n\nThe concept nuclear pros need to understand here is \"attack surface.\"\n\nIn AI, that means every sensor, data pipeline, and model endpoint where a system accepts input is a potential entry point for an adversary. When you layer AI onto nuclear facility operations, you don't just inherit the existing cyber risk profile. You multiply the places someone can probe, manipulate, or inject bad data.\n\nDefense-in-depth already governs reactor safety design. The same layered logic applies to cyber architecture.\n\n→ The IAEA conference ran June 2–6, 2025, with 1,300+ participants from 110+ countries\n→ Director General Grossi called computer security \"a matter of national security\"\n→ The conference addressed AI as both a defensive tool and a new vulnerability vector\n→ This was the IAEA's largest-ever gathering on nuclear computer security\n\nAI systems in nuclear facilities need deterministic guardrails. Those guardrails constrain outputs within pre-validated safety envelopes, regardless of what data an attacker feeds the model.\n\nIf your cyber strategy doesn't account for AI-specific attack surfaces, it has a gap that adversaries will find first.\n\n#NuclearEnergy #AIinEnergy #NuclearSafety #CriticalInfrastructure",
+        "revisedFirstComment": "What's the weakest link in your facility's cyber architecture, the OT network or the people?"
+      },
+      "loopbackComment": "One detail worth examining: the IAEA conference specifically flagged insider threats alongside external actors. That changes your zero-trust architecture conversation considerably. Privileged access management for OT environments is a different problem than IT, and most facilities haven't closed that gap.\n\nWhere does your PAM policy actually stop at the air gap?",
+      "stockImageUrl": "https://images.unsplash.com/photo-1680992046626-418f7e910589?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxDb21wdXRlciUyMHNlcnZlciUyMHJvb20lMjB3aXRoJTIwZ2xvd2luZyUyMGxpZ2h0c3xlbnwxfHx8fDE3Nzg2NzkxNzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "stockImagePhotographer": "Tyler",
+      "stockImageDownloadUrl": "https://api.unsplash.com/photos/OnI_TNcIv9U/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxDb21wdXRlciUyMHNlcnZlciUyMHJvb20lMjB3aXRoJTIwZ2xvd2luZyUyMGxpZ2h0c3xlbnwxfHx8fDE3Nzg2NzkxNzR8MA",
+      "stockImageOptions": [
+        {
+          "url": "https://images.unsplash.com/photo-1680992046626-418f7e910589?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxDb21wdXRlciUyMHNlcnZlciUyMHJvb20lMjB3aXRoJTIwZ2xvd2luZyUyMGxpZ2h0c3xlbnwxfHx8fDE3Nzg2NzkxNzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Tyler",
+          "downloadUrl": "https://api.unsplash.com/photos/OnI_TNcIv9U/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwxfHxDb21wdXRlciUyMHNlcnZlciUyMHJvb20lMjB3aXRoJTIwZ2xvd2luZyUyMGxpZ2h0c3xlbnwxfHx8fDE3Nzg2NzkxNzR8MA",
+          "description": "a rack of electronic equipment in a dark room"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1714976327073-773f0d83a5be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxUZWFtJTIwb2YlMjBlbmdpbmVlcnMlMjBzdHVkeWluZyUyMGJsdWVwcmludHMlMjB0b2dldGhlcnxlbnwxfHx8fDE3Nzg2NzkxNzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Vitaly Gariev",
+          "downloadUrl": "https://api.unsplash.com/photos/PZilVx5rWF4/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHwyfHxUZWFtJTIwb2YlMjBlbmdpbmVlcnMlMjBzdHVkeWluZyUyMGJsdWVwcmludHMlMjB0b2dldGhlcnxlbnwxfHx8fDE3Nzg2NzkxNzV8MA",
+          "description": "a group of people sitting around a table working on a project"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1744594041996-e1ae254a908f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw3fHxOZXQlMjB3aXRoJTIwbXVsdGlwbGUlMjBob2xlcyUyMGFuZCUyMGdhcHN8ZW58MXx8fHwxNzc4Njc5MTc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+          "photographer": "Rodrigo Araya",
+          "downloadUrl": "https://api.unsplash.com/photos/QZdhjAaX944/download?ixid=M3w5MjQ4ODh8MHwxfHNlYXJjaHw3fHxOZXQlMjB3aXRoJTIwbXVsdGlwbGUlMjBob2xlcyUyMGFuZCUyMGdhcHN8ZW58MXx8fHwxNzc4Njc5MTc3fDA",
+          "description": "Stone wall with many square holes."
+        }
+      ]
+    },
+    "screening": {
+      "cringeScore": 5,
+      "reasoning": "The hook is strong — punchy, under 140 chars, creates tension. But the post has structural violations (multiple adjacent one-liners and paragraphs outside the allowed character ranges), and 'attack surface' is explained well but the post drifts into white-paper tone in places. The bullet section is good. The first comment is empty, which needs fixing. No contrasting reframes detected. Some AI-ish patterns: the final line ('you're defending yesterday's plant') is a bit LinkedIn-motivational.",
+      "revisedContent": "Your cybersecurity team isn't ready for what the IAEA just outlined at this week's nuclear conference.\n\nThe concept nuclear pros need to understand here is \"attack surface.\"\n\nIn AI, that means every sensor, data pipeline, and model endpoint where a system accepts input is a potential entry point for an adversary. When you layer AI onto nuclear facility operations, you don't just inherit the existing cyber risk profile. You multiply the places someone can probe, manipulate, or inject bad data.\n\nDefense-in-depth already governs reactor safety design. The same layered logic applies to cyber architecture.\n\n→ The IAEA conference ran June 2–6, 2025, with 1,300+ participants from 110+ countries\n→ Director General Grossi called computer security \"a matter of national security\"\n→ The conference addressed AI as both a defensive tool and a new vulnerability vector\n→ This was the IAEA's largest-ever gathering on nuclear computer security\n\nAI systems in nuclear facilities need deterministic guardrails. Those guardrails constrain outputs within pre-validated safety envelopes, regardless of what data an attacker feeds the model.\n\nIf your cyber strategy doesn't account for AI-specific attack surfaces, it has a gap that adversaries will find first.\n\n#NuclearEnergy #AIinEnergy #NuclearSafety #CriticalInfrastructure",
+      "revisedFirstComment": "What's the weakest link in your facility's cyber architecture, the OT network or the people?"
+    },
+    "finalContent": "Your cybersecurity team isn't ready for what the IAEA just outlined at this week's nuclear conference.\n\nThe concept nuclear pros need to understand here is \"attack surface.\"\n\nIn AI, that means every sensor, data pipeline, and model endpoint where a system accepts input is a potential entry point for an adversary. When you layer AI onto nuclear facility operations, you don't just inherit the existing cyber risk profile. You multiply the places someone can probe, manipulate, or inject bad data.\n\nDefense-in-depth already governs reactor safety design. The same layered logic applies to cyber architecture.\n\n→ The IAEA conference ran June 2–6, 2025, with 1,300+ participants from 110+ countries\n→ Director General Grossi called computer security \"a matter of national security\"\n→ The conference addressed AI as both a defensive tool and a new vulnerability vector\n→ This was the IAEA's largest-ever gathering on nuclear computer security\n\nAI systems in nuclear facilities need deterministic guardrails. Those guardrails constrain outputs within pre-validated safety envelopes, regardless of what data an attacker feeds the model.\n\nIf your cyber strategy doesn't account for AI-specific attack surfaces, it has a gap that adversaries will find first.\n\n#NuclearEnergy #AIinEnergy #NuclearSafety #CriticalInfrastructure",
+    "status": "published",
+    "createdAt": "2026-05-13T13:32:38.651Z",
+    "wordCount": 194,
+    "imageChoice": "og",
+    "actedAt": "2026-05-13T13:33:54.240Z",
+    "scheduledFor": "2026-05-14T20:19:00.000Z",
+    "publishedAt": "2026-05-14T20:19:00.000Z",
+    "loopbackStatus": "reminder_sent",
+    "firstCommentReminderSent": true
   }
 ]

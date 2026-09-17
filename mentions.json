@@ -39,6 +39,10 @@
     "searchTerm": "Atomic Canyon",
     "verified": true
   },
+  "Blue Energy": {
+    "searchTerm": "Blue Energy",
+    "verified": true
+  },
   "Blue Ribbon Commission": {
     "searchTerm": "Blue Ribbon Commission",
     "verified": true
@@ -451,16 +455,24 @@
     "searchTerm": "YouTube",
     "verified": true
   },
-  "Blue Energy": {
-    "searchTerm": "Blue Energy",
+  "Ames National Laboratory": {
+    "searchTerm": "Ames National Laboratory",
     "verified": false
   },
   "Chalk River Laboratories": {
     "searchTerm": "Chalk River Laboratories",
     "verified": false
   },
+  "CICERO": {
+    "searchTerm": "CICERO",
+    "verified": false
+  },
   "GE Hitachi": {
     "searchTerm": "GE Hitachi",
+    "verified": false
+  },
+  "NIST": {
+    "searchTerm": "NIST",
     "verified": false
   },
   "NORAD": {
@@ -469,10 +481,6 @@
   },
   "PNNL": {
     "searchTerm": "PNNL",
-    "verified": false
-  },
-  "TRIGA": {
-    "searchTerm": "TRIGA",
     "verified": false
   }
 }
